@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سامانه آموزشی ویدا - صفحه اصلی</title>
+    <meta name="msapplication-wide310x150logo" content="mstile-310x150.png" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* استایل مدرن برای روزشمار */
+        .countdown-modern {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 0;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .countdown-container {
+            padding: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .countdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .countdown-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--text-color);
+        }
+
+        .countdown-logo i {
+            color: var(--primary);
+            font-size: 1.6rem;
+        }
+
+        .exclusivity-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .countdown-content {
+            text-align: center;
+        }
+
+        .countdown-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.2;
+            color: var(--text-color);
+        }
+
+        .countdown-title span {
+            background: linear-gradient(135deg, var(--primary), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.8rem;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .countdown-description {
+            color: var(--text-color);
+            opacity: 0.8;
+            max-width: 500px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            width: 80px;
+            height: 80px;
+            background: var(--card);
+            border: 2px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+        }
+
+        .countdown-number::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: scanline 2s linear infinite;
+        }
+
+        .countdown-number:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .countdown-item:last-child .countdown-number {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .countdown-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .countdown-progress {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin-bottom: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--green));
+            border-radius: 3px;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        .countdown-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(79, 70, 229, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(79, 70, 229, 0.03) 1px, transparent 1px);
+            background-size: 25px 25px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .countdown-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: var(--primary);
+            filter: blur(60px);
+            opacity: 0.1;
+            z-index: 1;
+            animation: float 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .countdown-glow:nth-child(1) {
+            top: -50px;
+            right: -50px;
+            animation-delay: 0s;
+        }
+
+        .countdown-glow:nth-child(2) {
+            bottom: -50px;
+            left: -50px;
+            animation-delay: 3s;
+        }
+
+        @keyframes scanline {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                border-color: var(--border-color);
+            }
+            50% {
+                transform: scale(1.05);
+                border-color: var(--primary);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+            }
+        }
+
+        /* موبایل */
+        @media (max-width: 768px) {
+            .countdown-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .countdown-number {
+                font-size: 2rem;
+                width: 70px;
+                height: 70px;
+            }
+            
+            .countdown-title {
+                font-size: 2.2rem;
+            }
+            
+            .countdown-title span {
+                font-size: 1.4rem;
+            }
+            
+            .countdown-container {
+                padding: 25px 20px;
+            }
+            
+            .countdown-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .countdown-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .countdown-number {
+                font-size: 1.8rem;
+                width: 60px;
+                height: 60px;
+            }
+            
+            .countdown-title {
+                font-size: 1.8rem;
+            }
+            
+            .countdown-description {
+                font-size: 0.9rem;
+                margin-bottom: 30px;
+            }
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(79, 70, 229, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            z-index: 0;
+        }
+        
+        .floating-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .floating-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+        
+        .floating-card:hover::before {
+            opacity: 1;
+        }
+        
+        .floating-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-primary, .btn-secondary, .btn-accent, .btn-ai {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #059669 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-secondary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #d97706 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-accent::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-accent:hover::before {
+            left: 100%;
+        }
+        
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+        }
+        
+        /* استایل جدید برای دکمه نظارت هوشمند */
+        .btn-ai {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-ai::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-ai:hover::before {
+            left: 100%;
+        }
+        
+        .btn-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .stats-card {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            transform: translateY(-5px);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            margin: 4rem 0;
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body onload="renderModernCountdown()" class="min-h-screen">
+
+    <!-- نوار ناوبری -->
+    <nav class="py-4 px-6 md:px-12 bg-opacity-80 bg-slate-900 backdrop-blur-md sticky top-0 z-50 border-b border-slate-700">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center ml-3">
+                    <i class="fas fa-graduation-cap text-white"></i>
+                </div>
+                <span class="text-xl font-bold gradient-text">سامانه آموزشی ویدا</span>
+            </div>
+            
+            <!-- منوی دسکتاپ -->
+            <div class="hidden md:flex space-x-2 space-x-reverse">
+                <a href="#" class="nav-link text-slate-200 font-medium">صفحه اصلی</a>
+                <a href="#" class="nav-link text-slate-400 hover:text-slate-200 font-medium">درباره ما</a>
+                <a href="#" class="nav-link text-slate-400 hover:text-slate-200 font-medium">تماس با ما</a>
+            </div>
+            
+            <!-- دکمه منوی موبایل -->
+            <button id="mobileMenuButton" class="md:hidden text-slate-300">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- منوی موبایل -->
+        <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-slate-900 p-6 md:hidden">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center ml-2">
+                        <i class="fas fa-graduation-cap text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold gradient-text">سامانه آموزشی ویدا</span>
+                </div>
+                <button id="closeMobileMenu" class="text-slate-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="flex flex-col space-y-4">
+                <a href="#" class="text-slate-200 font-medium py-2 border-b border-slate-700">صفحه اصلی</a>
+                <a href="#" class="text-slate-400 hover:text-slate-200 font-medium py-2 border-b border-slate-700">درباره ما</a>
+                <a href="#" class="text-slate-400 hover:text-slate-200 font-medium py-2 border-b border-slate-700">تماس با ما</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- بخش اصلی -->
+    <main>
+        <!-- بخش قهرمان -->
+        <section class="hero-section py-16 md:py-24 px-6 md:px-12">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="md:w-1/2 mb-12 md:mb-0 text-center md:text-right">
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                            <span class="text-white">سامانه پیشرفته</span>
+                            <span class="gradient-text block mt-2">آموزش و ارزیابی</span>
+                        </h1>
+                        <p class="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl">
+                            با استفاده از ابزارهای پیشرفته آموزشی، دانش خود را محک بزنید و مهارت‌هایتان را بهبود بخشید. سیستم هوشمند ما به شما کمک می‌کند تا نقاط قوت و ضعف خود را شناسایی کنید.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                            <a href="/public_exam" class="btn-primary pulse">
+                                <i class="fas fa-play-circle ml-2"></i>
+                                شروع آزمون خودارزیابی
+                            </a>
+                            <a href="/exam" class="btn-secondary">
+                                <i class="fas fa-cog ml-2"></i>
+                                مدیریت سوالات
+                            </a>
+                            <a href="/planner" class="btn-accent">
+                                <i class="fas fa-calendar-alt ml-2"></i>
+                                برنامه‌ریزی درسی
+                            </a>
+                            <!-- دکمه جدید نظارت هوشمند -->
+                            <a href="/study_ai" class="btn-ai">
+                                <i class="fas fa-robot ml-2"></i>
+                                نظارت هوشمند
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/2 flex justify-center">
+                        <div class="relative">
+                            <div class="floating-card w-80 h-80 md:w-96 md:h-96 p-8 floating">
+                                <div class="card-content h-full flex flex-col items-center justify-center text-center">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-brain"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-bold text-white mb-4">یادگیری هوشمند</h3>
+                                    <p class="text-slate-300 mb-6">سیستم ما با تحلیل پاسخ‌های شما، نقاط ضعف را شناسایی و تمرین‌های هدفمند ارائه می‌دهد.</p>
+                                    <div class="w-12 h-1 bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full mx-auto"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- عناصر تزئینی -->
+                            <div class="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-indigo-500 opacity-20"></div>
+                            <div class="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-emerald-500 opacity-20"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- بخش ویژگی‌ها -->
+        <section class="py-16 px-6 md:px-12">
+            <!-- روزشمار تا 12 تیر 1405 -->
+            <div class="countdown-modern mb-20">
+                <div class="countdown-container">
+                    <div class="countdown-header">
+                        <div class="countdown-logo">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>ویدا</span>
+                        </div>
+                        <div class="exclusivity-badge">تا هدف تحصیلی</div>
+                    </div>
+                    
+                    <div class="countdown-content">
+                        <h2 class="countdown-title">۱۲ تیر ۱۴۰۵<br><span>روز موعود</span></h2>
+                        
+                        <p class="countdown-description">تا روز هدف تحصیلی خود تنها چند روز باقی مانده. با برنامه‌ریزی دقیق و مطالعه مستمر به موفقیت برسید.</p>
+                        
+                        <div dir="ltr" class="countdown-grid">
+                            <div class="countdown-item">
+                                <div class="countdown-number" id="modern-days">۰۰</div>
+                                <div class="countdown-label">روز</div>
+                            </div>
+                            <div class="countdown-item">
+                                <div class="countdown-number" id="modern-hours">۰۰</div>
+                                <div class="countdown-label">ساعت</div>
+                            </div>
+                            <div class="countdown-item">
+                                <div class="countdown-number" id="modern-minutes">۰۰</div>
+                                <div class="countdown-label">دقیقه</div>
+                            </div>
+                            <div class="countdown-item">
+                                <div class="countdown-number" id="modern-seconds">۰۰</div>
+                                <div class="countdown-label">ثانیه</div>
+                            </div>
+                        </div>
+                        
+                        <div class="countdown-progress">
+                            <div class="progress-text" id="modern-progress-text">در حال شمارش...</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="modern-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="countdown-pattern"></div>
+                    <div class="countdown-glow"></div>
+                    <div class="countdown-glow"></div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">ویژگی‌های سامانه</h2>
+                    <p class="text-slate-300 max-w-2xl mx-auto">ابزارهای متنوع و پیشرفته برای بهبود فرآیند یادگیری و ارزیابی</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- ویژگی ۱ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-chart-line text-white text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">تحلیل پیشرفت</h3>
+                            <p class="text-slate-300">با نمودارهای دقیق، روند پیشرفت خود را دنبال کنید و نقاط قوت و ضعف را شناسایی نمایید.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- ویژگی ۲ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-microphone text-white text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">ورود صوتی</h3>
+                            <p class="text-slate-300">با استفاده از قابلیت تشخیص صدا، سوالات خود را به راحتی و سرعت بیشتری وارد کنید.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- ویژگی ۳ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-bolt text-white text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">یادگیری تطبیقی</h3>
+                            <p class="text-slate-300">سیستم با توجه به عملکرد شما، سوالات مناسب‌تری برای تمرین ارائه می‌دهد.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- ویژگی ۴ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-trophy text-white text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">سیستم امتیازدهی</h3>
+                            <p class="text-slate-300">با جمع‌آوری امتیاز و کسب نشان‌های مختلف، انگیزه خود برای یادگیری افزایش دهید.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- ویژگی ۵ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-clock text-white text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">مدیریت زمان</h3>
+                            <p class="text-slate-300">با تایمرهای هوشمند، زمان پاسخگویی به سوالات را مدیریت و بهبود بخشید.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- ویژگی ۶ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-mobile-alt text-white text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">طراحی واکنش‌گرا</h3>
+                            <p class="text-slate-300">در هر دستگاه و هر اندازه صفحه‌نمایش، تجربه کاربری یکپارچه و مطلوبی داشته باشید.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- بخش آمار -->
+        <section class="py-16 px-6 md:px-12 bg-slate-800 bg-opacity-50">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="stats-card text-center">
+                        <div class="text-3xl font-bold text-white mb-2">۵,۰۰۰+</div>
+                        <div class="text-slate-300">سوال ایجاد شده</div>
+                    </div>
+                    <div class="stats-card text-center">
+                        <div class="text-3xl font-bold text-white mb-2">۲,۵۰۰+</div>
+                        <div class="text-slate-300">کاربر فعال</div>
+                    </div>
+                    <div class="stats-card text-center">
+                        <div class="text-3xl font-bold text-white mb-2">۹۸%</div>
+                        <div class="text-slate-300">رضایت کاربران</div>
+                    </div>
+                    <div class="stats-card text-center">
+                        <div class="text-3xl font-bold text-white mb-2">۱۵۰+</div>
+                        <div class="text-slate-300">موضوع آموزشی</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- بخش اقدام به عمل -->
+        <section class="py-16 md:py-24 px-6 md:px-12">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">آماده شروع هستید؟</h2>
+                <p class="text-slate-300 text-lg mb-10 max-w-2xl mx-auto">
+                    همین حالا یادگیری خود را متحول کنید. با استفاده از ابزارهای پیشرفته ما، دانش خود را ارزیابی و بهبود بخشید.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/public_exam" class="btn-primary text-lg py-3 px-8">
+                        <i class="fas fa-rocket ml-2"></i>
+                        شروع آزمون خودارزیابی
+                    </a>
+                    <a href="/exam" class="btn-secondary text-lg py-3 px-8">
+                        <i class="fas fa-cogs ml-2"></i>
+                        مدیریت سوالات صحیح/غلط
+                    </a>
+                    <a href="/planner" class="btn-accent text-lg py-3 px-8">
+                        <i class="fas fa-calendar-check ml-2"></i>
+                        برنامه‌ریزی درسی
+                    </a>
+                    <!-- دکمه جدید نظارت هوشمند -->
+                    <a href="/study_ai" class="btn-ai text-lg py-3 px-8">
+                        <i class="fas fa-robot ml-2"></i>
+                        نظارت هوشمند بر مطالعه
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- پاورقی -->
+    <footer class="py-12 px-6 md:px-12 bg-slate-900 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center ml-3">
+                            <i class="fas fa-graduation-cap text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold gradient-text">سامانه آموزشی ویدا</span>
+                    </div>
+                    <p class="text-slate-400 mb-6 max-w-md">
+                        سامانه پیشرفته آموزشی با هدف بهبود فرآیند یادگیری و ارزیابی طراحی شده است. با استفاده از تکنولوژی‌های روز، تجربه‌ای متفاوت از آموزش را ارائه می‌دهیم.
+                    </p>
+                    <div class="flex space-x-4 space-x-reverse">
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-blue-600 hover:text-white transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-blue-800 hover:text-white transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-pink-600 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-4">لینک‌های مفید</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">صفحه اصلی</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">درباره ما</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">تماس با ما</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">قوانین و مقررات</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-4">خدمات ما</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/public_exam" class="text-slate-400 hover:text-white transition-colors">آزمون خودارزیابی</a></li>
+                        <li><a href="/exam" class="text-slate-400 hover:text-white transition-colors">مدیریت سوالات</a></li>
+                        <li><a href="/planner" class="text-slate-400 hover:text-white transition-colors">برنامه‌ریزی درسی</a></li>
+                        <li><a href="/study_ai" class="text-slate-400 hover:text-white transition-colors">نظارت هوشمند بر مطالعه</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section-divider mt-12"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center pt-6">
+                <p class="text-slate-500 text-sm">ویدا | برنامه نویسی شده با ❤ توسط Parham Janjan</p>
+                <div class="flex space-x-6 space-x-reverse mt-4 md:mt-0">
+                    <a href="#" class="text-slate-500 hover:text-slate-300 text-sm">حریم خصوصی</a>
+                    <a href="#" class="text-slate-500 hover:text-slate-300 text-sm">شرایط استفاده</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* ---------------------------
+           روزشمار مدرن تا 12 تیر 1405
+           --------------------------- */
+        function calculateModernTimeRemaining() {
+            // تاریخ هدف: 12 تیر 1405
+            // 12 تیر 1405 = 3 جولای 2026
+            const targetDate = new Date(2026, 6, 3, 23, 59, 59);
+            
+            const now = new Date();
+            const diffTime = targetDate - now;
+            
+            if (diffTime <= 0) {
+                return {
+                    days: 0,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0,
+                    totalSeconds: 0,
+                    isExpired: true
+                };
+            }
+            
+            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+            
+            return {
+                days,
+                hours,
+                minutes,
+                seconds,
+                totalSeconds: Math.floor(diffTime / 1000),
+                isExpired: false
+            };
+        }
+
+        function formatModernTimeUnit(value) {
+            return value.toString().padStart(2, '0');
+        }
+
+        let lastModernSeconds = -1;
+
+        function updateModernCountdown() {
+            const timeRemaining = calculateModernTimeRemaining();
+            
+            // به‌روزرسانی مقادیر
+            document.getElementById('modern-days').textContent = formatModernTimeUnit(timeRemaining.days);
+            document.getElementById('modern-hours').textContent = formatModernTimeUnit(timeRemaining.hours);
+            document.getElementById('modern-minutes').textContent = formatModernTimeUnit(timeRemaining.minutes);
+            document.getElementById('modern-seconds').textContent = formatModernTimeUnit(timeRemaining.seconds);
+            
+            // محاسبه پیشرفت
+            const totalDays = 730; // 2 سال
+            const progress = Math.max(0, Math.min(100, ((totalDays - timeRemaining.days) / totalDays) * 100));
+            
+            document.getElementById('modern-progress').style.width = `${progress}%`;
+            
+            // به‌روزرسانی متن پیشرفت
+            const progressText = document.getElementById('modern-progress-text');
+            if (timeRemaining.isExpired) {
+                progressText.textContent = '🎉 زمان به پایان رسید!';
+                progressText.style.color = 'var(--green)';
+            } else {
+                const percentage = Math.round(progress);
+                const daysText = timeRemaining.days.toLocaleString('fa-IR');
+                progressText.textContent = `${percentage}% از مسیر طی شده - ${daysText} روز باقی مانده`;
+                progressText.style.color = 'var(--text-color)';
+            }
+            
+            // افکت پالس برای ثانیه
+            if (timeRemaining.seconds !== lastModernSeconds) {
+                const secondsElement = document.getElementById('modern-seconds');
+                secondsElement.style.transform = 'scale(1.1)';
+                secondsElement.style.borderColor = 'var(--primary)';
+                
+                setTimeout(() => {
+                    secondsElement.style.transform = 'scale(1)';
+                    if (timeRemaining.seconds % 2 === 0) {
+                        secondsElement.style.borderColor = 'var(--border-color)';
+                    }
+                }, 300);
+                
+                lastModernSeconds = timeRemaining.seconds;
+            }
+        }
+
+        function startModernCountdown() {
+            // به‌روزرسانی اولیه
+            updateModernCountdown();
+            
+            // به‌روزرسانی هر ثانیه
+            setInterval(updateModernCountdown, 1000);
+        }
+
+        function renderModernCountdown() {
+            startModernCountdown();
+            
+            // اضافه کردن افکت hover به کارت‌ها
+            document.querySelectorAll('.countdown-number').forEach(box => {
+                box.addEventListener('mouseover', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.05)';
+                    this.style.boxShadow = '0 15px 30px rgba(79, 70, 229, 0.4)';
+                });
+                
+                box.addEventListener('mouseout', function() {
+                    this.style.transform = 'translateY(-5px) scale(1)';
+                    this.style.boxShadow = '0 10px 25px rgba(79, 70, 229, 0.3)';
+                });
+            });
+        }
+        
+        // مدیریت منوی موبایل
+        document.getElementById('mobileMenuButton').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.add('open');
+        });
+        
+        document.getElementById('closeMobileMenu').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.remove('open');
+        });
+        
+        // بستن منوی موبایل با کلیک بیرون از آن
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            
+            if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
+                mobileMenu.classList.remove('open');
+            }
+        });
+        
+        // انیمیشن اسکرول برای کارت‌ها
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // مشاهده کارت‌ها برای انیمیشن
+        document.querySelectorAll('.floating-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
