@@ -1,0 +1,3215 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیستم پیشرفته طراحی و پاسخ به سوالات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+       
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-success: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+        }
+
+/* استایل برای حالت‌های مختلف دکمه میکروفون */
+.voice-input-btn.listening {
+    background: var(--gradient-danger) !important;
+    animation: pulse 1.5s infinite;
+}
+
+.voice-input-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.voice-status.recording {
+    color: var(--danger-color);
+}
+
+.voice-status.success {
+    color: var(--secondary-color);
+}
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
+            z-index: 0;
+        }
+        
+        .floating-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .floating-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+        
+        .floating-card:hover::before {
+            opacity: 1;
+        }
+        
+        .floating-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 80px rgba(99, 102, 241, 0.1);
+        }
+        
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(1deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+        
+        .bounce-in {
+            animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .gradient-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .question-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        
+        .question-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .option-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .option-item.selected {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .option-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .option-item.selected .option-number {
+            background: var(--gradient-primary);
+            color: white;
+        }
+        
+        .short-answer-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            width: 100%;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .short-answer-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .tab-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            color: #94a3b8;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-button.active {
+            background: rgba(99, 102, 241, 0.2);
+            color: white;
+        }
+        
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            transition: width 0.3s ease;
+        }
+        
+        .tab-button.active::before {
+            width: 100%;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--gradient-primary);
+            transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            z-index: 1000;
+        }
+        
+        .success-animation {
+            animation: success 0.5s ease-out forwards;
+        }
+        
+        @keyframes success {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+        
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn.active {
+            background-color: var(--primary-color);
+            color: #111827;
+        }
+        
+        /* استایل‌های جدید برای دکمه‌های صحیح/غلط */
+        .true-false-btn {
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            max-width: 200px;
+            background: transparent;
+            color: #e2e8f0;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .true-false-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .true-false-btn.true::before {
+            background: var(--gradient-success);
+        }
+
+        .true-false-btn.false::before {
+            background: var(--gradient-danger);
+        }
+
+        .true-false-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .true-false-btn.selected {
+            color: white;
+            border-color: transparent;
+        }
+
+        .true-false-btn.selected::before {
+            opacity: 1;
+        }
+
+        .true-false-btn.selected.true {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+
+        .true-false-btn.selected.false {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .true-false-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .question-type-badge {
+            background: var(--gradient-secondary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* استایل‌های جدید برای دکمه‌های گزینه‌های چندگزینه‌ای */
+        .option-selector {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #e2e8f0;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-selector::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+            border-radius: 0.75rem;
+        }
+
+        .option-selector:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .option-selector.selected {
+            color: white;
+            border-color: transparent;
+        }
+
+        .option-selector.selected::before {
+            opacity: 1;
+        }
+
+        .option-selector.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .option-selector.selected::after {
+            content: '✓';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--gradient-success);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        /* استایل‌های جدید برای انیمیشن تیک سبز */
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid #4CAF50;
+        }
+        
+        .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+        
+        .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+        
+        .check-icon::before, .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background: #1e293b;
+            transform: rotate(-45deg);
+        }
+        
+        .icon-line {
+            height: 5px;
+            background-color: #4CAF50;
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 0.75s;
+        }
+        
+        .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 0.75s;
+        }
+        
+        @keyframes rotate-circle {
+            0% { transform: rotate(-45deg); }
+            5% { transform: rotate(-45deg); }
+            12% { transform: rotate(-405deg); }
+            100% { transform: rotate(-405deg); }
+        }
+        
+        @keyframes icon-line-tip {
+            0% { width: 0; left: 1px; top: 19px; }
+            54% { width: 0; left: 1px; top: 19px; }
+            70% { width: 50px; left: -8px; top: 37px; }
+            84% { width: 17px; left: 21px; top: 48px; }
+            100% { width: 25px; left: 14px; top: 45px; }
+        }
+        
+        @keyframes icon-line-long {
+            0% { width: 0; right: 46px; top: 54px; }
+            65% { width: 0; right: 46px; top: 54px; }
+            84% { width: 55px; right: 0px; top: 35px; }
+            100% { width: 47px; right: 8px; top: 38px; }
+        }
+        
+        /* استایل‌های جدید برای انیمیشن ضربدر قرمز */
+        .error-cross {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .cross-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid #f44336;
+        }
+        
+        .cross-line {
+            height: 5px;
+            background-color: #f44336;
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .cross-line.line1 {
+            top: 37px;
+            left: 18px;
+            width: 45px;
+            transform: rotate(45deg);
+            animation: cross-line1 0.75s;
+        }
+        
+        .cross-line.line2 {
+            top: 37px;
+            right: 18px;
+            width: 45px;
+            transform: rotate(-45deg);
+            animation: cross-line2 0.75s;
+        }
+        
+        @keyframes cross-line1 {
+            0% { width: 0; left: 40px; top: 40px; }
+            50% { width: 0; left: 40px; top: 40px; }
+            100% { width: 45px; left: 18px; top: 37px; }
+        }
+        
+        @keyframes cross-line2 {
+            0% { width: 0; right: 40px; top: 40px; }
+            50% { width: 0; right: 40px; top: 40px; }
+            100% { width: 45px; right: 18px; top: 37px; }
+        }
+        
+        /* استایل‌های جدید برای لرزش صفحه */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        /* استایل‌های جدید برای کاغذ رنگی‌های بهبود یافته */
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .floating-shape {
+            position: absolute;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            opacity: 0.1;
+            animation: float-shape 15s infinite linear;
+        }
+        
+        @keyframes float-shape {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(20px, 40px) rotate(90deg); }
+            50% { transform: translate(40px, 20px) rotate(180deg); }
+            75% { transform: translate(20px, 0px) rotate(270deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        
+        .shape-1 {
+            width: 120px;
+            height: 120px;
+            background: var(--gradient-primary);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape-2 {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-secondary);
+            top: 70%;
+            left: 80%;
+            animation-delay: -5s;
+        }
+        
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-accent);
+            top: 40%;
+            left: 70%;
+            animation-delay: -10s;
+        }
+        
+        .shape-4 {
+            width: 90px;
+            height: 90px;
+            background: var(--gradient-success);
+            top: 80%;
+            left: 20%;
+            animation-delay: -7s;
+        }
+        
+        /* استایل‌های جدید برای پاسخ خودکار */
+        .auto-check {
+            position: relative;
+        }
+        
+        .auto-check-indicator {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .auto-check-indicator.correct {
+            background: var(--gradient-success);
+            color: white;
+            opacity: 1;
+        }
+        
+        .auto-check-indicator.incorrect {
+            background: var(--gradient-danger);
+            color: white;
+            opacity: 1;
+        }
+        
+        /* استایل‌های جدید برای تایپ صوتی */
+        .voice-input-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .voice-input-btn {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .voice-input-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+        }
+        
+        .voice-input-btn.listening {
+            background: var(--gradient-danger);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .voice-status {
+            position: absolute;
+            left: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .voice-status.active {
+            color: var(--primary-color);
+        }
+        
+        /* استایل‌های جدید برای پیام تأیید */
+        .success-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--gradient-success);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .success-message.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .success-message i {
+            margin-left: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        /* استایل‌های جدید برای مدیریت دروس و مباحث */
+        .subject-management {
+            margin-bottom: 2rem;
+        }
+
+        .subject-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .topic-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topic-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .topic-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .topic-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .subject-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .subject-checkbox {
+            display: none;
+        }
+
+        .subject-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .subject-checkbox:checked + .subject-label {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .topic-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .topic-checkbox {
+            display: none;
+        }
+
+        .topic-label {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .topic-checkbox:checked + .topic-label {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--secondary-color);
+        }
+
+        .progress-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        /* استایل‌های جدید برای دراپ‌داون‌ها */
+        select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            width: 100%;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        select option {
+            background: #1e293b;
+            color: white;
+            padding: 10px;
+        }
+
+        /* استایل‌های جدید برای قسمت خودارزیابی */
+        .self-assessment-container {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .self-assessment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .self-assessment-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .self-assessment-subtitle {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* استایل‌های جدید برای نوتیفیکیشن */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--gradient-primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .notification i {
+            margin-left: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .notification.error {
+            background: var(--gradient-danger);
+        }
+
+        .notification.warning {
+            background: var(--gradient-accent);
+        }
+
+        /* استایل‌های جدید برای دکمه‌های ویرایش و حذف - با تم اصلی */
+        .question-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .edit-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .edit-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .delete-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: white;
+            border-color: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* استایل‌های جدید برای حالت ویرایش */
+        .edit-mode-indicator {
+            background: rgba(99, 102, 241, 0.2);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .edit-mode .btn-primary.update-btn {
+            background: var(--gradient-primary);
+        }
+
+        .edit-mode .tab-button.active {
+            background: rgba(99, 102, 241, 0.2);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* استایل‌های جدید برای دکمه‌های ریست تسلط */
+        .reset-mastery-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .reset-mastery-btn:hover {
+            background: rgba(245, 158, 11, 0.2);
+            color: white;
+            border-color: rgba(245, 158, 11, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .reset-all-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reset-all-btn:hover {
+            background: rgba(245, 158, 11, 0.2);
+            color: white;
+            border-color: rgba(245, 158, 11, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <!-- شکل‌های شناور در پس‌زمینه -->
+    <div class="floating-shapes">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+        <div class="floating-shape shape-4"></div>
+    </div>
+    
+    <!-- پیام تأیید ثبت سوال -->
+    <div id="successMessage" class="success-message">
+        <i class="fas fa-check-circle"></i>
+        <span id="successMessageText">سوال شما با موفقیت ثبت شد!</span>
+    </div>
+
+    <!-- نوتیفیکیشن برای جایگزینی alert -->
+    <div id="notification" class="notification">
+        <i class="fas fa-info-circle"></i>
+        <span id="notificationText"></span>
+    </div>
+    
+    <div class="max-w-6xl mx-auto relative z-10">
+        <!-- هدر -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+                <i class="fas fa-brain ml-2"></i>سیستم پیشرفته طراحی و پاسخ به سوالات
+            </h1>
+            <p class="text-gray-400">ایجاد، تمرین و پیگیری سوالات چندگزینه‌ای، پاسخ کوتاه و صحیح/غلط</p>
+        </header>
+
+        <!-- ناوبری -->
+        <nav class="flex justify-center mb-8 bg-gray-800 rounded-lg p-1">
+            <button id="addTab" class="nav-btn flex-1 py-3 px-6 rounded-lg mx-1 active">
+                <i class="fas fa-plus ml-2"></i>افزودن سوال
+            </button>
+            <button id="practiceTab" class="nav-btn flex-1 py-3 px-6 rounded-lg mx-1">
+                <i class="fas fa-play ml-2"></i>تمرین سوالات
+            </button>
+            <button id="progressTab" class="nav-btn flex-1 py-3 px-6 rounded-lg mx-1">
+                <i class="fas fa-chart-bar ml-2"></i>پیگیری پیشرفت
+            </button>
+            <button id="subjectsTab" class="nav-btn flex-1 py-3 px-6 rounded-lg mx-1">
+                <i class="fas fa-book ml-2"></i>مدیریت دروس
+            </button>
+        </nav>
+
+        <!-- محتوای تب‌ها -->
+        <main>
+            <!-- تب افزودن سوال -->
+            <div id="addContent" class="tab-content active">
+                <div class="glass-effect p-6 mb-8">
+                    <div id="editModeIndicator" class="edit-mode-indicator hidden">
+                        <i class="fas fa-edit"></i>
+                        <span>در حال ویرایش سوال</span>
+                        <button id="cancelEdit" class="ml-auto bg-white text-purple-600 px-3 py-1 rounded text-sm font-bold hover:bg-purple-100 transition-colors">لغو ویرایش</button>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold mb-4 text-green-400">
+                        <i class="fas fa-plus-circle ml-2"></i>افزودن سوال جدید
+                    </h2>
+                    
+                    <!-- انتخاب درس و مبحث -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-white mb-3">انتخاب درس و مبحث</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-300 mb-2">درس:</label>
+                                <select id="subjectSelect" class="short-answer-input">
+                                    <option value="">انتخاب درس</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">مبحث:</label>
+                                <select id="topicSelect" class="short-answer-input">
+                                    <option value="">ابتدا یک درس انتخاب کنید</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-2 space-x-reverse mb-6">
+                        <button id="mcqTab" class="tab-button active">سوال چندگزینه‌ای</button>
+                        <button id="shortAnswerTab" class="tab-button">پاسخ کوتاه</button>
+                        <button id="trueFalseTab" class="tab-button">صحیح/غلط</button>
+                    </div>
+                    
+                    <!-- فرم طراحی سوال چندگزینه‌ای -->
+                    <div id="mcqForm" class="space-y-6">
+                        <div>
+                            <label class="block text-gray-300 mb-2">متن سوال:</label>
+                            <div class="voice-input-container">
+                                <textarea id="mcqQuestion" class="short-answer-input h-32 flex-1 pr-12" placeholder="متن سوال را اینجا وارد کنید یا از دکمه میکروفون استفاده کنید..."></textarea>
+                                <button id="mcqVoiceBtn" class="voice-input-btn" title="تایپ صوتی">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <div id="mcqVoiceStatus" class="voice-status"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-300 mb-2">گزینه ۱:</label>
+                                <input type="text" id="option1" class="short-answer-input" placeholder="متن گزینه اول">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">گزینه ۲:</label>
+                                <input type="text" id="option2" class="short-answer-input" placeholder="متن گزینه دوم">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">گزینه ۳:</label>
+                                <input type="text" id="option3" class="short-answer-input" placeholder="متن گزینه سوم">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">گزینه ۴:</label>
+                                <input type="text" id="option4" class="short-answer-input" placeholder="متن گزینه چهارم">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-300 mb-2">پاسخ صحیح:</label>
+                            <div class="flex space-x-4 space-x-reverse">
+                                <button class="option-selector" data-option="1">گزینه ۱</button>
+                                <button class="option-selector" data-option="2">گزینه ۲</button>
+                                <button class="option-selector" data-option="3">گزینه ۳</button>
+                                <button class="option-selector" data-option="4">گزینه ۴</button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <button id="saveMcq" class="btn-primary flex-1">
+                                <i class="fas fa-save ml-2"></i>ذخیره سوال چندگزینه‌ای
+                            </button>
+                            <button id="updateMcq" class="btn-primary flex-1 hidden update-btn">
+                                <i class="fas fa-edit ml-2"></i>بروزرسانی سوال
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- فرم طراحی سوال پاسخ کوتاه -->
+                    <div id="shortAnswerForm" class="space-y-6 hidden">
+                        <div>
+                            <label class="block text-gray-300 mb-2">متن سوال:</label>
+                            <div class="voice-input-container">
+                                <textarea id="shortQuestion" class="short-answer-input h-32 pr-12" placeholder="متن سوال را اینجا وارد کنید یا از دکمه میکروفون استفاده کنید..."></textarea>
+                                <button id="shortVoiceBtn" class="voice-input-btn" title="تایپ صوتی">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <div id="shortVoiceStatus" class="voice-status"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-300 mb-2">پاسخ صحیح:</label>
+                            <input type="text" id="shortAnswer" class="short-answer-input" placeholder="پاسخ صحیح سوال">
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <button id="saveShortAnswer" class="btn-primary flex-1">
+                                <i class="fas fa-save ml-2"></i>ذخیره سوال پاسخ کوتاه
+                            </button>
+                            <button id="updateShortAnswer" class="btn-primary flex-1 hidden update-btn">
+                                <i class="fas fa-edit ml-2"></i>بروزرسانی سوال
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- فرم طراحی سوال صحیح/غلط -->
+                    <div id="trueFalseForm" class="space-y-6 hidden">
+                        <div>
+                            <label class="block text-gray-300 mb-2">متن سوال:</label>
+                            <div class="voice-input-container">
+                                <textarea id="trueFalseQuestion" class="short-answer-input h-32 pr-12" placeholder="متن سوال را اینجا وارد کنید یا از دکمه میکروفون استفاده کنید..."></textarea>
+                                <button id="trueFalseVoiceBtn" class="voice-input-btn" title="تایپ صوتی">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <div id="trueFalseVoiceStatus" class="voice-status"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-300 mb-2">پاسخ صحیح:</label>
+                            <div class="true-false-container">
+                                <button id="trueBtn" class="true-false-btn true" data-answer="true">
+                                    <i class="fas fa-check-circle ml-2"></i>صحیح
+                                </button>
+                                <button id="falseBtn" class="true-false-btn false" data-answer="false">
+                                    <i class="fas fa-times-circle ml-2"></i>غلط
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <button id="saveTrueFalse" class="btn-primary flex-1">
+                                <i class="fas fa-save ml-2"></i>ذخیره سوال صحیح/غلط
+                            </button>
+                            <button id="updateTrueFalse" class="btn-primary flex-1 hidden update-btn">
+                                <i class="fas fa-edit ml-2"></i>بروزرسانی سوال
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- لیست سوالات ایجاد شده -->
+                <div class="glass-effect p-6">
+                    <h3 class="text-xl font-bold text-white mb-4">
+                        <i class="fas fa-list ml-2"></i>سوالات ایجاد شده
+                    </h3>
+                    <div id="questionsList" class="space-y-4">
+                        <!-- سوالات اینجا نمایش داده می‌شوند -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- تب تمرین سوالات -->
+            <div id="practiceContent" class="tab-content">
+                <div class="glass-effect p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-green-400">
+                        <i class="fas fa-play-circle ml-2"></i>تمرین سوالات
+                    </h2>
+                    
+                    <!-- انتخاب دروس و مباحث برای خودارزیابی -->
+                    <div class="self-assessment-container">
+                        <div class="self-assessment-header">
+                            <h3 class="self-assessment-title">انتخاب دروس و مباحث برای خودارزیابی</h3>
+                        </div>
+                        <p class="self-assessment-subtitle">دروس و مباحث مورد نظر خود را برای تمرین انتخاب کنید</p>
+                        <div id="practiceSubjectSelector" class="subject-selector">
+                            <!-- دروس اینجا نمایش داده می‌شوند -->
+                        </div>
+                        <div id="practiceTopicSelector" class="topic-selector hidden">
+                            <!-- مباحث اینجا نمایش داده می‌شوند -->
+                        </div>
+                    </div>
+                    
+                    <div id="practiceArea" class="space-y-6 text-center py-8">
+                        <div class="feature-icon mx-auto">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-4">آماده شروع تمرین هستید؟</h3>
+                        <p class="text-slate-300 mb-6">دروس و مباحث مورد نظر خود را انتخاب کنید و سپس روی دکمه زیر کلیک کنید.</p>
+                        <button id="startPractice" class="btn-primary pulse">
+                            <i class="fas fa-play ml-2"></i>شروع تمرین
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تب پیگیری پیشرفت -->
+            <div id="progressContent" class="tab-content">
+                <div class="glass-effect p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-green-400">
+                        <i class="fas fa-chart-line ml-2"></i>پیگیری پیشرفت
+                    </h2>
+                    
+                    <!-- پیشرفت کلی -->
+                    <div class="progress-card">
+                        <div class="progress-header">
+                            <h3 class="text-xl font-bold text-white">پیشرفت کلی</h3>
+                            <span class="text-green-400 font-bold text-xl" id="overallProgress">0%</span>
+                        </div>
+                        <div class="progress-bar mb-4">
+                            <div id="overallProgressFill" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="totalQuestions">0</div>
+                                <div class="stat-label">کل سوالات</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="correctAnswers">0</div>
+                                <div class="stat-label">پاسخ صحیح</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="successRate">0%</div>
+                                <div class="stat-label">نرخ موفقیت</div>
+                            </div>
+                        </div>
+                        <button id="resetAllMastery" class="reset-all-btn">
+                            <i class="fas fa-undo ml-2"></i>ریست تسلط همه سوالات
+                        </button>
+                    </div>
+                    
+                    <!-- پیشرفت دروس -->
+                    <h3 class="text-xl font-bold text-white mb-4">پیشرفت دروس</h3>
+                    <div id="subjectProgress" class="space-y-4">
+                        <!-- پیشرفت هر درس اینجا نمایش داده می‌شود -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- تب مدیریت دروس -->
+            <div id="subjectsContent" class="tab-content">
+                <div class="glass-effect p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-green-400">
+                        <i class="fas fa-book ml-2"></i>مدیریت دروس و مباحث
+                    </h2>
+                    
+                    <!-- افزودن درس جدید -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-white mb-3">افزودن درس جدید</h3>
+                        <div class="flex gap-4">
+                            <input type="text" id="newSubjectName" class="short-answer-input flex-1" placeholder="نام درس جدید">
+                            <button id="addSubject" class="btn-primary">
+                                <i class="fas fa-plus ml-2"></i>افزودن درس
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- لیست دروس و مباحث -->
+                    <div id="subjectsList" class="space-y-4">
+                        <!-- دروس و مباحث اینجا نمایش داده می‌شوند -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // مدیریت وضعیت برنامه
+        const appState = {
+            questions: [],
+            currentQuestionIndex: -1,
+            userAnswers: {},
+            stats: {
+                total: 0,
+                correct: 0,
+                incorrect: 0
+            },
+            selectedOption: null,
+            selectedAnswer: null,
+            recognition: null,
+            isListening: false,
+            subjects: [
+                {
+                    id: 1,
+                    name: "ریاضی",
+                    topics: ["جبر", "هندسه", "حسابان", "آمار و احتمال"]
+                },
+                {
+                    id: 2,
+                    name: "فیزیک",
+                    topics: ["مکانیک", "الکتریسیته", "مغناطیس", "نورشناسی"]
+                },
+                {
+                    id: 3,
+                    name: "شیمی",
+                    topics: ["مفاهیم پایه", "استوکیومتری", "ترمودینامیک", "سینتیک"]
+                },
+                {
+                    id: 4,
+                    name: "زیست‌شناسی",
+                    topics: ["سلول", "ژنتیک", "تکامل", "بوم‌شناسی"]
+                }
+            ],
+            selectedSubjects: [],
+            selectedTopics: [],
+            lastSelectedSubject: null,
+            lastSelectedTopic: null,
+            editingQuestionId: null
+        };
+
+        // نمایش نوتیفیکیشن به جای alert
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = message;
+            notification.className = 'notification';
+            
+            if (type === 'error') {
+                notification.classList.add('error');
+            } else if (type === 'warning') {
+                notification.classList.add('warning');
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // نمایش پیام تأیید
+        function showSuccessMessage(message = 'سوال شما با موفقیت ثبت شد!') {
+            const messageElement = document.getElementById('successMessage');
+            const messageText = document.getElementById('successMessageText');
+            
+            messageText.textContent = message;
+            messageElement.classList.add('show');
+            
+            setTimeout(() => {
+                messageElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // بارگذاری داده‌ها از localStorage
+        function loadData() {
+            const savedQuestions = localStorage.getItem('advancedQuestions');
+            const savedStats = localStorage.getItem('questionStats');
+            const savedSubjects = localStorage.getItem('subjects');
+            const lastSelected = localStorage.getItem('lastSelectedSubjectTopic');
+            
+            if (savedQuestions) {
+                appState.questions = JSON.parse(savedQuestions);
+            }
+            
+            if (savedStats) {
+                appState.stats = JSON.parse(savedStats);
+            }
+            
+            if (savedSubjects) {
+                appState.subjects = JSON.parse(savedSubjects);
+            }
+            
+            if (lastSelected) {
+                const last = JSON.parse(lastSelected);
+                appState.lastSelectedSubject = last.subjectId;
+                appState.lastSelectedTopic = last.topic;
+            }
+            
+            updateQuestionsList();
+            updateStats();
+            updateSubjectsList();
+            populateSubjectSelectors();
+            
+            // تنظیم آخرین انتخاب درس و مبحث
+            if (appState.lastSelectedSubject) {
+                setTimeout(() => {
+                    document.getElementById('subjectSelect').value = appState.lastSelectedSubject;
+                    updateTopicSelect(appState.lastSelectedSubject);
+                    
+                    // کمی تاخیر برای بارگذاری مباحث
+                    setTimeout(() => {
+                        if (appState.lastSelectedTopic) {
+                            document.getElementById('topicSelect').value = appState.lastSelectedTopic;
+                        }
+                    }, 100);
+                }, 100);
+            }
+        }
+
+        // ذخیره داده‌ها در localStorage
+        function saveData() {
+            localStorage.setItem('advancedQuestions', JSON.stringify(appState.questions));
+            localStorage.setItem('questionStats', JSON.stringify(appState.stats));
+            localStorage.setItem('subjects', JSON.stringify(appState.subjects));
+            
+            // ذخیره آخرین انتخاب درس و مبحث
+            const subjectSelect = document.getElementById('subjectSelect');
+            const topicSelect = document.getElementById('topicSelect');
+            if (subjectSelect.value && topicSelect.value) {
+                const lastSelected = {
+                    subjectId: subjectSelect.value,
+                    topic: topicSelect.value
+                };
+                localStorage.setItem('lastSelectedSubjectTopic', JSON.stringify(lastSelected));
+            }
+        }
+
+        // مدیریت تب‌های اصلی
+        function setupMainTabs() {
+            const tabs = {
+                addTab: 'addContent',
+                practiceTab: 'practiceContent',
+                progressTab: 'progressContent',
+                subjectsTab: 'subjectsContent'
+            };
+            
+            Object.keys(tabs).forEach(tabId => {
+                document.getElementById(tabId).addEventListener('click', function() {
+                    document.querySelectorAll('.nav-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    this.classList.add('active');
+                    document.getElementById(tabs[tabId]).classList.add('active');
+                });
+            });
+        }
+
+// اضافه کردن این تابع برای راه‌اندازی تشخیص صدا
+function setupVoiceRecognition() {
+    // بررسی پشتیبانی مرورگر
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showNotification('مرورگر شما از قابلیت تشخیص صدا پشتیبانی نمی‌کند.', 'warning');
+        return null;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'fa-IR'; // زبان فارسی
+
+    return recognition;
+}
+
+// مدیریت تشخیص صدا برای سوالات چندگزینه‌ای
+function setupMcqVoiceRecognition() {
+    const voiceBtn = document.getElementById('mcqVoiceBtn');
+    const voiceStatus = document.getElementById('mcqVoiceStatus');
+    const questionInput = document.getElementById('mcqQuestion');
+
+    voiceBtn.addEventListener('click', function() {
+        if (!appState.recognition) {
+            appState.recognition = setupVoiceRecognition();
+            if (!appState.recognition) return;
+        }
+
+        if (appState.isListening) {
+            stopListening();
+        } else {
+            startListening(questionInput, voiceStatus);
+        }
+    });
+}
+
+// مدیریت تشخیص صدا برای سوالات پاسخ کوتاه
+function setupShortAnswerVoiceRecognition() {
+    const voiceBtn = document.getElementById('shortVoiceBtn');
+    const voiceStatus = document.getElementById('shortVoiceStatus');
+    const questionInput = document.getElementById('shortQuestion');
+
+    voiceBtn.addEventListener('click', function() {
+        if (!appState.recognition) {
+            appState.recognition = setupVoiceRecognition();
+            if (!appState.recognition) return;
+        }
+
+        if (appState.isListening) {
+            stopListening();
+        } else {
+            startListening(questionInput, voiceStatus);
+        }
+    });
+}
+
+// مدیریت تشخیص صدا برای سوالات صحیح/غلط
+function setupTrueFalseVoiceRecognition() {
+    const voiceBtn = document.getElementById('trueFalseVoiceBtn');
+    const voiceStatus = document.getElementById('trueFalseVoiceStatus');
+    const questionInput = document.getElementById('trueFalseQuestion');
+
+    voiceBtn.addEventListener('click', function() {
+        if (!appState.recognition) {
+            appState.recognition = setupVoiceRecognition();
+            if (!appState.recognition) return;
+        }
+
+        if (appState.isListening) {
+            stopListening();
+        } else {
+            startListening(questionInput, voiceStatus);
+        }
+    });
+}
+
+// شروع تشخیص صدا
+function startListening(inputElement, statusElement) {
+    if (!appState.recognition) return;
+
+    appState.recognition.start();
+    appState.isListening = true;
+
+    // تغییر ظاهر دکمه
+    const voiceBtn = statusElement.previousElementSibling;
+    voiceBtn.classList.add('listening');
+    voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+    
+    statusElement.textContent = 'در حال گوش دادن...';
+    statusElement.classList.add('active');
+
+    appState.recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        inputElement.value = transcript;
+        stopListening();
+    };
+
+    appState.recognition.onerror = function(event) {
+        console.error('خطا در تشخیص صدا:', event.error);
+        statusElement.textContent = `خطا: ${getErrorText(event.error)}`;
+        statusElement.classList.remove('active');
+        stopListening();
+    };
+
+    appState.recognition.onend = function() {
+        stopListening();
+    };
+}
+
+// توقف تشخیص صدا
+function stopListening() {
+    if (appState.recognition && appState.isListening) {
+        appState.recognition.stop();
+        appState.isListening = false;
+
+        // بازگرداندن ظاهر دکمه‌ها به حالت اول
+        document.querySelectorAll('.voice-input-btn').forEach(btn => {
+            btn.classList.remove('listening');
+            btn.innerHTML = '<i class="fas fa-microphone"></i>';
+        });
+
+        document.querySelectorAll('.voice-status').forEach(status => {
+            if (status.textContent === 'در حال گوش دادن...') {
+                status.textContent = '';
+                status.classList.remove('active');
+            }
+        });
+    }
+}
+
+// تبدیل کد خطا به متن قابل فهم
+function getErrorText(error) {
+    const errorMessages = {
+        'no-speech': 'هیچ صدایی تشخیص داده نشد',
+        'audio-capture': 'مشکل در دسترسی به میکروفون',
+        'not-allowed': 'دسترسی به میکروفون مجاز نیست',
+        'network': 'مشکل در ارتباط با سرویس تشخیص صدا',
+        'aborted': 'تشخیص صدا متوقف شد',
+        'bad-grammar': 'خطای گرامری',
+        'language-not-supported': 'زبان پشتیبانی نمی‌شود'
+    };
+    
+    return errorMessages[error] || 'خطای ناشناخته';
+}
+
+// اضافه کردن فراخوانی توابع تشخیص صدا در تابع init
+function init() {
+    loadData();
+    setupMainTabs();
+    setupQuestionTypeTabs();
+    setupOptionSelectors();
+    setupTrueFalseButtons();
+    
+    // راه‌اندازی تشخیص صدا
+    setupMcqVoiceRecognition();
+    setupShortAnswerVoiceRecognition();
+    setupTrueFalseVoiceRecognition();
+    
+    // بقیه event listenerها...
+    document.getElementById('saveMcq').addEventListener('click', saveMcqQuestion);
+    document.getElementById('updateMcq').addEventListener('click', updateMcqQuestion);
+    document.getElementById('saveShortAnswer').addEventListener('click', saveShortAnswerQuestion);
+    document.getElementById('updateShortAnswer').addEventListener('click', updateShortAnswerQuestion);
+    document.getElementById('saveTrueFalse').addEventListener('click', saveTrueFalseQuestion);
+    document.getElementById('updateTrueFalse').addEventListener('click', updateTrueFalseQuestion);
+    document.getElementById('startPractice').addEventListener('click', startPractice);
+    document.getElementById('addSubject').addEventListener('click', addSubject);
+    document.getElementById('cancelEdit').addEventListener('click', exitEditMode);
+    document.getElementById('resetAllMastery').addEventListener('click', resetAllMastery);
+}
+
+        // مدیریت تب‌های نوع سوال
+        function setupQuestionTypeTabs() {
+            const mcqTab = document.getElementById('mcqTab');
+            const shortAnswerTab = document.getElementById('shortAnswerTab');
+            const trueFalseTab = document.getElementById('trueFalseTab');
+            const mcqForm = document.getElementById('mcqForm');
+            const shortAnswerForm = document.getElementById('shortAnswerForm');
+            const trueFalseForm = document.getElementById('trueFalseForm');
+
+            mcqTab.addEventListener('click', () => {
+                mcqTab.classList.add('active');
+                shortAnswerTab.classList.remove('active');
+                trueFalseTab.classList.remove('active');
+                mcqForm.classList.remove('hidden');
+                shortAnswerForm.classList.add('hidden');
+                trueFalseForm.classList.add('hidden');
+            });
+
+            shortAnswerTab.addEventListener('click', () => {
+                shortAnswerTab.classList.add('active');
+                mcqTab.classList.remove('active');
+                trueFalseTab.classList.remove('active');
+                shortAnswerForm.classList.remove('hidden');
+                mcqForm.classList.add('hidden');
+                trueFalseForm.classList.add('hidden');
+            });
+
+            trueFalseTab.addEventListener('click', () => {
+                trueFalseTab.classList.add('active');
+                mcqTab.classList.remove('active');
+                shortAnswerTab.classList.remove('active');
+                trueFalseForm.classList.remove('hidden');
+                mcqForm.classList.add('hidden');
+                shortAnswerForm.classList.add('hidden');
+            });
+        }
+
+        // مدیریت انتخاب گزینه‌ها
+        function setupOptionSelectors() {
+            const optionSelectors = document.querySelectorAll('.option-selector');
+            optionSelectors.forEach(selector => {
+                selector.addEventListener('click', function() {
+                    optionSelectors.forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    appState.selectedOption = this.getAttribute('data-option');
+                });
+            });
+        }
+
+        // مدیریت دکمه‌های صحیح/غلط
+        function setupTrueFalseButtons() {
+            const trueBtn = document.getElementById('trueBtn');
+            const falseBtn = document.getElementById('falseBtn');
+            
+            trueBtn.addEventListener('click', function() {
+                trueBtn.classList.add('selected');
+                falseBtn.classList.remove('selected');
+                appState.selectedAnswer = true;
+            });
+            
+            falseBtn.addEventListener('click', function() {
+                falseBtn.classList.add('selected');
+                trueBtn.classList.remove('selected');
+                appState.selectedAnswer = false;
+            });
+        }
+
+        // پر کردن انتخاب‌گرهای درس
+        function populateSubjectSelectors() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const practiceSubjectSelector = document.getElementById('practiceSubjectSelector');
+            
+            // پاک کردن گزینه‌های قبلی
+            subjectSelect.innerHTML = '<option value="">انتخاب درس</option>';
+            practiceSubjectSelector.innerHTML = '';
+            
+            // اضافه کردن دروس به انتخاب‌گرها
+            appState.subjects.forEach(subject => {
+                // برای تب افزودن سوال
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectSelect.appendChild(option);
+                
+                // برای تب تمرین
+                const subjectDiv = document.createElement('div');
+                subjectDiv.className = 'subject-item';
+                subjectDiv.innerHTML = `
+                    <input type="checkbox" id="practice-subject-${subject.id}" class="subject-checkbox" value="${subject.id}">
+                    <label for="practice-subject-${subject.id}" class="subject-label">
+                        <i class="fas fa-book text-2xl mb-2"></i>
+                        <span>${subject.name}</span>
+                    </label>
+                `;
+                practiceSubjectSelector.appendChild(subjectDiv);
+                
+                // اضافه کردن event listener برای انتخاب درس در تمرین
+                const checkbox = document.getElementById(`practice-subject-${subject.id}`);
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        appState.selectedSubjects.push(subject.id);
+                    } else {
+                        appState.selectedSubjects = appState.selectedSubjects.filter(id => id !== subject.id);
+                    }
+                    updatePracticeTopicSelector();
+                });
+            });
+            
+            // اضافه کردن event listener برای تغییر درس در تب افزودن سوال
+            subjectSelect.addEventListener('change', function() {
+                updateTopicSelect(this.value);
+                saveData(); // ذخیره آخرین انتخاب
+            });
+            
+            // اضافه کردن event listener برای تغییر مبحث
+            document.getElementById('topicSelect').addEventListener('change', function() {
+                saveData(); // ذخیره آخرین انتخاب
+            });
+        }
+
+        // به‌روزرسانی انتخاب‌گر مبحث بر اساس درس انتخاب شده
+        function updateTopicSelect(subjectId) {
+            const topicSelect = document.getElementById('topicSelect');
+            topicSelect.innerHTML = '<option value="">انتخاب مبحث</option>';
+            
+            if (!subjectId) return;
+            
+            const subject = appState.subjects.find(s => s.id == subjectId);
+            if (subject) {
+                subject.topics.forEach(topic => {
+                    const option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = topic;
+                    topicSelect.appendChild(option);
+                });
+            }
+        }
+
+        // به‌روزرسانی انتخاب‌گر مباحث برای تمرین
+        function updatePracticeTopicSelector() {
+            const practiceTopicSelector = document.getElementById('practiceTopicSelector');
+            practiceTopicSelector.innerHTML = '';
+            
+            if (appState.selectedSubjects.length === 0) {
+                practiceTopicSelector.classList.add('hidden');
+                return;
+            }
+            
+            practiceTopicSelector.classList.remove('hidden');
+            
+            // جمع‌آوری تمام مباحث دروس انتخاب شده
+            const allTopics = [];
+            appState.selectedSubjects.forEach(subjectId => {
+                const subject = appState.subjects.find(s => s.id == subjectId);
+                if (subject) {
+                    allTopics.push(...subject.topics.map(topic => ({
+                        topic,
+                        subjectId,
+                        subjectName: subject.name
+                    })));
+                }
+            });
+            
+            // ایجاد چک‌باکس‌های مباحث
+            allTopics.forEach(topicInfo => {
+                const topicDiv = document.createElement('div');
+                topicDiv.innerHTML = `
+                    <input type="checkbox" id="practice-topic-${topicInfo.subjectId}-${topicInfo.topic}" 
+                           class="topic-checkbox" value="${topicInfo.subjectId}-${topicInfo.topic}">
+                    <label for="practice-topic-${topicInfo.subjectId}-${topicInfo.topic}" class="topic-label">
+                        <span>${topicInfo.topic} (${topicInfo.subjectName})</span>
+                    </label>
+                `;
+                practiceTopicSelector.appendChild(topicDiv);
+                
+                // اضافه کردن event listener برای انتخاب مبحث
+                const checkbox = document.getElementById(`practice-topic-${topicInfo.subjectId}-${topicInfo.topic}`);
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        appState.selectedTopics.push(this.value);
+                    } else {
+                        appState.selectedTopics = appState.selectedTopics.filter(t => t !== this.value);
+                    }
+                });
+            });
+        }
+
+        // به‌روزرسانی لیست دروس و مباحث
+        function updateSubjectsList() {
+            const subjectsList = document.getElementById('subjectsList');
+            subjectsList.innerHTML = '';
+            
+            appState.subjects.forEach(subject => {
+                const subjectDiv = document.createElement('div');
+                subjectDiv.className = 'subject-item';
+                subjectDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-lg font-bold text-white">${subject.name}</h4>
+                        <div class="flex gap-2">
+                            <button class="topic-btn edit-subject" data-id="${subject.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="topic-btn delete-subject" data-id="${subject.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="reset-mastery-btn reset-subject-mastery" data-id="${subject.id}">
+                                <i class="fas fa-undo"></i> ریست تسلط
+                            </button>
+                        </div>
+                    </div>
+                    <div class="topics-container">
+                        ${subject.topics.map(topic => `
+                            <div class="topic-item">
+                                <span>${topic}</span>
+                                <div class="topic-actions">
+                                    <button class="topic-btn edit-topic" data-subject="${subject.id}" data-topic="${topic}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="topic-btn delete-topic" data-subject="${subject.id}" data-topic="${topic}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button class="reset-mastery-btn reset-topic-mastery" data-subject="${subject.id}" data-topic="${topic}">
+                                        <i class="fas fa-undo"></i> ریست تسلط
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <input type="text" class="short-answer-input flex-1" placeholder="نام مبحث جدید" id="new-topic-${subject.id}">
+                        <button class="btn-primary add-topic" data-subject="${subject.id}">
+                            <i class="fas fa-plus ml-2"></i>افزودن مبحث
+                        </button>
+                    </div>
+                `;
+                subjectsList.appendChild(subjectDiv);
+            });
+            
+            // اضافه کردن event listeners
+            document.querySelectorAll('.edit-subject').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-id');
+                    editSubject(subjectId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-subject').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-id');
+                    deleteSubject(subjectId);
+                });
+            });
+            
+            document.querySelectorAll('.reset-subject-mastery').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-id');
+                    resetSubjectMastery(subjectId);
+                });
+            });
+            
+            document.querySelectorAll('.edit-topic').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topic = this.getAttribute('data-topic');
+                    editTopic(subjectId, topic);
+                });
+            });
+            
+            document.querySelectorAll('.delete-topic').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topic = this.getAttribute('data-topic');
+                    deleteTopic(subjectId, topic);
+                });
+            });
+            
+            document.querySelectorAll('.reset-topic-mastery').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topic = this.getAttribute('data-topic');
+                    resetTopicMastery(subjectId, topic);
+                });
+            });
+            
+            document.querySelectorAll('.add-topic').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const input = document.getElementById(`new-topic-${subjectId}`);
+                    const topicName = input.value.trim();
+                    if (topicName) {
+                        addTopic(subjectId, topicName);
+                        input.value = '';
+                    } else {
+                        showNotification('لطفا نام مبحث را وارد کنید.', 'warning');
+                    }
+                });
+            });
+        }
+
+        // افزودن درس جدید
+        function addSubject() {
+            const subjectNameInput = document.getElementById('newSubjectName');
+            const subjectName = subjectNameInput.value.trim();
+            
+            if (!subjectName) {
+                showNotification('لطفا نام درس را وارد کنید.', 'warning');
+                return;
+            }
+            
+            const newSubject = {
+                id: Date.now(),
+                name: subjectName,
+                topics: []
+            };
+            
+            appState.subjects.push(newSubject);
+            saveData();
+            updateSubjectsList();
+            populateSubjectSelectors();
+            subjectNameInput.value = '';
+            showNotification('درس جدید با موفقیت اضافه شد.', 'success');
+        }
+
+        // ویرایش درس
+        function editSubject(subjectId) {
+            const subject = appState.subjects.find(s => s.id == subjectId);
+            if (!subject) return;
+            
+            const newName = prompt('نام جدید درس را وارد کنید:', subject.name);
+            if (newName && newName.trim()) {
+                subject.name = newName.trim();
+                saveData();
+                updateSubjectsList();
+                populateSubjectSelectors();
+                showNotification('درس با موفقیت ویرایش شد.', 'success');
+            }
+        }
+
+        // حذف درس
+        function deleteSubject(subjectId) {
+            if (!confirm('آیا از حذف این درس اطمینان دارید؟ تمام مباحث و سوالات مربوطه نیز حذف خواهند شد.')) {
+                return;
+            }
+            
+            appState.subjects = appState.subjects.filter(s => s.id != subjectId);
+            // حذف سوالات مربوط به این درس
+            appState.questions = appState.questions.filter(q => q.subjectId != subjectId);
+            
+            saveData();
+            updateSubjectsList();
+            populateSubjectSelectors();
+            updateQuestionsList();
+            updateStats();
+            showNotification('درس با موفقیت حذف شد.', 'warning');
+        }
+
+        // افزودن مبحث جدید
+        function addTopic(subjectId, topicName) {
+            const subject = appState.subjects.find(s => s.id == subjectId);
+            if (!subject) return;
+            
+            if (subject.topics.includes(topicName)) {
+                showNotification('این مبحث قبلاً اضافه شده است.', 'warning');
+                return;
+            }
+            
+            subject.topics.push(topicName);
+            saveData();
+            updateSubjectsList();
+            populateSubjectSelectors();
+            showNotification('مبحث جدید با موفقیت اضافه شد.', 'success');
+        }
+
+        // ویرایش مبحث
+        function editTopic(subjectId, oldTopic) {
+            const subject = appState.subjects.find(s => s.id == subjectId);
+            if (!subject) return;
+            
+            const newTopic = prompt('نام جدید مبحث را وارد کنید:', oldTopic);
+            if (newTopic && newTopic.trim()) {
+                const index = subject.topics.indexOf(oldTopic);
+                if (index !== -1) {
+                    subject.topics[index] = newTopic.trim();
+                    // به‌روزرسانی سوالات مربوط به این مبحث
+                    appState.questions.forEach(q => {
+                        if (q.subjectId == subjectId && q.topic === oldTopic) {
+                            q.topic = newTopic.trim();
+                        }
+                    });
+                    
+                    saveData();
+                    updateSubjectsList();
+                    populateSubjectSelectors();
+                    updateQuestionsList();
+                    showNotification('مبحث با موفقیت ویرایش شد.', 'success');
+                }
+            }
+        }
+
+        // حذف مبحث
+        function deleteTopic(subjectId, topic) {
+            if (!confirm('آیا از حذف این مبحث اطمینان دارید؟ تمام سوالات مربوطه نیز حذف خواهند شد.')) {
+                return;
+            }
+            
+            const subject = appState.subjects.find(s => s.id == subjectId);
+            if (!subject) return;
+            
+            subject.topics = subject.topics.filter(t => t !== topic);
+            // حذف سوالات مربوط به این مبحث
+            appState.questions = appState.questions.filter(q => !(q.subjectId == subjectId && q.topic === topic));
+            
+            saveData();
+            updateSubjectsList();
+            populateSubjectSelectors();
+            updateQuestionsList();
+            updateStats();
+            showNotification('مبحث با موفقیت حذف شد.', 'warning');
+        }
+
+        // ذخیره سوال چندگزینه‌ای
+        function saveMcqQuestion() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const topicSelect = document.getElementById('topicSelect');
+            const questionText = document.getElementById('mcqQuestion').value.trim();
+            const option1 = document.getElementById('option1').value.trim();
+            const option2 = document.getElementById('option2').value.trim();
+            const option3 = document.getElementById('option3').value.trim();
+            const option4 = document.getElementById('option4').value.trim();
+            
+            if (!subjectSelect.value || !topicSelect.value) {
+                showNotification('لطفا درس و مبحث را انتخاب کنید.', 'warning');
+                return;
+            }
+            
+            if (!questionText || !option1 || !option2 || !option3 || !option4 || !appState.selectedOption) {
+                showNotification('لطفا تمام فیلدها را پر کنید و گزینه صحیح را انتخاب نمایید.', 'warning');
+                return;
+            }
+            
+            const newQuestion = {
+                id: Date.now(),
+                type: 'mcq',
+                subjectId: parseInt(subjectSelect.value),
+                subject: subjectSelect.options[subjectSelect.selectedIndex].text,
+                topic: topicSelect.value,
+                question: questionText,
+                options: [option1, option2, option3, option4],
+                correctAnswer: parseInt(appState.selectedOption),
+                userAnswer: null,
+                isCorrect: null,
+                mastered: false
+            };
+            
+            appState.questions.push(newQuestion);
+            saveData();
+            updateQuestionsList();
+            resetMcqForm();
+            
+            showSuccessMessage();
+        }
+
+        // بروزرسانی سوال چندگزینه‌ای
+        function updateMcqQuestion() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const topicSelect = document.getElementById('topicSelect');
+            const questionText = document.getElementById('mcqQuestion').value.trim();
+            const option1 = document.getElementById('option1').value.trim();
+            const option2 = document.getElementById('option2').value.trim();
+            const option3 = document.getElementById('option3').value.trim();
+            const option4 = document.getElementById('option4').value.trim();
+            
+            if (!subjectSelect.value || !topicSelect.value) {
+                showNotification('لطفا درس و مبحث را انتخاب کنید.', 'warning');
+                return;
+            }
+            
+            if (!questionText || !option1 || !option2 || !option3 || !option4 || !appState.selectedOption) {
+                showNotification('لطفا تمام فیلدها را پر کنید و گزینه صحیح را انتخاب نمایید.', 'warning');
+                return;
+            }
+            
+            // پیدا کردن سوال برای ویرایش
+            const questionIndex = appState.questions.findIndex(q => q.id === appState.editingQuestionId);
+            if (questionIndex !== -1) {
+                appState.questions[questionIndex] = {
+                    ...appState.questions[questionIndex],
+                    subjectId: parseInt(subjectSelect.value),
+                    subject: subjectSelect.options[subjectSelect.selectedIndex].text,
+                    topic: topicSelect.value,
+                    question: questionText,
+                    options: [option1, option2, option3, option4],
+                    correctAnswer: parseInt(appState.selectedOption)
+                };
+                
+                saveData();
+                updateQuestionsList();
+                resetMcqForm();
+                exitEditMode();
+                
+                showSuccessMessage('سوال با موفقیت بروزرسانی شد!');
+            }
+        }
+
+        // ذخیره سوال پاسخ کوتاه
+        function saveShortAnswerQuestion() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const topicSelect = document.getElementById('topicSelect');
+            const questionText = document.getElementById('shortQuestion').value.trim();
+            const correctAnswer = document.getElementById('shortAnswer').value.trim();
+            
+            if (!subjectSelect.value || !topicSelect.value) {
+                showNotification('لطفا درس و مبحث را انتخاب کنید.', 'warning');
+                return;
+            }
+            
+            if (!questionText || !correctAnswer) {
+                showNotification('لطفا تمام فیلدها را پر کنید.', 'warning');
+                return;
+            }
+            
+            const newQuestion = {
+                id: Date.now(),
+                type: 'short',
+                subjectId: parseInt(subjectSelect.value),
+                subject: subjectSelect.options[subjectSelect.selectedIndex].text,
+                topic: topicSelect.value,
+                question: questionText,
+                correctAnswer: correctAnswer,
+                userAnswer: null,
+                isCorrect: null,
+                mastered: false
+            };
+            
+            appState.questions.push(newQuestion);
+            saveData();
+            updateQuestionsList();
+            resetShortAnswerForm();
+            
+            showSuccessMessage();
+        }
+
+        // بروزرسانی سوال پاسخ کوتاه
+        function updateShortAnswerQuestion() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const topicSelect = document.getElementById('topicSelect');
+            const questionText = document.getElementById('shortQuestion').value.trim();
+            const correctAnswer = document.getElementById('shortAnswer').value.trim();
+            
+            if (!subjectSelect.value || !topicSelect.value) {
+                showNotification('لطفا درس و مبحث را انتخاب کنید.', 'warning');
+                return;
+            }
+            
+            if (!questionText || !correctAnswer) {
+                showNotification('لطفا تمام فیلدها را پر کنید.', 'warning');
+                return;
+            }
+            
+            // پیدا کردن سوال برای ویرایش
+            const questionIndex = appState.questions.findIndex(q => q.id === appState.editingQuestionId);
+            if (questionIndex !== -1) {
+                appState.questions[questionIndex] = {
+                    ...appState.questions[questionIndex],
+                    subjectId: parseInt(subjectSelect.value),
+                    subject: subjectSelect.options[subjectSelect.selectedIndex].text,
+                    topic: topicSelect.value,
+                    question: questionText,
+                    correctAnswer: correctAnswer
+                };
+                
+                saveData();
+                updateQuestionsList();
+                resetShortAnswerForm();
+                exitEditMode();
+                
+                showSuccessMessage('سوال با موفقیت بروزرسانی شد!');
+            }
+        }
+
+        // ذخیره سوال صحیح/غلط
+        function saveTrueFalseQuestion() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const topicSelect = document.getElementById('topicSelect');
+            const questionText = document.getElementById('trueFalseQuestion').value.trim();
+            
+            if (!subjectSelect.value || !topicSelect.value) {
+                showNotification('لطفا درس و مبحث را انتخاب کنید.', 'warning');
+                return;
+            }
+            
+            if (!questionText || appState.selectedAnswer === null) {
+                showNotification('لطفا متن سوال را وارد کنید و پاسخ صحیح را انتخاب نمایید.', 'warning');
+                return;
+            }
+            
+            const newQuestion = {
+                id: Date.now(),
+                type: 'trueFalse',
+                subjectId: parseInt(subjectSelect.value),
+                subject: subjectSelect.options[subjectSelect.selectedIndex].text,
+                topic: topicSelect.value,
+                question: questionText,
+                correctAnswer: appState.selectedAnswer,
+                userAnswer: null,
+                isCorrect: null,
+                mastered: false
+            };
+            
+            appState.questions.push(newQuestion);
+            saveData();
+            updateQuestionsList();
+            resetTrueFalseForm();
+            
+            showSuccessMessage();
+        }
+
+        // بروزرسانی سوال صحیح/غلط
+        function updateTrueFalseQuestion() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const topicSelect = document.getElementById('topicSelect');
+            const questionText = document.getElementById('trueFalseQuestion').value.trim();
+            
+            if (!subjectSelect.value || !topicSelect.value) {
+                showNotification('لطفا درس و مبحث را انتخاب کنید.', 'warning');
+                return;
+            }
+            
+            if (!questionText || appState.selectedAnswer === null) {
+                showNotification('لطفا متن سوال را وارد کنید و پاسخ صحیح را انتخاب نمایید.', 'warning');
+                return;
+            }
+            
+            // پیدا کردن سوال برای ویرایش
+            const questionIndex = appState.questions.findIndex(q => q.id === appState.editingQuestionId);
+            if (questionIndex !== -1) {
+                appState.questions[questionIndex] = {
+                    ...appState.questions[questionIndex],
+                    subjectId: parseInt(subjectSelect.value),
+                    subject: subjectSelect.options[subjectSelect.selectedIndex].text,
+                    topic: topicSelect.value,
+                    question: questionText,
+                    correctAnswer: appState.selectedAnswer
+                };
+                
+                saveData();
+                updateQuestionsList();
+                resetTrueFalseForm();
+                exitEditMode();
+                
+                showSuccessMessage('سوال با موفقیت بروزرسانی شد!');
+            }
+        }
+
+        // ریست فرم‌ها
+        function resetMcqForm() {
+            document.getElementById('mcqQuestion').value = '';
+            document.getElementById('option1').value = '';
+            document.getElementById('option2').value = '';
+            document.getElementById('option3').value = '';
+            document.getElementById('option4').value = '';
+            document.querySelectorAll('.option-selector').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            appState.selectedOption = null;
+        }
+
+        function resetShortAnswerForm() {
+            document.getElementById('shortQuestion').value = '';
+            document.getElementById('shortAnswer').value = '';
+        }
+
+        function resetTrueFalseForm() {
+            document.getElementById('trueFalseQuestion').value = '';
+            document.getElementById('trueBtn').classList.remove('selected');
+            document.getElementById('falseBtn').classList.remove('selected');
+            appState.selectedAnswer = null;
+        }
+
+        // ورود به حالت ویرایش
+        function enterEditMode(questionId) {
+            const question = appState.questions.find(q => q.id === questionId);
+            if (!question) return;
+            
+            appState.editingQuestionId = questionId;
+            
+            // تنظیم درس و مبحث
+            document.getElementById('subjectSelect').value = question.subjectId;
+            updateTopicSelect(question.subjectId);
+            
+            // کمی تاخیر برای بارگذاری مباحث
+            setTimeout(() => {
+                document.getElementById('topicSelect').value = question.topic;
+                
+                // پر کردن فرم بر اساس نوع سوال
+                if (question.type === 'mcq') {
+                    document.getElementById('mcqTab').click();
+                    document.getElementById('mcqQuestion').value = question.question;
+                    document.getElementById('option1').value = question.options[0];
+                    document.getElementById('option2').value = question.options[1];
+                    document.getElementById('option3').value = question.options[2];
+                    document.getElementById('option4').value = question.options[3];
+                    
+                    // انتخاب گزینه صحیح
+                    document.querySelectorAll('.option-selector').forEach(btn => {
+                        if (btn.getAttribute('data-option') == question.correctAnswer) {
+                            btn.click();
+                        }
+                    });
+                    
+                    // نمایش دکمه بروزرسانی
+                    document.getElementById('saveMcq').classList.add('hidden');
+                    document.getElementById('updateMcq').classList.remove('hidden');
+                    
+                } else if (question.type === 'short') {
+                    document.getElementById('shortAnswerTab').click();
+                    document.getElementById('shortQuestion').value = question.question;
+                    document.getElementById('shortAnswer').value = question.correctAnswer;
+                    
+                    // نمایش دکمه بروزرسانی
+                    document.getElementById('saveShortAnswer').classList.add('hidden');
+                    document.getElementById('updateShortAnswer').classList.remove('hidden');
+                    
+                } else if (question.type === 'trueFalse') {
+                    document.getElementById('trueFalseTab').click();
+                    document.getElementById('trueFalseQuestion').value = question.question;
+                    
+                    // انتخاب پاسخ صحیح
+                    if (question.correctAnswer) {
+                        document.getElementById('trueBtn').click();
+                    } else {
+                        document.getElementById('falseBtn').click();
+                    }
+                    
+                    // نمایش دکمه بروزرسانی
+                    document.getElementById('saveTrueFalse').classList.add('hidden');
+                    document.getElementById('updateTrueFalse').classList.remove('hidden');
+                }
+                
+                // نمایش نشانگر حالت ویرایش
+                document.getElementById('editModeIndicator').classList.remove('hidden');
+                document.getElementById('addContent').classList.add('edit-mode');
+                
+            }, 100);
+        }
+
+        // خروج از حالت ویرایش
+        function exitEditMode() {
+            appState.editingQuestionId = null;
+            
+            // مخفی کردن دکمه‌های بروزرسانی و نمایش دکمه‌های ذخیره
+            document.getElementById('saveMcq').classList.remove('hidden');
+            document.getElementById('updateMcq').classList.add('hidden');
+            document.getElementById('saveShortAnswer').classList.remove('hidden');
+            document.getElementById('updateShortAnswer').classList.add('hidden');
+            document.getElementById('saveTrueFalse').classList.remove('hidden');
+            document.getElementById('updateTrueFalse').classList.add('hidden');
+            
+            // مخفی کردن نشانگر حالت ویرایش
+            document.getElementById('editModeIndicator').classList.add('hidden');
+            document.getElementById('addContent').classList.remove('edit-mode');
+            
+            // ریست فرم‌ها
+            resetMcqForm();
+            resetShortAnswerForm();
+            resetTrueFalseForm();
+        }
+
+        // به‌روزرسانی لیست سوالات
+        function updateQuestionsList() {
+            const container = document.getElementById('questionsList');
+            container.innerHTML = '';
+            
+            if (appState.questions.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-center py-4">هنوز سوالی ایجاد نکرده‌اید.</p>';
+                return;
+            }
+            
+            appState.questions.forEach((question, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-card';
+                
+                let content = '';
+                if (question.type === 'mcq') {
+                    content = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-white">${index + 1}. ${question.question}</h4>
+                                <div class="flex items-center mt-2 text-sm text-slate-400">
+                                    <span class="ml-3">${question.subject} - ${question.topic}</span>
+                                </div>
+                            </div>
+                            <span class="question-type-badge">چندگزینه‌ای</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            ${question.options.map((option, i) => `
+                                <div class="option-item ${i + 1 === question.correctAnswer ? 'selected' : ''}">
+                                    <span class="option-number">${i + 1}</span>
+                                    <span>${option}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (question.type === 'short') {
+                    content = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-white">${index + 1}. ${question.question}</h4>
+                                <div class="flex items-center mt-2 text-sm text-slate-400">
+                                    <span class="ml-3">${question.subject} - ${question.topic}</span>
+                                </div>
+                            </div>
+                            <span class="question-type-badge">پاسخ کوتاه</span>
+                        </div>
+                        <div class="bg-slate-800 p-3 rounded-lg">
+                            <span class="text-slate-300">پاسخ صحیح: </span>
+                            <span class="text-green-400 font-bold">${question.correctAnswer}</span>
+                        </div>
+                    `;
+                } else {
+                    content = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-white">${index + 1}. ${question.question}</h4>
+                                <div class="flex items-center mt-2 text-sm text-slate-400">
+                                    <span class="ml-3">${question.subject} - ${question.topic}</span>
+                                </div>
+                            </div>
+                            <span class="question-type-badge">صحیح/غلط</span>
+                        </div>
+                        <div class="bg-slate-800 p-3 rounded-lg">
+                            <span class="text-slate-300">پاسخ صحیح: </span>
+                            <span class="${question.correctAnswer ? 'text-green-400' : 'text-red-400'} font-bold">
+                                ${question.correctAnswer ? 'صحیح' : 'غلط'}
+                            </span>
+                        </div>
+                    `;
+                }
+                
+                content += `
+                    <div class="flex justify-between items-center mt-4">
+                        <div class="question-actions">
+                            <button class="edit-btn" data-id="${question.id}">
+                                <i class="fas fa-edit"></i> ویرایش
+                            </button>
+                            <button class="delete-btn" data-id="${question.id}">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                            <button class="reset-mastery-btn reset-question-mastery" data-id="${question.id}">
+                                <i class="fas fa-undo"></i> ریست تسلط
+                            </button>
+                        </div>
+                        <span class="text-sm ${question.mastered ? 'text-green-400' : 'text-yellow-400'}">
+                            ${question.mastered ? 'تسلط یافته' : 'نیاز به تمرین'}
+                        </span>
+                    </div>
+                `;
+                
+                questionElement.innerHTML = content;
+                container.appendChild(questionElement);
+            });
+            
+            // اضافه کردن event listeners برای دکمه‌های ویرایش و حذف
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const questionId = parseInt(this.getAttribute('data-id'));
+                    enterEditMode(questionId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const questionId = parseInt(this.getAttribute('data-id'));
+                    deleteQuestion(questionId);
+                });
+            });
+            
+            document.querySelectorAll('.reset-question-mastery').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const questionId = parseInt(this.getAttribute('data-id'));
+                    resetQuestionMastery(questionId);
+                });
+            });
+        }
+
+        // حذف سوال
+        function deleteQuestion(questionId) {
+            if (!confirm('آیا از حذف این سوال اطمینان دارید؟')) {
+                return;
+            }
+            
+            appState.questions = appState.questions.filter(q => q.id !== questionId);
+            saveData();
+            updateQuestionsList();
+            updateStats();
+            showNotification('سوال حذف شد!', 'warning');
+            
+            // اگر سوال در حال ویرایش حذف شد، از حالت ویرایش خارج شو
+            if (appState.editingQuestionId === questionId) {
+                exitEditMode();
+            }
+        }
+
+        // ریست تسلط یک سوال خاص
+        function resetQuestionMastery(questionId) {
+            const question = appState.questions.find(q => q.id === questionId);
+            if (!question) return;
+            
+            question.mastered = false;
+            saveData();
+            updateQuestionsList();
+            updateStats();
+            showNotification('تسلط سوال ریست شد.', 'success');
+        }
+
+        // ریست تسلط همه سوالات
+        function resetAllMastery() {
+            if (!confirm('آیا از ریست تسلط همه سوالات اطمینان دارید؟')) {
+                return;
+            }
+            
+            appState.questions.forEach(question => {
+                question.mastered = false;
+            });
+            
+            saveData();
+            updateQuestionsList();
+            updateStats();
+            showNotification('تسلط همه سوالات ریست شد.', 'success');
+        }
+
+        // ریست تسلط سوالات یک درس
+        function resetSubjectMastery(subjectId) {
+            if (!confirm('آیا از ریست تسلط سوالات این درس اطمینان دارید؟')) {
+                return;
+            }
+            
+            appState.questions.forEach(question => {
+                if (question.subjectId == subjectId) {
+                    question.mastered = false;
+                }
+            });
+            
+            saveData();
+            updateQuestionsList();
+            updateStats();
+            showNotification('تسلط سوالات درس ریست شد.', 'success');
+        }
+
+        // ریست تسلط سوالات یک مبحث
+        function resetTopicMastery(subjectId, topic) {
+            if (!confirm('آیا از ریست تسلط سوالات این مبحث اطمینان دارید؟')) {
+                return;
+            }
+            
+            appState.questions.forEach(question => {
+                if (question.subjectId == subjectId && question.topic === topic) {
+                    question.mastered = false;
+                }
+            });
+            
+            saveData();
+            updateQuestionsList();
+            updateStats();
+            showNotification('تسلط سوالات مبحث ریست شد.', 'success');
+        }
+
+        // شروع تمرین
+        function startPractice() {
+            if (appState.questions.length === 0) {
+                showNotification('لطفا ابتدا سوالاتی ایجاد کنید.', 'warning');
+                return;
+            }
+            
+            // فیلتر کردن سوالات بر اساس دروس و مباحث انتخاب شده
+            let questionsToPractice = appState.questions.filter(q => !q.mastered);
+            
+            if (appState.selectedSubjects.length > 0) {
+                questionsToPractice = questionsToPractice.filter(q => 
+                    appState.selectedSubjects.includes(q.subjectId)
+                );
+            }
+            
+            if (appState.selectedTopics.length > 0) {
+                questionsToPractice = questionsToPractice.filter(q => 
+                    appState.selectedTopics.includes(`${q.subjectId}-${q.topic}`)
+                );
+            }
+            
+            if (questionsToPractice.length === 0) {
+                document.getElementById('practiceArea').innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-trophy text-5xl text-green-400 mb-4"></i>
+                        <p class="text-xl font-bold text-green-400 mb-2">تبریک!</p>
+                        <p class="text-gray-400">شما بر تمام سوالات انتخاب شده تسلط یافته‌اید یا هیچ سوالی مطابق با فیلترهای شما وجود ندارد.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * questionsToPractice.length);
+            const question = questionsToPractice[randomIndex];
+            appState.currentQuestionIndex = appState.questions.findIndex(q => q.id === question.id);
+            
+            let practiceHTML = '';
+            
+            if (question.type === 'mcq') {
+                practiceHTML = `
+                    <div class="text-right mb-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-white">${question.question}</h3>
+                            <span class="text-slate-400 text-sm">${question.subject} - ${question.topic}</span>
+                        </div>
+                        <div class="space-y-3">
+                            ${question.options.map((option, i) => `
+                                <div class="option-item practice-option" data-option="${i + 1}">
+                                    <span class="option-number">${i + 1}</span>
+                                    <span>${option}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (question.type === 'short') {
+                practiceHTML = `
+                    <div class="text-right mb-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-white">${question.question}</h3>
+                            <span class="text-slate-400 text-sm">${question.subject} - ${question.topic}</span>
+                        </div>
+                        <div class="auto-check">
+                            <input type="text" id="shortAnswerInput" class="short-answer-input w-full" placeholder="پاسخ خود را وارد کنید...">
+                            <div id="autoCheckIndicator" class="auto-check-indicator"></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                practiceHTML = `
+                    <div class="text-right mb-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-white">${question.question}</h3>
+                            <span class="text-slate-400 text-sm">${question.subject} - ${question.topic}</span>
+                        </div>
+                        <div class="true-false-container">
+                            <button class="practice-true-false true-false-btn true" data-answer="true">
+                                <i class="fas fa-check-circle ml-2"></i>صحیح
+                            </button>
+                            <button class="practice-true-false true-false-btn false" data-answer="false">
+                                <i class="fas fa-times-circle ml-2"></i>غلط
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('practiceArea').innerHTML = practiceHTML;
+            
+            // اضافه کردن event listeners
+            if (question.type === 'mcq') {
+                document.querySelectorAll('.practice-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        const selectedOption = this.getAttribute('data-option');
+                        appState.userAnswers[question.id] = selectedOption;
+                        checkAnswer(question);
+                    });
+                });
+            } else if (question.type === 'short') {
+                const input = document.getElementById('shortAnswerInput');
+                const indicator = document.getElementById('autoCheckIndicator');
+                
+                input.addEventListener('input', function() {
+                    const userAnswer = this.value.trim().toLowerCase();
+                    const correctAnswer = question.correctAnswer.toLowerCase();
+                    
+                    if (userAnswer === correctAnswer) {
+                        indicator.className = 'auto-check-indicator correct';
+                        indicator.innerHTML = '✓';
+                        appState.userAnswers[question.id] = userAnswer;
+                        setTimeout(() => checkAnswer(question), 500);
+                    } else if (userAnswer && correctAnswer.startsWith(userAnswer)) {
+                        indicator.className = 'auto-check-indicator';
+                        indicator.innerHTML = '';
+                    } else if (userAnswer) {
+                        indicator.className = 'auto-check-indicator incorrect';
+                        indicator.innerHTML = '✗';
+                    } else {
+                        indicator.className = 'auto-check-indicator';
+                        indicator.innerHTML = '';
+                    }
+                });
+            } else {
+                document.querySelectorAll('.practice-true-false').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const selectedAnswer = this.getAttribute('data-answer') === 'true';
+                        appState.userAnswers[question.id] = selectedAnswer;
+                        checkAnswer(question);
+                    });
+                });
+            }
+        }
+
+        // بررسی پاسخ کاربر
+        function checkAnswer(question) {
+            const userAnswer = appState.userAnswers[question.id];
+            let isCorrect = false;
+            
+            if (question.type === 'mcq') {
+                isCorrect = parseInt(userAnswer) === question.correctAnswer;
+            } else if (question.type === 'short') {
+                isCorrect = userAnswer.toLowerCase() === question.correctAnswer.toLowerCase();
+            } else {
+                isCorrect = userAnswer === question.correctAnswer;
+            }
+            
+            // به‌روزرسانی آمار
+            appState.stats.total++;
+            if (isCorrect) {
+                appState.stats.correct++;
+                showConfetti();
+                question.mastered = true;
+                showSuccessAnimation(question);
+            } else {
+                appState.stats.incorrect++;
+                showErrorAnimation(question);
+            }
+            
+            saveData();
+            updateStats();
+        }
+
+        // نمایش انیمیشن موفقیت
+        function showSuccessAnimation(question) {
+            let resultHTML = `
+                <div class="text-center">
+                    <div class="success-checkmark">
+                        <div class="check-icon">
+                            <span class="icon-line line-tip"></span>
+                            <span class="icon-line line-long"></span>
+                            <div class="icon-circle"></div>
+                            <div class="icon-fix"></div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-green-400 mb-4">پاسخ شما صحیح است!</h3>
+                    <div class="loader"></div>
+                </div>
+            `;
+            
+            document.getElementById('practiceArea').innerHTML = resultHTML;
+            
+            setTimeout(startPractice, 1500);
+        }
+
+        // نمایش انیمیشن خطا
+        function showErrorAnimation(question) {
+            // لرزش صفحه
+            document.body.classList.add('shake');
+            setTimeout(() => {
+                document.body.classList.remove('shake');
+            }, 500);
+            
+            let resultHTML = `
+                <div class="text-center">
+                    <div class="error-cross">
+                        <div class="cross-icon">
+                            <span class="cross-line line1"></span>
+                            <span class="cross-line line2"></span>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-400 mb-4">پاسخ شما نادرست است!</h3>
+                    <div class="bg-slate-800 p-4 rounded-lg mb-6">
+                        <p class="text-slate-300 mb-2">پاسخ صحیح:</p>
+                        <p class="text-white font-bold">${
+                            question.type === 'mcq' ? question.options[question.correctAnswer - 1] : 
+                            question.type === 'short' ? question.correctAnswer : 
+                            question.correctAnswer ? 'صحیح' : 'غلط'
+                        }</p>
+                    </div>
+                    <div class="loader"></div>
+                </div>
+            `;
+            
+            document.getElementById('practiceArea').innerHTML = resultHTML;
+            
+            setTimeout(startPractice, 1500);
+        }
+
+        // نمایش انیمیشن کانفتی
+        function showConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.top = `${Math.random() * 100}%`;
+                    confetti.style.background = i % 3 === 0 ? 'var(--gradient-primary)' : 
+                                              i % 3 === 1 ? 'var(--gradient-secondary)' : 
+                                              'var(--gradient-accent)';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    document.body.appendChild(confetti);
+                    
+                    confetti.animate([
+                        { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                        { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                    ], {
+                        duration: 1000 + Math.random() * 2000,
+                        easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
+                    }).onfinish = () => confetti.remove();
+                }, i * 100);
+            }
+        }
+
+        // به‌روزرسانی آمار
+        function updateStats() {
+            document.getElementById('totalQuestions').textContent = appState.stats.total;
+            document.getElementById('correctAnswers').textContent = appState.stats.correct;
+            
+            const successRate = appState.stats.total > 0 ? 
+                Math.round((appState.stats.correct / appState.stats.total) * 100) : 0;
+            document.getElementById('successRate').textContent = `${successRate}%`;
+            
+            // به‌روزرسانی پیشرفت کلی
+            document.getElementById('overallProgress').textContent = `${successRate}%`;
+            document.getElementById('overallProgressFill').style.width = `${successRate}%`;
+            
+            // به‌روزرسانی پیشرفت دروس
+            updateSubjectProgress();
+        }
+
+        // به‌روزرسانی پیشرفت دروس
+        function updateSubjectProgress() {
+            const subjectProgress = document.getElementById('subjectProgress');
+            subjectProgress.innerHTML = '';
+            
+            appState.subjects.forEach(subject => {
+                const subjectQuestions = appState.questions.filter(q => q.subjectId === subject.id);
+                const totalQuestions = subjectQuestions.length;
+                const correctAnswers = subjectQuestions.filter(q => q.mastered).length;
+                const progressPercentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                
+                const progressCard = document.createElement('div');
+                progressCard.className = 'progress-card';
+                progressCard.innerHTML = `
+                    <div class="progress-header">
+                        <h4 class="text-lg font-bold text-white">${subject.name}</h4>
+                        <span class="text-green-400 font-bold">${progressPercentage}%</span>
+                    </div>
+                    <div class="progress-bar mb-3">
+                        <div class="progress-fill" style="width: ${progressPercentage}%"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${totalQuestions}</div>
+                            <div class="stat-label">کل سوالات</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${correctAnswers}</div>
+                            <div class="stat-label">پاسخ صحیح</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${totalQuestions - correctAnswers}</div>
+                            <div class="stat-label">نیاز به تمرین</div>
+                        </div>
+                    </div>
+                    <button class="reset-all-btn reset-subject-mastery-progress" data-id="${subject.id}">
+                        <i class="fas fa-undo ml-2"></i>ریست تسلط سوالات این درس
+                    </button>
+                `;
+                
+                subjectProgress.appendChild(progressCard);
+            });
+            
+            // اضافه کردن event listeners برای دکمه‌های ریست در تب پیشرفت
+            document.querySelectorAll('.reset-subject-mastery-progress').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-id');
+                    resetSubjectMastery(subjectId);
+                });
+            });
+        }
+
+        // راه‌اندازی برنامه
+        
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
