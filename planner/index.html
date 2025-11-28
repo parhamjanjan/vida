@@ -1,1 +1,2930 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>پلنر - سامانه آموزشی ویدا</title>
 
+<!-- Tailwind + FontAwesome + Chart.js -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+  
+  :root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --green: #10b981;
+    --card: #1e293b;
+    --bg-color: #0f172a;
+    --text-color: #e2e8f0;
+    --sidebar-bg: rgba(30,41,59,0.9);
+    --card-bg: rgba(30,41,59,0.5);
+    --border-color: rgba(255,255,255,0.04);
+    --input-bg: rgba(30,41,59,0.8);
+  }
+
+  [data-theme="light"] {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --green: #10b981;
+    --card: #f8fafc;
+    --bg-color: #f1f5f9;
+    --text-color: #1e293b;
+    --sidebar-bg: rgba(255,255,255,0.9);
+    --card-bg: rgba(255,255,255,0.7);
+    --border-color: rgba(0,0,0,0.08);
+    --input-bg: rgba(255,255,255,0.9);
+  }
+
+  /* انیمیشن تغییر تم */
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  * {
+    box-sizing: border-box;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* استایل dropdown */
+  .form-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-family: 'Vazirmatn', sans-serif;
+  }
+
+  /* استایل برای تعداد تسک‌های انجام شده */
+  .completed-count {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    margin-right: 8px;
+  }
+
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    background: var(--card-bg);
+  }
+
+  .list-item-content {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex: 1;
+  }
+
+  .list-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* استایل options در dropdown */
+  .form-input option {
+    background: var(--input-bg);
+    color: var(--text-color);
+    padding: 10px;
+    border: none;
+  }
+
+  /* وقتی dropdown باز است */
+  .form-input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  }
+
+  /* استایل برای گروه input زمان */
+  .time-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .time-input-group .form-input:first-child {
+    flex: 1;
+  }
+
+  .time-input-group .form-input:last-child {
+    width: 100px;
+  }
+
+  .flex-1 {
+    flex: 1;
+  }
+
+  .w-24 {
+    width: 6rem;
+  }
+
+  /* استایل برای نمودارها */
+  .charts-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .chart-card {
+    background: var(--card-bg);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+  }
+
+  .chart-wrapper {
+    position: relative;
+    height: 250px;
+    width: 100%;
+  }
+
+  /* استایل برای صفحه گزارش هفتگی */
+  .print-report {
+    display: none;
+  }
+
+  .print-page {
+    background: white;
+    color: black;
+    padding: 20mm;
+    min-height: 297mm;
+    width: 210mm;
+    margin: 0 auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    font-family: 'Vazirmatn', sans-serif;
+  }
+
+  .print-header {
+    text-align: center;
+    border-bottom: 2px solid #4f46e5;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+
+  .print-header h1 {
+    color: #4f46e5;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .print-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+
+  .print-table th {
+    background: #4f46e5;
+    color: white;
+    padding: 12px 8px;
+    text-align: right;
+    border: 1px solid #ddd;
+  }
+
+  .print-table td {
+    padding: 10px 8px;
+    border: 1px solid #ddd;
+    text-align: right;
+  }
+
+  .print-table tr:nth-child(even) {
+    background: #f8f9fa;
+  }
+
+  .print-summary {
+    margin-top: 30px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-right: 4px solid #4f46e5;
+  }
+
+  .print-summary h3 {
+    color: #4f46e5;
+    margin-bottom: 10px;
+  }
+
+  .print-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    color: #666;
+    font-size: 12px;
+  }
+
+  .no-print {
+    display: block;
+  }
+
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-report, .print-report * {
+      visibility: visible;
+    }
+    .print-report {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      background: white;
+    }
+    .no-print {
+      display: none !important;
+    }
+    .print-page {
+      box-shadow: none;
+      margin: 0;
+      padding: 15mm;
+    }
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Vazirmatn', sans-serif;
+  }
+  
+  nav {
+    height: 72px;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .planner {
+    display: flex;
+    gap: 16px;
+    padding: 18px 0;
+  }
+  
+  /* Sidebar full-height */
+  .sidebar {
+    width: 300px;
+    background: var(--sidebar-bg);
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    height: calc(100vh - 72px);
+    overflow: auto;
+    position: relative;
+  }
+  
+  .main {
+    flex: 1;
+    overflow: auto;
+    padding-bottom: 40px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .add-task-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: .7rem 0;
+    color: inherit;
+    outline: none;
+  }
+
+  .list-item.active {
+    background: rgba(79,70,229,.12);
+    border-right: 3px solid var(--primary);
+  }
+  
+  .list-count {
+    background: var(--card-bg);
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    font-size: .8rem;
+    margin-right: .5rem;
+  }
+
+  /* menu (three-dot) */
+  .list-controls {
+    position: relative;
+  }
+  
+  .list-menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+  }
+  
+  .list-menu {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    padding: 6px;
+    border-radius: 8px;
+    display: none;
+    min-width: 140px;
+    z-index: 80;
+  }
+  
+  .list-menu button {
+    display: block;
+    width: 100%;
+    text-align: right;
+    padding: 8px;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  
+  .list-item:hover .list-menu-btn {
+    opacity: 1;
+  }
+  
+  .list-item:hover .list-menu {
+    display: block;
+  }
+
+  /* week */
+  .weekly-planner {
+    background: var(--card-bg);
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+  }
+  
+  .week-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .day-cell {
+    min-height: 120px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px dashed var(--border-color);
+    position: relative;
+  }
+  
+  .day-cell.today {
+    background: rgba(79,70,229,0.12);
+    border-color: var(--primary);
+  }
+  
+  .day-task {
+    background: var(--card-bg);
+    padding: 6px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .day-task .delete-task-btn {
+    color: #ef4444;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+
+  /* task list */
+  .task-list {
+    background: var(--card-bg);
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .task-checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .task-checkbox.checked {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  
+  .task-title.completed {
+    text-decoration: line-through;
+    opacity: 0.75;
+  }
+
+  /* modal */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(2,6,23,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  
+  .modal .modal-content {
+    background: var(--card);
+    padding: 16px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 520px;
+    border: 1px solid var(--border-color);
+  }
+
+  .drop-active {
+    background: rgba(79,70,229,0.12);
+    border-color: var(--primary);
+  }
+
+  /* دکمه تغییر تم */
+  .theme-toggle {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 8px;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+  }
+
+  .theme-toggle:hover {
+    transform: rotate(30deg);
+  }
+
+  /* نوتیفیکیشن */
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card);
+    color: var(--text-color);
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 350px;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+  }
+
+  .notification.show {
+    transform: translateX(0);
+  }
+
+  .notification-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+
+  .notification-close {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  /* نشانگر زمان شروع تسک */
+  .task-time-badge {
+    background: rgba(79, 70, 229, 0.2);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    margin-right: 8px;
+  }
+
+  .task-time-badge.past {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+  }
+
+  .task-time-badge.upcoming {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+  }
+
+  /* استایل‌های جدید برای دسته‌بندی زمانی */
+  .time-category {
+    margin-bottom: 20px;
+  }
+
+  .time-category-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+  }
+
+  .time-category-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .time-category-count {
+    background: var(--card-bg);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+  }
+
+  .time-category-content {
+    display: none;
+  }
+
+  .time-category.expanded .time-category-content {
+    display: block;
+  }
+
+  .time-category.expanded .time-category-header {
+    border-bottom: none;
+  }
+
+  .time-category-icon {
+    transition: transform 0.3s ease;
+  }
+
+  .time-category.expanded .time-category-icon {
+    transform: rotate(90deg);
+  }
+
+  /* استایل‌های جدید برای سیستم لیگ */
+  .league-section {
+    background: var(--card-bg);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+  }
+
+  .league-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .league-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .league-icon {
+    font-size: 1.5rem;
+  }
+
+  .league-info {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .league-stat {
+    text-align: center;
+    flex: 1;
+  }
+
+  .league-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .league-stat-label {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+
+  .league-progress {
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .league-progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  .league-rankings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .ranking-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ranking-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+  }
+
+  .ranking-info {
+    flex: 1;
+  }
+
+  .ranking-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .ranking-stats {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+
+  .ranking-position {
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+
+  .badges-container {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .badge-icon {
+    font-size: 1rem;
+  }
+
+  /* استایل‌های لیگ‌ها */
+  .league-legendary {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #000;
+  }
+
+  .league-professional {
+    background: linear-gradient(135deg, #c0c0c0, #808080);
+    color: #fff;
+  }
+
+  .league-beginner {
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    color: #fff;
+  }
+
+  .league-training {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    color: #fff;
+  }
+
+  /* موبایل */
+  @media (max-width: 768px) {
+    .planner {
+      flex-direction: column;
+    }
+    
+    .sidebar {
+      width: 100%;
+      height: auto;
+    }
+    
+    .week-days {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .charts-container {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .chart-wrapper {
+      height: 220px;
+    }
+    
+    .chart-card {
+      padding: 12px;
+      margin-bottom: 0;
+    }
+
+    .time-input-group {
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .time-input-group .form-input:last-child {
+      width: 100%;
+    }
+
+    .print-page {
+      padding: 10mm;
+      width: 100%;
+    }
+
+    .print-table {
+      font-size: 12px;
+    }
+
+    .print-table th,
+    .print-table td {
+      padding: 6px 4px;
+    }
+
+    .league-rankings {
+      grid-template-columns: 1fr;
+    }
+
+    .league-info {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
+  /* موبایل کوچک */
+  @media (max-width: 480px) {
+    .charts-container {
+      gap: 8px;
+    }
+    
+    .chart-card {
+      padding: 10px;
+    }
+    
+    .chart-wrapper {
+      height: 200px;
+    }
+    
+    .chart-title {
+      font-size: 14px;
+    }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="container flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center">
+        <i class="fas fa-graduation-cap text-white"></i>
+      </div>
+      <div style="-webkit-background-clip:text;background:linear-gradient(135deg,var(--primary),var(--green));color:white;" class="font-bold text-lg">سامانه آموزشی ویدا</div>
+    </div>
+    <div class="flex items-center gap-4 no-print">
+      <button id="themeToggle" class="theme-toggle">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button id="printReportBtn" class="btn-primary">
+        <i class="fas fa-print ml-2"></i>
+        گزارش هفتگی
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="planner">
+    <!-- Sidebar (requested structure) -->
+    <div class="sidebar h-full" id="sidebar">
+      <div class="mb-8">
+        <button class="btn-primary w-full mb-4" id="addListBtn">
+            <i class="fas fa-plus ml-2"></i>
+            لیست جدید
+        </button>
+        <input type="text" class="add-task-input" placeholder="جستجو در تسک‌ها..." id="searchInput">
+      </div>
+      
+      <div class="mb-6">
+        <div class="list-item active" data-view="inbox" id="view-inbox">
+            <div class="list-item-content">
+                <i class="fas fa-inbox ml-3"></i>
+                <span>صندوق ورودی</span>
+                <span class="list-count" id="inbox-count">0</span>
+            </div>
+        </div>
+        <div class="list-item" data-view="today" id="view-today">
+            <div class="list-item-content">
+                <i class="fas fa-calendar-day ml-3" style="color: #10b981;"></i>
+                <span>امروز</span>
+                <span class="list-count" id="today-count">0</span>
+            </div>
+        </div>
+        <div class="list-item" data-view="week" id="view-week">
+            <div class="list-item-content">
+                <i class="fas fa-calendar-week ml-3" style="color: #f59e0b;"></i>
+                <span>هفته جاری</span>
+                <span class="list-count" id="week-count">0</span>
+            </div>
+        </div>
+        <div class="list-item" data-view="important" id="view-important">
+            <div class="list-item-content">
+                <i class="fas fa-star ml-3" style="color: #ef4444;"></i>
+                <span>مهم</span>
+                <span class="list-count" id="important-count">0</span>
+            </div>
+        </div>
+        <div class="list-item" data-view="league" id="view-league">
+            <div class="list-item-content">
+                <i class="fas fa-trophy ml-3" style="color: #f59e0b;"></i>
+                <span>لیگ مطالعاتی</span>
+            </div>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="text-sm font-semibold text-slate-400">لیست‌های درسی</h3>
+        </div>
+        <div id="study-lists"><!-- JS fills here --></div>
+      </div>
+      
+      <div>
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="text-sm font-semibold text-slate-400">لیست‌های شخصی</h3>
+        </div>
+        <div id="personal-lists"><!-- JS fills here --></div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <!-- stats -->
+      <div class="stats-grid mb-4" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <div class="stat-card">
+          <div class="text-2xl font-bold" id="total-study-time">0</div>
+          <div class="text-sm text-slate-400">ساعت مطالعه این هفته</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-2xl font-bold" id="completed-tasks">0</div>
+          <div class="text-sm text-slate-400">تسک‌های تکمیل شده</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-2xl font-bold" id="productivity-score">0%</div>
+          <div class="text-sm text-slate-400">امتیاز بهره‌وری</div>
+        </div>
+      </div>
+
+      <!-- weekly planner -->
+      <div class="weekly-planner mb-4">
+        <div class="flex justify-between items-center">
+          <button id="prev-week" class="btn-primary"><i class="fas fa-chevron-right ml-2"></i> هفته قبل</button>
+          <h3 class="section-title" id="current-week">هفته جاری</h3>
+          <button id="next-week" class="btn-primary">هفته بعد <i class="fas fa-chevron-left mr-2"></i></button>
+        </div>
+
+        <div class="week-days" id="week-days"></div>
+      </div>
+
+      <!-- لیگ مطالعاتی -->
+      <div id="league-view" style="display: none;">
+
+        <div class="league-section">
+          <div class="league-header">
+            <div class="league-title">
+              <i class="fas fa-trophy league-icon" id="league-icon"></i>
+              <span id="league-name">لیگ آموزشی</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="league-points">امتیاز: 0</span>
+            </div>
+          </div>
+
+          <div class="league-info">
+            <div class="league-stat">
+              <div class="league-stat-value" id="daily-hours">0</div>
+              <div class="league-stat-label">میانگین روزانه (ساعت)</div>
+            </div>
+            <div class="league-stat">
+              <div class="league-stat-value" id="weekly-hours">0</div>
+              <div class="league-stat-label">مجموع هفتگی (ساعت)</div>
+            </div>
+            <div class="league-stat">
+              <div class="league-stat-value" id="streak-days">0</div>
+              <div class="league-stat-label">روزهای متوالی</div>
+            </div>
+          </div>
+
+          <div class="league-progress">
+            <div class="league-progress-bar" id="league-progress-bar" style="width: 0%;"></div>
+          </div>
+
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm">پیشرفت به لیگ بعدی</div>
+            <div class="text-sm" id="league-next">0%</div>
+          </div>
+
+          <div class="badges-container" id="badges-container">
+            <!-- نشان‌ها اینجا نمایش داده می‌شوند -->
+          </div>
+        </div>
+
+        <div class="league-section">
+          <h3 class="section-title mb-4">دستاوردهای شما</h3>
+          <div class="league-rankings flex" id="league-rankings">
+            <!-- دستاوردهای کاربر اینجا نمایش داده می‌شود -->
+          </div>
+        </div>
+      </div>
+
+      <!-- charts -->
+      <div class="charts-container">
+        <div class="chart-card">
+          <div class="chart-title mb-2"><i class="fas fa-chart-line ml-2"></i> ساعات مطالعه هفته جاری</div>
+          <div class="chart-wrapper">
+            <canvas id="studyTimeChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title mb-2"><i class="fas fa-tasks ml-2"></i> پیشرفت درسی</div>
+          <div class="chart-wrapper">
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- tasks -->
+      <div id="tasks-view">
+        <div class="section-title mb-4">
+          <i class="fas fa-inbox ml-2"></i>
+          <span id="current-list-title" class="text-lg font-bold">صندوق ورودی</span>
+        </div>
+
+        <div class="mb-4 flex gap-3">
+          <input type="text" id="new-task-input" class="add-task-input" placeholder="اضافه کردن تسک (Enter)..." />
+          <button id="openTaskModal" class="btn-primary">افزودن</button>
+        </div>
+
+        <div class="task-list" id="task-list"></div>
+
+        <div class="mt-6" id="completed-section">
+          <div class="section-title">
+            <i class="fas fa-check-circle text-green-500"></i>
+            <span>تکمیل شده (<span id="completed-count">0</span>)</span>
+          </div>
+          <div id="completed-tasks-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- نوتیفیکیشن -->
+<div class="notification" id="notification">
+  <div class="notification-icon">
+    <i class="fas fa-bell"></i>
+  </div>
+  <div class="notification-content">
+    <div class="notification-title font-bold" id="notification-title">یادآوری</div>
+    <div class="notification-message text-sm" id="notification-message">زمان مطالعه شما به پایان رسید!</div>
+  </div>
+  <button class="notification-close" id="notification-close">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
+<!-- صفحه گزارش هفتگی -->
+<div class="print-report" id="printReport">
+  <div class="print-page">
+    <div class="print-header">
+      <h1>گزارش هفتگی فعالیت‌های آموزشی</h1>
+      <div class="print-meta">
+        <div id="report-week-range">هفته: -</div>
+        <div id="report-generation-date">تاریخ تولید: -</div>
+      </div>
+    </div>
+
+    <div class="print-summary">
+      <h3>خلاصه عملکرد هفتگی</h3>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px;">
+        <div style="text-align: center;">
+          <div style="font-size: 18px; font-weight: bold; color: #4f46e5;" id="report-total-tasks">0</div>
+          <div style="font-size: 12px; color: #666;">تعداد تسک‌ها</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 18px; font-weight: bold; color: #10b981;" id="report-total-time">0 ساعت</div>
+          <div style="font-size: 12px; color: #666;">مجموع زمان مطالعه</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 18px; font-weight: bold; color: #f59e0b;" id="report-avg-time">0 ساعت</div>
+          <div style="font-size: 12px; color: #666;">میانگین روزانه</div>
+        </div>
+      </div>
+    </div>
+
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th>ردیف</th>
+          <th>عنوان تسک</th>
+          <th>دسته‌بندی</th>
+          <th>تاریخ انجام</th>
+          <th>زمان مطالعه</th>
+          <th>اولویت</th>
+          <th>توضیحات</th>
+        </tr>
+      </thead>
+      <tbody id="report-tasks-table">
+        <!-- داده‌های تسک‌ها اینجا پر می‌شود -->
+      </tbody>
+    </table>
+
+    <div class="print-summary">
+      <h3>توزیع زمانی بر اساس روزهای هفته</h3>
+      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 10px; font-size: 12px;">
+        <!-- داده‌های توزیع زمانی اینجا پر می‌شود -->
+      </div>
+    </div>
+
+    <div class="print-footer">
+      <p>این گزارش به صورت خودکار توسط سامانه آموزشی ویدا تولید شده است</p>
+      <p>تاریخ تولید: <span id="report-footer-date">-</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal" id="listModal">
+  <div class="modal-content">
+    <h2 class="text-xl font-bold mb-4" id="listModalTitle">ایجاد لیست جدید</h2>
+    <div class="mb-3">
+      <label class="block mb-1">نام لیست</label>
+      <input id="listNameInput" class="form-input" placeholder="مثال: ریاضیات">
+    </div>
+    <div class="mb-3">
+      <label class="block mb-1">رنگ</label>
+      <input id="listColorInput" type="color" class="form-input" value="#4f46e5">
+    </div>
+    <div class="flex justify-end gap-2">
+      <button id="saveListBtn" class="btn-primary">ذخیره</button>
+      <button id="cancelListBtn" class="btn-primary" style="background:transparent;border:1px solid var(--border-color)">لغو</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="taskModal">
+  <div class="modal-content">
+    <h2 class="text-xl font-bold mb-3" id="taskModalTitle">ایجاد تسک جدید</h2>
+    <div class="mb-2"><label class="block mb-1">عنوان</label><input id="taskTitleInput" class="form-input"></div>
+    <div class="mb-2"><label class="block mb-1">توضیحات</label><textarea id="taskDescriptionInput" class="form-input" rows="3"></textarea></div>
+    <div class="mb-2 grid grid-cols-2 gap-2">
+      <div><label class="block mb-1">تاریخ سررسید</label><input id="taskDueDateInput" type="date" class="form-input"></div>
+      <div>
+        <label class="block mb-1">زمان مطالعه</label>
+        <div class="time-input-group">
+          <input id="taskStudyTimeInput" type="number" class="form-input flex-1" min="0" step="1" value="1" placeholder="مقدار">
+          <select id="taskTimeUnitInput" class="form-input w-24">
+            <option value="hours">ساعت</option>
+            <option value="minutes">دقیقه</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="mb-2 grid grid-cols-2 gap-2">
+      <div>
+        <label class="block mb-1">زمان شروع</label>
+        <input id="taskStartTimeInput" type="time" class="form-input">
+      </div>
+      <div>
+        <label class="block mb-1">زمان پایان</label>
+        <input id="taskEndTimeInput" type="time" class="form-input">
+      </div>
+    </div>
+    <div class="mb-2 grid grid-cols-2 gap-2">
+      <div>
+        <label class="block mb-1">فعال کردن یادآوری</label>
+        <select id="taskReminderInput" class="form-input">
+          <option value="none">بدون یادآوری</option>
+          <option value="5">۵ دقیقه قبل</option>
+          <option value="10">۱۰ دقیقه قبل</option>
+          <option value="15">۱۵ دقیقه قبل</option>
+          <option value="30">۳۰ دقیقه قبل</option>
+          <option value="60">۱ ساعت قبل</option>
+        </select>
+      </div>
+      <div>
+        <label class="block mb-1">دسته‌بندی زمانی</label>
+        <select id="taskTimeCategoryInput" class="form-input">
+          <option value="">بدون دسته‌بندی</option>
+          <option value="morning">صبح (تا 10:00)</option>
+          <option value="noon">ظهر (تا 14:00)</option>
+          <option value="afternoon">غروب (تا 18:00)</option>
+          <option value="evening">شب (تا 22:00)</option>
+          <option value="midnight">نیمه‌شب (تا 2:00)</option>
+        </select>
+      </div>
+    </div>
+    <div class="mb-2"><label class="block mb-1">دسته‌بندی</label><select id="taskCategoryInput" class="form-input"></select></div>
+    <div class="flex justify-end gap-2">
+      <button id="saveTaskBtn" class="btn-primary">ذخیره</button>
+      <button id="cancelTaskBtn" class="btn-primary" style="background:transparent;border:1px solid var(--border-color)">لغو</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------------------
+   Data & persistence (start with default lists)
+   --------------------------- */
+let tasks = JSON.parse(localStorage.getItem('plannerTasks') || '[]');
+let lists = JSON.parse(localStorage.getItem('plannerLists') || '[]');
+
+// داده‌های سیستم لیگ
+let userStats = JSON.parse(localStorage.getItem('plannerUserStats') || '{}');
+
+// اگر لیستی وجود ندارد، لیست‌های پیش‌فرض ایجاد کن
+if (lists.length === 0) {
+  lists = [
+    { id: 'math', name: 'ریاضیات', color: '#4f46e5' },
+    { id: 'science', name: 'علوم', color: '#10b981' },
+    { id: 'english', name: 'زبان انگلیسی', color: '#f59e0b' },
+    { id: 'history', name: 'تاریخ', color: '#ef4444' },
+    { id: 'shopping', name: 'خرید', color: '#8b5cf6' },
+    { id: 'home', name: 'کارهای خانه', color: '#06b6d4' }
+  ];
+  localStorage.setItem('plannerLists', JSON.stringify(lists));
+}
+
+// اگر آمار کاربر وجود ندارد، ایجاد کن
+if (Object.keys(userStats).length === 0) {
+  userStats = {
+    dailyHours: 0,
+    weeklyHours: 0,
+    streak: 0,
+    league: 'training',
+    points: 0,
+    lastStudyDate: null,
+    completedTasks: 0,
+    badges: [],
+    studyHistory: {}
+  };
+  localStorage.setItem('plannerUserStats', JSON.stringify(userStats));
+}
+
+let currentWeek = 0;
+let currentView = 'inbox';
+let currentCategory = '';
+let editingListId = null;
+let editingTaskId = null;
+
+// مدیریت تم
+let currentTheme = localStorage.getItem('plannerTheme') || 'dark';
+
+// مدیریت یادآوری‌ها
+let reminderTimeouts = [];
+
+function saveAll(){ 
+  localStorage.setItem('plannerTasks', JSON.stringify(tasks)); 
+  localStorage.setItem('plannerLists', JSON.stringify(lists)); 
+  localStorage.setItem('plannerUserStats', JSON.stringify(userStats)); 
+}
+function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function todayISO(){ return new Date().toISOString().split('T')[0]; }
+function isoDate(d){ return new Date(d).toISOString().split('T')[0]; }
+
+/* ---------------------------
+   سیستم لیگ مطالعاتی
+   --------------------------- */
+function updateUserStats() {
+  const today = todayISO();
+  const weekDates = getCurrentWeekDates(currentWeek);
+  
+  // محاسبه ساعات مطالعه هفته جاری
+  const weeklyHours = tasks
+    .filter(t => t.completed && t.dueDate && weekDates.includes(t.dueDate))
+    .reduce((sum, task) => sum + (parseFloat(task.studyTime) || 0), 0);
+  
+  // محاسبه میانگین روزانه
+  const dailyHours = weeklyHours / 7;
+  
+  // محاسبه استمرار بر اساس روزهایی که حداقل 4 ساعت مطالعه داشته‌اید
+  const streak = calculateStudyStreak();
+  
+  // محاسبه امتیاز
+  let points = Math.round(weeklyHours * 10); // 10 امتیاز به ازای هر ساعت مطالعه
+  
+  // تعیین لیگ بر اساس ساعات مطالعه
+  let league = 'training';
+  if (weeklyHours >= 50) {
+    league = 'legendary';
+  } else if (weeklyHours >= 40) {
+    league = 'professional';
+  } else if (weeklyHours >= 30) {
+    league = 'beginner';
+  }
+  
+  // به‌روزرسانی آمار کاربر
+  userStats.dailyHours = dailyHours;
+  userStats.weeklyHours = weeklyHours;
+  userStats.streak = streak;
+  userStats.league = league;
+  userStats.points = points;
+  userStats.lastStudyDate = today;
+  userStats.completedTasks = tasks.filter(t => t.completed).length;
+  
+  // ذخیره تاریخچه مطالعه
+  if (!userStats.studyHistory) userStats.studyHistory = {};
+  userStats.studyHistory[today] = weeklyHours;
+  
+  // بررسی نشان‌ها
+  checkBadges();
+  
+  saveAll();
+}
+
+function calculateStudyStreak() {
+  // تاریخ‌های 30 روز گذشته
+  const dates = [];
+  for (let i = 0; i < 30; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    dates.push(isoDate(date));
+  }
+  
+  // محاسبه ساعات مطالعه برای هر روز
+  const dailyStudy = {};
+  dates.forEach(date => {
+    dailyStudy[date] = tasks
+      .filter(t => t.completed && t.dueDate === date)
+      .reduce((sum, task) => sum + (parseFloat(task.studyTime) || 0), 0);
+  });
+  
+  // محاسبه استمرار از امروز به عقب
+  let streak = 0;
+  const today = todayISO();
+  
+  for (let i = 0; i < dates.length; i++) {
+    const date = dates[i];
+    const studyHours = dailyStudy[date] || 0;
+    
+    // اگر امروز است و هنوز مطالعه نکرده‌اید، ادامه دهید
+    if (date === today && studyHours === 0) {
+      continue;
+    }
+    
+    // اگر روزی با حداقل 4 ساعت مطالعه پیدا شد
+    if (studyHours >= 4) {
+      streak++;
+    } else {
+      // اگر روزی با کمتر از 4 ساعت مطالعه پیدا شد، استمرار قطع می‌شود
+      break;
+    }
+  }
+  
+  return streak;
+}
+
+function checkBadges() {
+  const badges = [];
+  
+  // استمرار هفتگی (7 روز متوالی با حداقل 4 ساعت مطالعه در روز)
+  if (userStats.streak >= 7) {
+    badges.push({ id: 'streak-7', name: 'استمرار هفتگی', icon: 'fa-fire', description: '۷ روز مطالعه متوالی با حداقل ۴ ساعت در روز' });
+  }
+  
+  // استمرار ماهانه (30 روز متوالی با حداقل 4 ساعت مطالعه در روز)
+  if (userStats.streak >= 30) {
+    badges.push({ id: 'streak-30', name: 'استمرار ماهانه', icon: 'fa-calendar', description: '۳۰ روز مطالعه متوالی با حداقل ۴ ساعت در روز' });
+  }
+  
+  // مطالعه‌گر حرفه‌ای
+  if (userStats.weeklyHours >= 50) {
+    badges.push({ id: 'study-50', name: 'مطالعه‌گر حرفه‌ای', icon: 'fa-graduation-cap', description: '۵۰ ساعت مطالعه در هفته' });
+  }
+  
+  // مطالعه‌گر افسانه‌ای
+  if (userStats.weeklyHours >= 100) {
+    badges.push({ id: 'study-100', name: 'مطالعه‌گر افسانه‌ای', icon: 'fa-crown', description: '۱۰۰ ساعت مطالعه در هفته' });
+  }
+  
+  // تسک مستر
+  if (userStats.completedTasks >= 100) {
+    badges.push({ id: 'task-master', name: 'تسک مستر', icon: 'fa-tasks', description: 'تکمیل ۱۰۰ تسک' });
+  }
+  
+  // پرنده سحرخیز
+  const earlyBirdTasks = tasks.filter(t => {
+    if (!t.startTime || !t.completed) return false;
+    const [hours] = t.startTime.split(':').map(Number);
+    return hours < 7;
+  });
+  
+  if (earlyBirdTasks.length >= 10) {
+    badges.push({ id: 'early-bird', name: 'پرنده سحرخیز', icon: 'fa-sun', description: 'مطالعه قبل از ۷ صبح' });
+  }
+  
+  // بررسی نشان‌های جدید
+  badges.forEach(badge => {
+    if (!userStats.badges.some(b => b.id === badge.id)) {
+      userStats.badges.push(badge);
+      showNotification('🎉 تبریک!', `نشان "${badge.name}" را دریافت کردید!`);
+    }
+  });
+  
+  saveAll();
+}
+
+function renderLeagueView() {
+  updateUserStats();
+  
+  // به‌روزرسانی اطلاعات لیگ
+  document.getElementById('league-name').textContent = getLeagueName(userStats.league);
+  document.getElementById('league-icon').className = `fas ${getLeagueIcon(userStats.league)} league-icon`;
+  document.getElementById('league-points').textContent = `امتیاز: ${userStats.points}`;
+  document.getElementById('daily-hours').textContent = userStats.dailyHours.toFixed(1);
+  document.getElementById('weekly-hours').textContent = userStats.weeklyHours.toFixed(1);
+  document.getElementById('streak-days').textContent = userStats.streak;
+  
+  // محاسبه پیشرفت به لیگ بعدی
+  const progress = calculateLeagueProgress();
+  document.getElementById('league-progress-bar').style.width = `${progress}%`;
+  document.getElementById('league-progress-bar').style.background = getLeagueColor(userStats.league);
+  document.getElementById('league-next').textContent = `${progress}%`;
+  
+  // نمایش نشان‌ها
+  renderBadges();
+  
+  // نمایش دستاوردها
+  renderAchievements();
+}
+
+function getLeagueName(league) {
+  const names = {
+    'legendary': 'افسانه‌ای',
+    'professional': 'حرفه‌ای',
+    'beginner': 'مبتدی',
+    'training': 'آموزشی'
+  };
+  return names[league] || 'آموزشی';
+}
+
+function getLeagueIcon(league) {
+  const icons = {
+    'legendary': 'fa-crown',
+    'professional': 'fa-medal',
+    'beginner': 'fa-award',
+    'training': 'fa-user-graduate'
+  };
+  return icons[league] || 'fa-user-graduate';
+}
+
+function getLeagueColor(league) {
+  const colors = {
+    'legendary': '#ffd700',
+    'professional': '#c0c0c0',
+    'beginner': '#cd7f32',
+    'training': '#4f46e5'
+  };
+  return colors[league] || '#4f46e5';
+}
+
+function calculateLeagueProgress() {
+  // محاسبه پیشرفت به لیگ بعدی بر اساس ساعات مطالعه
+  const nextLeagueThreshold = getNextLeagueThreshold();
+  if (!nextLeagueThreshold) return 100;
+  
+  const progress = (userStats.weeklyHours / nextLeagueThreshold) * 100;
+  return Math.min(100, Math.round(progress));
+}
+
+function getNextLeagueThreshold() {
+  // آستانه‌های لیگ‌ها
+  const thresholds = {
+    'training': 30,
+    'beginner': 40,
+    'professional': 50,
+    'legendary': null // بالاترین لیگ
+  };
+  
+  return thresholds[userStats.league];
+}
+
+function renderBadges() {
+  const container = document.getElementById('badges-container');
+  container.innerHTML = '';
+  
+  if (userStats.badges.length === 0) {
+    container.innerHTML = '<div class="text-slate-400 text-center py-4">هنوز هیچ نشان‌ای دریافت نکرده‌اید</div>';
+    return;
+  }
+  
+  userStats.badges.forEach(badge => {
+    const badgeEl = document.createElement('div');
+    badgeEl.className = 'badge bg-green-500 text-white';
+    badgeEl.title = badge.description;
+    
+    badgeEl.innerHTML = `
+      <i class="fas ${badge.icon} badge-icon"></i>
+      <span>${badge.name}</span>
+    `;
+    
+    container.appendChild(badgeEl);
+  });
+}
+
+function renderAchievements() {
+  const container = document.getElementById('league-rankings');
+  container.innerHTML = '';
+  
+  const achievements = [
+    {
+      title: 'تسک‌های تکمیل شده',
+      value: userStats.completedTasks,
+      target: 100,
+      icon: 'fa-check-circle',
+      color: '#10b981'
+    },
+    {
+      title: 'روزهای متوالی مطالعه',
+      value: userStats.streak,
+      target: 30,
+      icon: 'fa-fire',
+      color: '#f59e0b'
+    },
+    {
+      title: 'ساعت مطالعه این هفته',
+      value: userStats.weeklyHours,
+      target: 50,
+      icon: 'fa-clock',
+      color: '#4f46e5'
+    },
+    {
+      title: 'میانگین روزانه',
+      value: userStats.dailyHours,
+      target: 7,
+      icon: 'fa-chart-line',
+      color: '#8b5cf6'
+    }
+  ];
+  
+  achievements.forEach(achievement => {
+    const progress = Math.min(100, (achievement.value / achievement.target) * 100);
+    
+    const achievementEl = document.createElement('div');
+    achievementEl.className = 'ranking-card';
+    
+    achievementEl.innerHTML = `
+      <div class="ranking-avatar" style="background: ${achievement.color}">
+        <i class="fas ${achievement.icon}"></i>
+      </div>
+      <div class="ranking-info">
+        <div class="ranking-name">${achievement.title}</div>
+        <div class="ranking-stats">${achievement.value.toFixed(1)} از ${achievement.target}</div>
+        <div class="league-progress mt-2">
+          <div class="league-progress-bar" style="width: ${progress}%; background: ${achievement.color}"></div>
+        </div>
+      </div>
+      <div class="ranking-position">${Math.round(progress)}%</div>
+    `;
+    
+    container.appendChild(achievementEl);
+  });
+}
+
+/* ---------------------------
+   مدیریت تم
+   --------------------------- */
+function initTheme() {
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const themeToggle = document.getElementById('themeToggle');
+  if (currentTheme === 'dark') {
+    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+  } else {
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+  }
+}
+
+function toggleTheme() {
+  if (currentTheme === 'dark') {
+    currentTheme = 'light';
+  } else {
+    currentTheme = 'dark';
+  }
+  
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  localStorage.setItem('plannerTheme', currentTheme);
+  
+  const themeToggle = document.getElementById('themeToggle');
+  if (currentTheme === 'dark') {
+    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+  } else {
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+  }
+}
+
+/* ---------------------------
+   مدیریت یادآوری‌ها
+   --------------------------- */
+function setupReminders() {
+  // پاک کردن تمام یادآوری‌های قبلی
+  reminderTimeouts.forEach(timeout => clearTimeout(timeout));
+  reminderTimeouts = [];
+
+  const now = new Date();
+  
+  tasks.forEach(task => {
+    if (task.completed || !task.startTime || !task.dueDate) return;
+    
+    // ترکیب تاریخ و زمان شروع
+    const startDateTime = new Date(`${task.dueDate}T${task.startTime}`);
+    
+    // اگر زمان شروع در گذشته است، از آن صرف نظر کن
+    if (startDateTime <= now) return;
+    
+    // تنظیم یادآوری اصلی
+    const timeUntilStart = startDateTime - now;
+    if (timeUntilStart > 0) {
+      const timeout = setTimeout(() => {
+        showNotification('یادآوری تسک', `زمان شروع تسک "${task.title}" فرا رسیده است.`);
+        playNotificationSound();
+      }, timeUntilStart);
+      
+      reminderTimeouts.push(timeout);
+    }
+    
+    // تنظیم یادآوری زودتر از موعد (اگر تنظیم شده باشد)
+    if (task.reminder && task.reminder !== 'none') {
+      const reminderMinutes = parseInt(task.reminder);
+      const reminderTime = startDateTime - (reminderMinutes * 60 * 1000);
+      const timeUntilReminder = reminderTime - now;
+      
+      if (timeUntilReminder > 0) {
+        const reminderTimeout = setTimeout(() => {
+          showNotification('یادآوری تسک', `تسک "${task.title}" در ${reminderMinutes} دقیقه دیگر شروع می‌شود.`);
+          playNotificationSound();
+        }, timeUntilReminder);
+        
+        reminderTimeouts.push(reminderTimeout);
+      }
+    }
+  });
+}
+
+/* ---------------------------
+   مدیریت نوتیفیکیشن
+   --------------------------- */
+function showNotification(title, message) {
+  const notification = document.getElementById('notification');
+  const notificationTitle = document.getElementById('notification-title');
+  const notificationMessage = document.getElementById('notification-message');
+  
+  notificationTitle.textContent = title;
+  notificationMessage.textContent = message;
+  
+  notification.classList.add('show');
+  
+  // نمایش نوتیفیکیشن مرورگر
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, { body: message, icon: '/favicon.ico' });
+  }
+  
+  // پخش صدا
+  playNotificationSound();
+  
+  // بسته شدن خودکار پس از 5 ثانیه
+  setTimeout(() => {
+    hideNotification();
+  }, 5000);
+}
+
+function hideNotification() {
+  const notification = document.getElementById('notification');
+  notification.classList.remove('show');
+}
+
+function playNotificationSound() {
+  // ایجاد صدا با Web Audio API
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 800;
+    gainNode.gain.value = 0.1;
+    
+    oscillator.start();
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+    oscillator.stop(audioContext.currentTime + 1);
+  } catch (e) {
+    console.log('صدا پخش نشد:', e);
+  }
+}
+
+/* ---------------------------
+   Helpers
+   --------------------------- */
+function getCategoryName(id){ 
+  if (!id || id === 'general') return 'عمومی';
+  const l = lists.find(x=>x.id===id); 
+  return l ? l.name : 'عمومی'; 
+}
+function getCategoryIcon(id){ const map = { math:'fa-book', science:'fa-flask', english:'fa-language', history:'fa-history', shopping:'fa-shopping-cart', home:'fa-home' }; return map[id] || 'fa-list'; }
+function getCategoryColor(id){ const l = lists.find(x=>x.id===id); return l ? l.color : '#6b7280'; }
+function formatShort(dateStr){ if(!dateStr) return 'بدون تاریخ'; try { return new Date(dateStr).toLocaleDateString('fa-IR'); } catch(e){ return dateStr; } }
+
+// تابع جدید برای فرمت کردن زمان برای نمایش
+function formatTimeForDisplay(hours) {
+  if (hours < 1) {
+    const minutes = Math.round(hours * 60);
+    return `${minutes} دقیقه`;
+  } else if (hours === Math.floor(hours)) {
+    return `${hours} ساعت`;
+  } else {
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    if (wholeHours === 0) {
+      return `${minutes} دقیقه`;
+    } else {
+      return `${wholeHours} ساعت و ${minutes} دقیقه`;
+    }
+  }
+}
+
+// تابع برای فرمت کردن زمان شروع
+function formatStartTime(task) {
+  if (!task.startTime) return '';
+  
+  const now = new Date();
+  const today = todayISO();
+  const taskDate = task.dueDate || today;
+  
+  if (taskDate === today) {
+    const [hours, minutes] = task.startTime.split(':');
+    const taskTime = new Date();
+    taskTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    if (taskTime > now) {
+      return `<span class="task-time-badge upcoming"><i class="fas fa-clock ml-1"></i>امروز ${task.startTime}</span>`;
+    } else {
+      return `<span class="task-time-badge past"><i class="fas fa-clock ml-1"></i>امروز ${task.startTime}</span>`;
+    }
+  } else {
+    return `<span class="task-time-badge"><i class="fas fa-clock ml-1"></i>${formatShort(taskDate)} ${task.startTime}</span>`;
+  }
+}
+
+/* ---------------------------
+   تابع جدید برای تعیین دسته‌بندی زمانی بر اساس زمان پایان
+   --------------------------- */
+function getTimeCategory(endTime) {
+  if (!endTime) return 'no-time';
+  
+  const [hours, minutes] = endTime.split(':').map(Number);
+  const totalMinutes = hours * 60 + minutes;
+  
+  // دسته‌بندی‌های زمانی بر اساس زمان پایان
+  if (totalMinutes < 600) { // قبل از 10:00
+    return 'morning';
+  } else if (totalMinutes < 840) { // قبل از 14:00
+    return 'noon';
+  } else if (totalMinutes < 1080) { // قبل از 18:00
+    return 'afternoon';
+  } else if (totalMinutes < 1320) { // قبل از 22:00
+    return 'evening';
+  } else { // قبل از 2:00 روز بعد
+    return 'midnight';
+  }
+}
+
+// تابع برای محاسبه زمان پایان بر اساس زمان شروع و مدت مطالعه
+function calculateEndTime(startTime, studyTime) {
+  if (!startTime || !studyTime) return '';
+  
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const totalMinutes = hours * 60 + minutes + (studyTime * 60);
+  
+  // محاسبه ساعت و دقیقه جدید
+  let newHours = Math.floor(totalMinutes / 60) % 24;
+  const newMinutes = totalMinutes % 60;
+  
+  // فرمت کردن به فرمت HH:MM
+  return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+}
+
+/* ---------------------------
+   Improved startOfWeek function
+   --------------------------- */
+function startOfWeek(refDate, offsetWeeks = 0) {
+  const d = new Date(refDate);
+  // تنظیم به شروع هفته (شنبه)
+  let day = d.getDay(); // 0=یکشنبه, 1=دوشنبه, ..., 6=شنبه
+  // تبدیل به تقویم ایرانی: شنبه=0, یکشنبه=1, ..., جمعه=6
+  let iranDay = (day) % 7;
+  
+  const start = new Date(d);
+  start.setDate(d.getDate() - iranDay + (offsetWeeks * 7));
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+// تابع برای محاسبه تاریخ‌های هفته جاری
+function getCurrentWeekDates(offsetWeeks = 0) {
+  const start = startOfWeek(new Date(), offsetWeeks);
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + i);
+    dates.push(isoDate(date));
+  }
+  return dates;
+}
+
+/* ---------------------------
+   Render sidebar lists (with 3-dot menu for edit/delete)
+   --------------------------- */
+function renderSidebarLists(){
+  const studyEl = document.getElementById('study-lists');
+  const personalEl = document.getElementById('personal-lists');
+  studyEl.innerHTML = '';
+  personalEl.innerHTML = '';
+
+  // اضافه کردن دسته عمومی به سایدبار
+  const generalTasksCount = tasks.filter(t => !t.completed && (!t.category || t.category === '')).length;
+  const generalCompletedCount = tasks.filter(t => t.completed && (!t.category || t.category === '')).length;
+  
+  const generalEl = document.createElement('div');
+  generalEl.style.display = "flex"
+  generalEl.className = 'list-item';
+  generalEl.dataset.category = 'general';
+  generalEl.innerHTML = `
+    <div class="list-item-content">
+      <i class="fas fa-list ml-3" style="color:#6b7280"></i>
+      <span>عمومی</span>
+      <span class="list-count">${generalTasksCount}</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <span class="text-xs text-green-400">${generalCompletedCount}</span>
+    </div>
+  `;
+  
+  generalEl.addEventListener('click', () => { setActiveView('category', 'general'); });
+  studyEl.appendChild(generalEl);
+
+  // لیست‌های ایجاد شده توسط کاربر
+  lists.forEach(l => {
+    const tasksCount = tasks.filter(t => !t.completed && t.category === l.id).length;
+    const completedCount = tasks.filter(t => t.completed && t.category === l.id).length;
+    
+    const el = document.createElement('div');
+    el.style.display = "flex"
+    el.className = 'list-item';
+    el.dataset.category = l.id;
+
+    // left content
+    const left = document.createElement('div');
+    left.className = 'list-item-content';
+    left.innerHTML = `<i class="fas ${getCategoryIcon(l.id)} ml-3" style="color:${l.color}"></i><span>${l.name}</span><span class="list-count">${tasksCount}</span>`;
+
+    // controls (three-dot)
+    const controls = document.createElement('div');
+    controls.style.display = 'flex';
+    controls.className = 'list-controls';
+    controls.innerHTML = `
+      <button class="list-menu-btn" title="بیشتر"><i class="fas fa-ellipsis-v"></i></button>
+      <div class="list-menu" style="margin-top:-30px;">
+        <button class="edit-list">ویرایش</button>
+        <button class="delete-list text-red-400">حذف</button>
+      </div>
+    `;
+
+    // completed count
+    const completedDiv = document.createElement('div');
+    completedDiv.className = 'flex items-center gap-1 ml-3';
+    completedDiv.innerHTML = `<span class="text-xs text-green-400">${completedCount}</span>`;
+
+    el.appendChild(left);
+    el.appendChild(completedDiv);
+    el.appendChild(controls);
+
+    // click on list -> set category view
+    left.addEventListener('click', () => { setActiveView('category', l.id); });
+
+    // edit
+    controls.querySelector('.edit-list').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openListModal(l.id);
+    });
+
+    // delete
+    controls.querySelector('.delete-list').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if(!confirm(`آیا از حذف لیست "${l.name}" و تمام تسک‌هایش مطمئنی؟`)) return;
+      tasks = tasks.filter(t => t.category !== l.id);
+      lists = lists.filter(x => x.id !== l.id);
+      saveAll();
+      renderSidebarLists();
+      updateStats();
+      updateSidebarCounts();
+      if(currentView === 'category' && currentCategory === l.id) { setActiveView('inbox'); }
+      renderAll();
+      updateStats();
+      updateSidebarCounts();
+    });
+
+    // append: decide whether study or personal
+    if(['shopping','home'].includes(l.id)) personalEl.appendChild(el); 
+    else studyEl.appendChild(el);
+  });
+
+  // If no lists, show helpful message
+  if(lists.length === 0){
+    personalEl.innerHTML = '<div class="muted text-slate-400 text-sm">هیچ لیست شخصی وجود ندارد</div>';
+  }
+}
+
+/* ---------------------------
+   Render tasks with time categories
+   --------------------------- */
+function renderTasks(){
+  const taskList = document.getElementById('task-list');
+  const completedListEl = document.getElementById('completed-tasks-list');
+  taskList.innerHTML = '';
+  if(completedListEl) completedListEl.innerHTML = '';
+
+  let filtered = tasks.slice();
+  const today = todayISO();
+
+  if(currentView === 'today') filtered = filtered.filter(t => t.dueDate === today);
+  else if(currentView === 'week'){
+    const weekDates = getCurrentWeekDates(currentWeek);
+    filtered = filtered.filter(t => t.dueDate && weekDates.includes(t.dueDate));
+  } else if(currentView === 'important') filtered = filtered.filter(t => t.important);
+  else if(currentView === 'category' && currentCategory) {
+    if (currentCategory === 'general') {
+      filtered = filtered.filter(t => !t.category || t.category === '');
+    } else {
+      filtered = filtered.filter(t => t.category === currentCategory);
+    }
+  }
+
+  // search
+  const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  if(q) filtered = filtered.filter(t => (t.title||'').toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q));
+
+  const active = filtered.filter(t => !t.completed);
+  const completed = filtered.filter(t => t.completed);
+
+  // گروه‌بندی تسک‌ها بر اساس دسته‌بندی زمانی
+  const timeCategories = {
+    morning: { name: 'صبح', icon: 'fa-sun', tasks: [] },
+    noon: { name: 'ظهر', icon: 'fa-cloud-sun', tasks: [] },
+    afternoon: { name: 'غروب', icon: 'fa-sun', tasks: [] },
+    evening: { name: 'شب', icon: 'fa-moon', tasks: [] },
+    midnight: { name: 'نیمه‌شب', icon: 'fa-star', tasks: [] },
+    'no-time': { name: 'بدون زمان', icon: 'fa-clock', tasks: [] }
+  };
+
+  // دسته‌بندی تسک‌های فعال
+  active.forEach(task => {
+    // اگر زمان پایان وجود دارد، از آن استفاده کن، در غیر این صورت از زمان شروع و مدت مطالعه محاسبه کن
+    let endTime = task.startTime;
+    if (!endTime && task.startTime && task.studyTime) {
+      endTime = calculateEndTime(task.startTime, task.studyTime);
+    }
+    
+    const timeCategory = getTimeCategory(endTime);
+    timeCategories[timeCategory].tasks.push(task);
+  });
+
+  // نمایش تسک‌ها بر اساس دسته‌بندی زمانی
+  if(active.length === 0) {
+    taskList.innerHTML = '<div class="text-slate-400 py-4 text-center">هیچ تسکی یافت نشد</div>';
+  } else {
+    // نمایش دسته‌بندی‌های زمانی به ترتیب مشخص
+    const categoryOrder = ['morning', 'noon', 'afternoon', 'evening', 'midnight', 'no-time'];
+    
+    categoryOrder.forEach(categoryKey => {
+      const category = timeCategories[categoryKey];
+      if (category.tasks.length > 0) {
+        const categoryEl = document.createElement('div');
+        categoryEl.className = 'time-category expanded';
+        categoryEl.innerHTML = `
+          <div class="time-category-header">
+            <div class="time-category-title">
+              <i class="fas ${category.icon} time-category-icon"></i>
+              <span>${category.name}</span>
+              <span class="time-category-count">${category.tasks.length}</span>
+            </div>
+          </div>
+          <div class="time-category-content"></div>
+        `;
+        
+        const contentEl = categoryEl.querySelector('.time-category-content');
+        
+        category.tasks.forEach(t => {
+          const el = document.createElement('div');
+          el.className = 'task-item';
+          el.draggable = true;
+          el.dataset.taskId = t.id;
+          el.innerHTML = `
+            <div class="flex items-center gap-3 left">
+              <div class="task-checkbox ${t.completed ? 'checked' : ''}"></div>
+              <div>
+                <div class="task-title ${t.completed ? 'completed' : ''}">${t.title}</div>
+                <div class="text-slate-400 text-xs mt-1 flex items-center gap-2">
+                  ${formatShort(t.dueDate)} 
+                  ${t.startTime ? '• ' + formatStartTime(t) : ''}
+                  ${t.endTime ? `• پایان: ${t.endTime}` : ''}
+                  • ${getCategoryName(t.category)} 
+                  • ${formatTimeForDisplay(t.studyTime||0)}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="fas fa-star ${t.important ? 'text-yellow-400' : 'text-slate-400'} ml-3 cursor-pointer star"></i>
+              <i class="fas fa-pen text-sky-400 cursor-pointer edit"></i>
+              <i class="fas fa-trash text-slate-400 cursor-pointer delete-task"></i>
+            </div>
+          `;
+          // events
+          el.querySelector('.task-checkbox').addEventListener('click', ()=> toggleTaskCompletion(t.id));
+          el.querySelector('.star').addEventListener('click', ()=> toggleTaskImportance(t.id));
+          el.querySelector('.delete-task').addEventListener('click', ()=> { if(confirm('حذف؟')) deleteTask(t.id); });
+          el.querySelector('.edit').addEventListener('click', ()=> openTaskModal(t.id));
+
+          // drag
+          el.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', t.id); el.classList.add('dragging'); });
+          el.addEventListener('dragend', () => el.classList.remove('dragging'));
+
+          contentEl.appendChild(el);
+        });
+        
+        // کلیک برای باز/بسته کردن دسته‌بندی
+        categoryEl.querySelector('.time-category-header').addEventListener('click', () => {
+          categoryEl.classList.toggle('expanded');
+        });
+        
+        taskList.appendChild(categoryEl);
+      }
+    });
+  }
+
+  // completed
+  document.getElementById('completed-count').textContent = completed.length;
+  completed.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'task-item';
+    el.innerHTML = `
+      <div class="flex items-center gap-3 left">
+        <div class="task-checkbox checked"></div>
+        <div>
+          <div class="task-title completed">${t.title}</div>
+          <div class="text-slate-400 text-xs mt-1">${formatShort(t.dueDate)} · ${getCategoryName(t.category)} · ${formatTimeForDisplay(t.studyTime||0)}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <i class="fas fa-undo text-sky-400 cursor-pointer undo"></i>
+        <i class="fas fa-trash text-slate-400 cursor-pointer delete-task"></i>
+      </div>
+    `;
+    el.querySelector('.undo').addEventListener('click', ()=> toggleTaskCompletion(t.id));
+    el.querySelector('.delete-task').addEventListener('click', ()=> { if(confirm('حذف؟')) deleteTask(t.id); });
+    if(completedListEl) completedListEl.appendChild(el);
+  });
+
+  updateSidebarCounts();
+}
+
+/* ---------------------------
+   Weekly planner + drag/drop
+   --------------------------- */
+function renderWeeklyPlanner(){
+  const container = document.getElementById('week-days');
+  container.innerHTML = '';
+  const start = startOfWeek(new Date(), currentWeek);
+  const days = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+  const today = todayISO();
+
+  for(let i=0;i<7;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const key = isoDate(d);
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (key === today ? ' today' : '');
+    cell.dataset.date = key;
+    cell.innerHTML = `<div class="font-semibold">${days[i]}<br/><span class="text-slate-400 text-sm">${formatShort(key)}</span></div>`;
+
+    // tasks for that date
+    tasks.filter(t => t.dueDate === key && !t.completed).forEach(t => {
+      const dt = document.createElement('div');
+      dt.className = 'day-task';
+      dt.draggable = true;
+      dt.dataset.taskId = t.id;
+      dt.innerHTML = `<div style="flex:1">${t.title} ${t.startTime ? `<small class="text-xs text-slate-400">(${t.startTime})</small>` : ''}</div><div class="delete-task-btn"><i class="fas fa-times"></i></div>`;
+
+      // delete button
+      dt.querySelector('.delete-task-btn').addEventListener('click', (e) => { e.stopPropagation(); if(confirm('حذف؟')) deleteTask(t.id); });
+      // drag
+      dt.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', t.id); dt.classList.add('dragging'); });
+      dt.addEventListener('dragend', () => dt.classList.remove('dragging'));
+      cell.appendChild(dt);
+    });
+
+    // allow drop
+    cell.addEventListener('dragover', (e) => { e.preventDefault(); cell.classList.add('drop-active'); });
+    cell.addEventListener('dragleave', () => cell.classList.remove('drop-active'));
+    cell.addEventListener('drop', (e) => {
+      e.preventDefault(); cell.classList.remove('drop-active');
+      const id = e.dataTransfer.getData('text/plain'); if(!id) return;
+      const t = tasks.find(x=>x.id===id); if(!t) return;
+      t.dueDate = cell.dataset.date; saveAll(); renderTasks(); renderWeeklyPlanner(); renderCharts(); updateStats();
+      setupReminders(); // تنظیم مجدد یادآوری‌ها
+    });
+
+    container.appendChild(cell);
+  }
+
+  // week title
+  const end = new Date(start); end.setDate(start.getDate()+6);
+  document.getElementById('current-week').textContent = `${formatShort(start.toISOString().split('T')[0])} — ${formatShort(end.toISOString().split('T')[0])}`;
+}
+
+/* ---------------------------
+   Charts (use tasks, support fractional >1)
+   --------------------------- */
+let studyChart = null, progressChart = null;
+
+function computeStudyByDateForCurrentWeek(){
+  const weekDates = getCurrentWeekDates(currentWeek);
+  const map = {};
+  weekDates.forEach(date => { map[date] = 0; });
+  
+  tasks.filter(t => t.completed && t.dueDate && weekDates.includes(t.dueDate)).forEach(t => {
+    const v = parseFloat(t.studyTime) || 0;
+    map[t.dueDate] = (map[t.dueDate] || 0) + v;
+  });
+  
+  return { dates: weekDates, data: weekDates.map(date => map[date] || 0) };
+}
+
+// تابع جدید برای محاسبه درصد زمان مطالعه هر درس در هفته جاری
+function computeStudyTimeByCategoryForCurrentWeek(){
+  const weekDates = getCurrentWeekDates(currentWeek);
+  
+  // محاسبه کل زمان مطالعه هفته جاری
+  const totalStudyTime = tasks
+    .filter(t => t.completed && t.dueDate && weekDates.includes(t.dueDate))
+    .reduce((sum, task) => sum + (parseFloat(task.studyTime) || 0), 0);
+  
+  // محاسبه زمان مطالعه برای هر دسته‌بندی در هفته جاری
+  const categoryStudy = {};
+  
+  // دسته عمومی در هفته جاری
+  const generalTime = tasks
+    .filter(t => t.completed && (!t.category || t.category === '') && t.dueDate && weekDates.includes(t.dueDate))
+    .reduce((sum, task) => sum + (parseFloat(task.studyTime) || 0), 0);
+  
+  if (generalTime > 0 || totalStudyTime === 0) {
+    categoryStudy['عمومی'] = {
+      time: generalTime,
+      percentage: totalStudyTime > 0 ? (generalTime / totalStudyTime * 100) : 0
+    };
+  }
+  
+  // دسته‌های درسی در هفته جاری
+  lists.forEach(list => {
+    const categoryTime = tasks
+      .filter(t => t.completed && t.category === list.id && t.dueDate && weekDates.includes(t.dueDate))
+      .reduce((sum, task) => sum + (parseFloat(task.studyTime) || 0), 0);
+    
+    if (categoryTime > 0) {
+      categoryStudy[list.name] = {
+        time: categoryTime,
+        percentage: totalStudyTime > 0 ? (categoryTime / totalStudyTime * 100) : 0
+      };
+    }
+  });
+  
+  return {
+    categories: Object.keys(categoryStudy),
+    percentages: Object.values(categoryStudy).map(item => Math.round(item.percentage)),
+    times: Object.values(categoryStudy).map(item => item.time),
+    totalStudyTime: totalStudyTime
+  };
+}
+
+function renderCharts(){
+  // نمودار ساعات مطالعه هفته جاری
+  const weekData = computeStudyByDateForCurrentWeek();
+  const labels = weekData.dates.map(date => formatShort(date));
+  const data = weekData.data;
+  const maxVal = Math.max(1, ...data);
+  const suggestedMax = Math.ceil(maxVal + 0.5);
+
+  const ctx1 = document.getElementById('studyTimeChart').getContext('2d');
+  if(studyChart) studyChart.destroy();
+  studyChart = new Chart(ctx1, {
+    type:'bar',
+    data:{ 
+      labels, 
+      datasets:[{ 
+        label:'ساعات مطالعه', 
+        data, 
+        backgroundColor:'rgba(79,70,229,0.8)',
+        borderColor: 'rgba(79,70,229,1)',
+        borderWidth: 1
+      }] 
+    },
+    options:{ 
+      responsive:true, 
+      scales:{ 
+        y:{ 
+          beginAtZero:true, 
+          max:suggestedMax, 
+          ticks:{ stepSize:0.5 }, 
+          title:{display:true,text:'ساعت'} 
+        } 
+      } 
+    }
+  });
+
+  // نمودار پیشرفت درسی (درصد زمان مطالعه هر درس در هفته جاری)
+  const categoryData = computeStudyTimeByCategoryForCurrentWeek();
+  
+  // اگر هیچ داده‌ای وجود ندارد، یک داده نمونه نمایش دهید
+  const displayCategories = categoryData.categories.length > 0 ? categoryData.categories : ['هنوز داده‌ای وجود ندارد'];
+  const displayPercentages = categoryData.percentages.length > 0 ? categoryData.percentages : [100];
+
+  const ctx2 = document.getElementById('progressChart').getContext('2d');
+  if(progressChart) progressChart.destroy();
+  progressChart = new Chart(ctx2, {
+    type:'line',
+    data:{ 
+      labels: displayCategories, 
+      datasets:[{ 
+        label:'درصد زمان مطالعه این هفته', 
+        data: displayPercentages, 
+        borderColor:'rgba(16,185,129,1)', 
+        backgroundColor:'rgba(16,185,129,0.12)', 
+        tension:0.3, 
+        fill:true,
+        pointBackgroundColor: 'rgba(16,185,129,1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6
+      }] 
+    },
+    options:{ 
+      responsive:true, 
+      scales:{ 
+        y:{ 
+          min:0, 
+          max:100, 
+          title:{display:true,text:'درصد'},
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        },
+        x: {
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              if (categoryData.categories.length === 0) {
+                return 'هنوز داده‌ای برای این هفته وجود ندارد';
+              }
+              const label = context.label || '';
+              const value = context.raw || 0;
+              const index = context.dataIndex;
+              const hours = categoryData.times[index] || 0;
+              return `${label}: ${value}% (${hours.toFixed(1)} ساعت)`;
+            },
+            afterLabel: function(context) {
+              if (categoryData.categories.length > 0) {
+                return `کل زمان هفته: ${categoryData.totalStudyTime.toFixed(1)} ساعت`;
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ---------------------------
+   Stats & sidebar counts
+   --------------------------- */
+function updateStats(){
+  const weekDates = getCurrentWeekDates(currentWeek);
+  const total = tasks.filter(t => t.completed && t.dueDate && weekDates.includes(t.dueDate))
+                    .reduce((s,t)=> s + (parseFloat(t.studyTime)||0), 0);
+  const done = tasks.filter(t=>t.completed).length;
+  const prod = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+  document.getElementById('total-study-time').textContent = total.toFixed(1);
+  document.getElementById('completed-tasks').textContent = done;
+  document.getElementById('productivity-score').textContent = prod + '%';
+}
+
+function updateSidebarCounts(){
+  const today = todayISO();
+  const weekLater = new Date(); weekLater.setDate(weekLater.getDate()+7); const weekLaterStr = weekLater.toISOString().split('T')[0];
+  document.getElementById('inbox-count').textContent = tasks.filter(t => !t.completed).length;
+  document.getElementById('today-count').textContent = tasks.filter(t => t.dueDate === today && !t.completed).length;
+  document.getElementById('week-count').textContent = tasks.filter(t => t.dueDate && t.dueDate >= today && t.dueDate <= weekLaterStr && !t.completed).length;
+  document.getElementById('important-count').textContent = tasks.filter(t => t.important && !t.completed).length;
+
+  // list counts
+  lists.forEach(l => {
+    const el = document.querySelector(`#study-lists [data-category="${l.id}"] .list-count`) || document.querySelector(`#personal-lists [data-category="${l.id}"] .list-count`);
+    if(el) el.textContent = tasks.filter(t => t.category === l.id && !t.completed).length;
+  });
+}
+
+/* ---------------------------
+   Task actions
+   --------------------------- */
+function toggleTaskCompletion(id){
+  const t = tasks.find(x=>x.id===id); if(!t) return;
+  t.completed = !t.completed;
+  if(t.completed && !t.dueDate) t.dueDate = todayISO();
+  saveAll(); 
+  renderTasks(); 
+  renderWeeklyPlanner(); 
+  renderCharts(); 
+  updateStats();
+  setupReminders(); // تنظیم مجدد یادآوری‌ها
+  
+  // به‌روزرسانی آمار برای سیستم لیگ
+  updateUserStats();
+  if (currentView === 'league') {
+    renderLeagueView();
+  }
+}
+function toggleTaskImportance(id){ const t = tasks.find(x=>x.id===id); if(!t) return; t.important = !t.important; saveAll(); renderTasks(); updateSidebarCounts(); }
+function deleteTask(id){ 
+  tasks = tasks.filter(t=>t.id!==id); 
+  saveAll(); 
+  renderTasks(); 
+  renderWeeklyPlanner(); 
+  renderCharts(); 
+  updateStats();
+  setupReminders(); // تنظیم مجدد یادآوری‌ها
+}
+
+function openTaskModal(taskId=null){
+  editingTaskId = taskId;
+  populateCategorySelect();
+  
+  if(taskId){
+    const t = tasks.find(x=>x.id===taskId); 
+    if(!t) return;
+    
+    document.getElementById('taskModalTitle').textContent = 'ویرایش تسک';
+    document.getElementById('taskTitleInput').value = t.title;
+    document.getElementById('taskDescriptionInput').value = t.description || '';
+    document.getElementById('taskDueDateInput').value = t.dueDate || '';
+    document.getElementById('taskStartTimeInput').value = t.startTime || '';
+    document.getElementById('taskEndTimeInput').value = t.endTime || '';
+    document.getElementById('taskReminderInput').value = t.reminder || 'none';
+    document.getElementById('taskTimeCategoryInput').value = t.timeCategory || '';
+    
+    // مدیریت زمان - اگر زمان بر اساس دقیقه ذخیره شده
+    if (t.studyTime && t.studyTime < 1) {
+      // اگر کمتر از 1 ساعت است، به دقیقه تبدیل کن
+      document.getElementById('taskStudyTimeInput').value = Math.round(t.studyTime * 60);
+      document.getElementById('taskTimeUnitInput').value = 'minutes';
+    } else {
+      document.getElementById('taskStudyTimeInput').value = t.studyTime || 1;
+      document.getElementById('taskTimeUnitInput').value = 'hours';
+    }
+    
+    document.getElementById('taskCategoryInput').value = t.category || '';
+  } else {
+    document.getElementById('taskModalTitle').textContent = 'ایجاد تسک جدید';
+    document.getElementById('taskTitleInput').value = '';
+    document.getElementById('taskDescriptionInput').value = '';
+    document.getElementById('taskDueDateInput').value = '';
+    document.getElementById('taskStartTimeInput').value = '';
+    document.getElementById('taskEndTimeInput').value = '';
+    document.getElementById('taskReminderInput').value = 'none';
+    document.getElementById('taskTimeCategoryInput').value = '';
+    document.getElementById('taskStudyTimeInput').value = 1;
+    document.getElementById('taskTimeUnitInput').value = 'hours';
+    document.getElementById('taskCategoryInput').value = lists[0] ? lists[0].id : '';
+  }
+  document.getElementById('taskModal').style.display = 'flex';
+}
+
+function saveTaskFromModal(){
+  const title = document.getElementById('taskTitleInput').value.trim();
+  if(!title){ alert('عنوان را وارد کنید'); return; }
+  const desc = document.getElementById('taskDescriptionInput').value.trim();
+  const dueDate = document.getElementById('taskDueDateInput').value || null;
+  const startTime = document.getElementById('taskStartTimeInput').value || null;
+  const endTime = document.getElementById('taskEndTimeInput').value || null;
+  const reminder = document.getElementById('taskReminderInput').value || 'none';
+  const timeCategory = document.getElementById('taskTimeCategoryInput').value || '';
+  
+  // مدیریت زمان
+  const timeValue = parseFloat(document.getElementById('taskStudyTimeInput').value) || 0;
+  const timeUnit = document.getElementById('taskTimeUnitInput').value;
+  let studyTime = timeValue;
+  
+  if (timeUnit === 'minutes') {
+    studyTime = timeValue / 60; // تبدیل دقیقه به ساعت
+  }
+  
+  const category = document.getElementById('taskCategoryInput').value || '';
+
+  if(editingTaskId){
+    const t = tasks.find(x=>x.id===editingTaskId); if(!t) return;
+    t.title = title; 
+    t.description = desc; 
+    t.dueDate = dueDate; 
+    t.startTime = startTime;
+    t.endTime = endTime;
+    t.reminder = reminder;
+    t.timeCategory = timeCategory;
+    t.studyTime = studyTime; 
+    t.category = category;
+    editingTaskId = null;
+  } else {
+    tasks.push({ 
+      id: genId(), 
+      title, 
+      description: desc, 
+      completed:false, 
+      important:false, 
+      category, 
+      dueDate, 
+      startTime,
+      endTime,
+      reminder,
+      timeCategory,
+      studyTime, 
+      createdAt: new Date().toISOString() 
+    });
+  }
+  saveAll(); 
+  closeModal('taskModal'); 
+  renderTasks(); 
+  renderWeeklyPlanner(); 
+  renderCharts(); 
+  updateStats(); 
+  updateSidebarCounts();
+  setupReminders(); // تنظیم یادآوری‌های جدید
+}
+
+/* ---------------------------
+   List actions (create & edit via modal)
+   --------------------------- */
+function openListModal(listId = null){
+  editingListId = listId;
+  document.getElementById('listModalTitle').textContent = listId ? 'ویرایش لیست' : 'ایجاد لیست جدید';
+  if(listId){
+    const l = lists.find(x=>x.id===listId);
+    if(!l) return;
+    document.getElementById('listNameInput').value = l.name;
+    document.getElementById('listColorInput').value = l.color || '#4f46e5';
+  } else {
+    document.getElementById('listNameInput').value = '';
+    document.getElementById('listColorInput').value = '#4f46e5';
+  }
+  document.getElementById('listModal').style.display = 'flex';
+}
+
+function updateCurrentListTitle() {
+  const titleEl = document.getElementById('current-list-title');
+  if (currentView === 'category' && currentCategory === 'general') {
+    titleEl.textContent = 'عمومی';
+  } else if (currentView === 'category' && currentCategory) {
+    const list = lists.find(l => l.id === currentCategory);
+    titleEl.textContent = list ? list.name : 'دسته‌بندی';
+  } else if (currentView === 'league') {
+    titleEl.textContent = 'لیگ مطالعاتی';
+  } else {
+    const viewTitles = {
+      'inbox': 'صندوق ورودی',
+      'today': 'امروز', 
+      'week': 'هفته جاری',
+      'important': 'مهم'
+    };
+    titleEl.textContent = viewTitles[currentView] || 'صندوق ورودی';
+  }
+}
+
+function saveListFromModal(){
+  const name = document.getElementById('listNameInput').value.trim();
+  const color = document.getElementById('listColorInput').value || '#4f46e5';
+  if(!name){ alert('نام لیست را وارد کنید'); return; }
+  if(editingListId){
+    const l = lists.find(x=>x.id===editingListId); if(!l) return;
+    l.name = name; l.color = color; editingListId = null;
+  } else {
+    lists.push({ id: genId(), name, color });
+  }
+  saveAll(); closeModal('listModal'); renderSidebarLists(); populateCategorySelect(); renderTasks(); renderCharts(); updateSidebarCounts();
+}
+
+/* ---------------------------
+   UI helpers & wiring
+   --------------------------- */
+function populateCategorySelect(){
+  const sel = document.getElementById('taskCategoryInput');
+  sel.innerHTML = '';
+  
+  // add an empty/general option
+  const opt0 = document.createElement('option'); 
+  opt0.value = ''; 
+  opt0.textContent = '🎯 عمومی (بدون دسته)'; 
+  sel.appendChild(opt0);
+  
+  if (lists.length === 0) {
+    const optInfo = document.createElement('option');
+    optInfo.value = '';
+    optInfo.textContent = '📝 ابتدا یک لیست درسی ایجاد کنید';
+    optInfo.disabled = true;
+    sel.appendChild(optInfo);
+  } else {
+    // جدا کردن لیست‌های درسی و شخصی
+    const studyLists = lists.filter(l => !['shopping','home'].includes(l.id));
+    const personalLists = lists.filter(l => ['shopping','home'].includes(l.id));
+    
+    if (studyLists.length > 0) {
+      const optgroupStudy = document.createElement('optgroup');
+      optgroupStudy.style.color = "black"
+      optgroupStudy.label = '📚 لیست‌های درسی';
+      studyLists.forEach(l => {
+        const o = document.createElement('option');
+        o.value = l.id;
+        
+        // آیکون‌های مختلف برای دسته‌های مختلف
+        const icons = {
+          'math': '📊',
+          'science': '🔬', 
+          'english': '🔤',
+          'history': '📜',
+          'shopping': '🛒',
+          'home': '🏠'
+        };
+        
+        const icon = icons[l.id] || '📁';
+        o.textContent = `${icon} ${l.name}`;
+        
+        
+        optgroupStudy.appendChild(o);
+      });
+      sel.appendChild(optgroupStudy);
+    }
+    
+    if (personalLists.length > 0) {
+      const optgroupPersonal = document.createElement('optgroup');
+      optgroupPersonal.label = '🏠 لیست‌های شخصی';
+      personalLists.forEach(l => {
+        const o = document.createElement('option');
+        o.value = l.id;
+        
+        const icons = {
+          'shopping': '🛒',
+          'home': '🏠'
+        };
+        
+        const icon = icons[l.id] || '📁';
+        o.textContent = `${icon} ${l.name}`;
+        o.style.color = l.color;
+        
+        optgroupPersonal.appendChild(o);
+      });
+      sel.appendChild(optgroupPersonal);
+    }
+  }
+}
+
+function setActiveView(view, category=''){
+  currentView = view;
+  if(view === 'category'){
+    currentView = 'category';
+    currentCategory = category;
+  } else { 
+    currentCategory = ''; 
+  }
+  
+  // update active classes
+  document.querySelectorAll('.list-item').forEach(x => x.classList.remove('active'));
+  
+  // mark sidebar view items
+  if(view && view !== 'category'){
+    const el = document.querySelector(`.list-item[data-view="${view}"]`);
+    if(el) el.classList.add('active');
+  } else if(view === 'category' && category){
+    const el = document.querySelector(`.list-item[data-category="${category}"]`);
+    if(el) el.classList.add('active');
+  }
+  
+  // نمایش یا پنهان کردن بخش‌های مختلف
+  if (view === 'league') {
+    document.getElementById('tasks-view').style.display = 'none';
+    document.getElementById('league-view').style.display = 'block';
+    renderLeagueView();
+  } else {
+    document.getElementById('tasks-view').style.display = 'block';
+    document.getElementById('league-view').style.display = 'none';
+    renderTasks();
+  }
+  
+  // به‌روزرسانی عنوان
+  updateCurrentListTitle();
+}
+
+function renderAll() {
+  renderSidebarLists();
+  renderTasks();
+  renderWeeklyPlanner();
+  renderCharts();
+  updateStats();
+  updateSidebarCounts();
+  setupReminders(); // تنظیم یادآوری‌ها
+}
+
+/* ---------------------------
+   گزارش هفتگی
+   --------------------------- */
+function generateWeeklyReport() {
+  const weekDates = getCurrentWeekDates(currentWeek);
+  const completedTasks = tasks.filter(t => t.completed && t.dueDate && weekDates.includes(t.dueDate));
+  
+  // مرتب کردن تسک‌ها بر اساس تاریخ (از قدیمی به جدید)
+  completedTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  
+  // به‌روزرسانی اطلاعات هفته
+  const start = startOfWeek(new Date(), currentWeek);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  
+  document.getElementById('report-week-range').textContent = 
+    `هفته: ${formatShort(start.toISOString().split('T')[0])} تا ${formatShort(end.toISOString().split('T')[0])}`;
+  
+  const now = new Date();
+  document.getElementById('report-generation-date').textContent = 
+    `تاریخ تولید: ${now.toLocaleDateString('fa-IR')} - ${now.toLocaleTimeString('fa-IR')}`;
+  
+  document.getElementById('report-footer-date').textContent = now.toLocaleDateString('fa-IR');
+
+  // محاسبه آمار
+  const totalTasks = completedTasks.length;
+  const totalTime = completedTasks.reduce((sum, task) => sum + (task.studyTime || 0), 0);
+  const avgTime = totalTasks > 0 ? (totalTime / 7).toFixed(1) : 0;
+
+  document.getElementById('report-total-tasks').textContent = totalTasks;
+  document.getElementById('report-total-time').textContent = totalTime.toFixed(1) + ' ساعت';
+  document.getElementById('report-avg-time').textContent = avgTime + ' ساعت';
+
+  // پر کردن جدول تسک‌ها
+  const tasksTable = document.getElementById('report-tasks-table');
+  tasksTable.innerHTML = '';
+  
+  if (completedTasks.length === 0) {
+    tasksTable.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 20px; color: #666;">
+          هیچ تسک تکمیل‌شده‌ای در این هفته وجود ندارد
+        </td>
+      </tr>
+    `;
+  } else {
+    // گروه‌بندی تسک‌ها بر اساس تاریخ
+    const tasksByDate = {};
+    completedTasks.forEach(task => {
+      if (!tasksByDate[task.dueDate]) {
+        tasksByDate[task.dueDate] = [];
+      }
+      tasksByDate[task.dueDate].push(task);
+    });
+
+    // مرتب کردن تاریخ‌ها
+    const sortedDates = Object.keys(tasksByDate).sort((a, b) => new Date(a) - new Date(b));
+    
+    let rowIndex = 1;
+    
+    sortedDates.forEach(date => {
+      const dateTasks = tasksByDate[date];
+      
+      // اضافه کردن سطر تاریخ
+      const dateRow = document.createElement('tr');
+      dateRow.style.background = '#e8f4fd';
+      dateRow.innerHTML = `
+        <td colspan="7" style="font-weight: bold; padding: 12px 8px; color: #4f46e5;">
+          📅 ${formatShort(date)} - ${dateTasks.length} تسک
+        </td>
+      `;
+      tasksTable.appendChild(dateRow);
+      
+      // اضافه کردن تسک‌های این تاریخ
+      dateTasks.forEach((task, taskIndex) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${rowIndex}</td>
+          <td>${task.title}</td>
+          <td>${getCategoryName(task.category)}</td>
+          <td>${formatShort(task.dueDate)}</td>
+          <td>${formatTimeForDisplay(task.studyTime || 0)}</td>
+          <td>${task.important ? '⭐ مهم' : 'عادی'}</td>
+          <td>${task.description || '-'}</td>
+        `;
+        tasksTable.appendChild(row);
+        rowIndex++;
+      });
+    });
+  }
+
+  // توزیع زمانی روزهای هفته
+  const timeDistribution = {};
+  weekDates.forEach(date => {
+    timeDistribution[date] = 0;
+  });
+  
+  completedTasks.forEach(task => {
+    timeDistribution[task.dueDate] += task.studyTime || 0;
+  });
+
+  const distributionContainer = document.querySelector('.print-summary:last-child div');
+  if (distributionContainer) {
+    distributionContainer.innerHTML = '';
+    
+    const days = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];
+    
+    weekDates.forEach((date, index) => {
+      const dayDiv = document.createElement('div');
+      dayDiv.style.textAlign = 'center';
+      dayDiv.style.padding = '8px';
+      dayDiv.style.background = '#f8f9fa';
+      dayDiv.style.borderRadius = '4px';
+      
+      dayDiv.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 4px;">${days[index]}</div>
+        <div style="color: #4f46e5; font-size: 11px;">${timeDistribution[date].toFixed(1)} ساعت</div>
+      `;
+      
+      distributionContainer.appendChild(dayDiv);
+    });
+  }
+
+  // نمایش گزارش و پرینت
+  document.getElementById('printReport').style.display = 'block';
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.getElementById('printReport').style.display = 'none';
+    }, 100);
+  }, 500);
+}
+
+/* ---------------------------
+   Event listeners init
+   --------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  // initial rendering
+  initTheme();
+  renderAll();
+
+  // درخواست مجوز نوتیفیکیشن
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
+  // close notification
+  document.getElementById('notification-close').addEventListener('click', hideNotification);
+
+  // add list button
+  document.getElementById('addListBtn').addEventListener('click', () => openListModal(null));
+  document.getElementById('saveListBtn').addEventListener('click', () => {saveListFromModal();updateStats();updateSidebarCounts();});
+  document.getElementById('cancelListBtn').addEventListener('click', () => { editingListId = null; closeModal('listModal'); });
+  document.getElementById('listModal').addEventListener('click', (e)=> { if(e.target === document.getElementById('listModal')) closeModal('listModal'); });
+
+  // open task modal
+  document.getElementById('openTaskModal').addEventListener('click', () => openTaskModal(null));
+  document.getElementById('saveTaskBtn').addEventListener('click',() =>{ saveTaskFromModal();updateStats();updateSidebarCounts();});
+  document.getElementById('cancelTaskBtn').addEventListener('click', () => { editingTaskId = null; closeModal('taskModal'); });
+  document.getElementById('taskModal').addEventListener('click', (e)=> { if(e.target === document.getElementById('taskModal')) { editingTaskId=null; closeModal('taskModal'); } });
+
+  // quick add
+  document.getElementById('new-task-input').addEventListener('keypress', function(e){
+    if(e.key === 'Enter' && this.value.trim() !== ''){
+      const title = this.value.trim();
+      // default: no category
+      tasks.push({ 
+        id: genId(), 
+        title, 
+        description:'', 
+        completed:false, 
+        important:false, 
+        category:'', 
+        dueDate:null, 
+        startTime: null,
+        endTime: null,
+        reminder: 'none',
+        timeCategory: '',
+        studyTime:1, 
+        createdAt:new Date().toISOString() 
+      });
+      saveAll();
+      this.value = '';
+      renderTasks(); 
+      renderWeeklyPlanner(); 
+      renderCharts(); 
+      updateStats(); 
+      updateSidebarCounts();
+      setupReminders();
+    }
+  });
+
+  // search
+  document.getElementById('searchInput').addEventListener('input', () => renderTasks());
+
+  // view buttons
+  document.getElementById('view-inbox').addEventListener('click', ()=> setActiveView('inbox'));
+  document.getElementById('view-today').addEventListener('click', ()=> setActiveView('today'));
+  document.getElementById('view-week').addEventListener('click', ()=> setActiveView('week'));
+  document.getElementById('view-important').addEventListener('click', ()=> setActiveView('important'));
+  document.getElementById('view-league').addEventListener('click', ()=> setActiveView('league'));
+
+  // week nav
+  document.getElementById('prev-week').addEventListener('click', ()=> { currentWeek--; renderWeeklyPlanner(); renderCharts(); updateStats(); });
+  document.getElementById('next-week').addEventListener('click', ()=> { currentWeek++; renderWeeklyPlanner(); renderCharts(); updateStats(); });
+
+  // event listener برای تغییر واحد زمان
+  document.getElementById('taskTimeUnitInput').addEventListener('change', function() {
+    const timeInput = document.getElementById('taskStudyTimeInput');
+    const currentValue = parseFloat(timeInput.value) || 0;
+    
+    if (this.value === 'minutes') {
+      timeInput.step = '5';
+      timeInput.min = '0';
+      timeInput.placeholder = 'دقیقه';
+    } else {
+      timeInput.step = '0.5';
+      timeInput.min = '0';
+      timeInput.placeholder = 'ساعت';
+    }
+  });
+
+  // event listener برای محاسبه خودکار زمان پایان
+  document.getElementById('taskStartTimeInput').addEventListener('change', function() {
+    const startTime = this.value;
+    const studyTime = parseFloat(document.getElementById('taskStudyTimeInput').value) || 0;
+    const timeUnit = document.getElementById('taskTimeUnitInput').value;
+    
+    if (startTime && studyTime > 0) {
+      let studyTimeHours = studyTime;
+      if (timeUnit === 'minutes') {
+        studyTimeHours = studyTime / 60;
+      }
+      
+      const endTime = startTime
+      document.getElementById('taskStartTimeInput').value = endTime;
+      
+      // محاسبه خودکار دسته‌بندی زمانی
+      const timeCategory = getTimeCategory(endTime);
+      document.getElementById('taskTimeCategoryInput').value = timeCategory;
+    }
+  });
+
+  // event listener برای تغییر زمان مطالعه
+  document.getElementById('taskStudyTimeInput').addEventListener('change', function() {
+    const startTime = document.getElementById('taskStartTimeInput').value;
+    const studyTime = parseFloat(this.value) || 0;
+    const timeUnit = document.getElementById('taskTimeUnitInput').value;
+    
+    if (startTime && studyTime > 0) {
+      let studyTimeHours = studyTime;
+      if (timeUnit === 'minutes') {
+        studyTimeHours = studyTime / 60;
+      }
+      
+      const endTime = startTime
+      document.getElementById('taskStartTimeInput').value = endTime;
+      
+      // محاسبه خودکار دسته‌بندی زمانی
+      const timeCategory = getTimeCategory(endTime);
+      document.getElementById('taskTimeCategoryInput').value = timeCategory;
+    }
+  });
+
+  // تغییر تم
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+  // گزارش هفتگی
+  const printReportBtn = document.getElementById('printReportBtn');
+  if (printReportBtn) {
+    printReportBtn.addEventListener('click', generateWeeklyReport);
+  }
+});
+
+/* ---------------------------
+   Utilities
+   --------------------------- */
+function closeModal(id){ document.getElementById(id).style.display = 'none'; }
+</script>
+</body>
+</html>
