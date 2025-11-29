@@ -1252,6 +1252,7 @@ if ('pictureInPictureEnabled' in document) {
                 resizeOverlay();
                 window.addEventListener('resize', resizeOverlay);
                 isMonitoring = true;
+                focusPercent = 0;
                 studyStartTime = Date.now();
                 lastUpdateTime = Date.now();
                 lastRankUpdateTime = Date.now();
