@@ -862,56 +862,9 @@
     <div class="alert" id="alert">هشدار!</div>
 
     <script>
-
-const video = document.getElementById('video');
-const pipButton = document.getElementById('pipbtn');
-
-if ('pictureInPictureEnabled' in document) {
-  
-  pipButton.disabled = false;
-  
-  pipButton.addEventListener('click', () => {
-    if (document.pictureInPictureElement) {
-      document
-        .exitPictureInPicture()
-        .catch(error => {
-          // Error handling
-        })
-    } else {
-      video
-      .requestPictureInPicture()
-      .catch(error => {
-        // Error handling
-      });
-    }
-  });
-}
-let studyStartTime = null;
-let lastUpdateTime = null;
-let studySeconds = 0;
-let focusSeconds = 0;
-let effectiveStudyTime = 0; // زمان موثر مطالعه
-let lastStateChangeTime = null;
-
-// thresholds
-const AWAY_THRESHOLD_SEC = 5;
-const DROWSY_THRESHOLD_SEC = 5;
-
-// counters
-let awayCounter = 0;
-let drowsyCounter = 0;
-
-// states
-const STUDY_STATES = {
-    FOCUSED: 'focused', 
-    DISTRACTED: 'distracted', 
-    AWAY: 'away', 
-    DROWSY: 'drowsy'
-};
-let currentState = STUDY_STATES.AWAY;
-let previousState = STUDY_STATES.AWAY;
-
         // --- DOM ---
+        const video = document.getElementById('video');
+        const pipButton = document.getElementById('pipbtn');
         const overlay = document.getElementById('overlay');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -934,14 +887,29 @@ let previousState = STUDY_STATES.AWAY;
             diamond: document.getElementById('iconDiamond')
         };
 
-        // state
+        // Picture in Picture
+        if ('pictureInPictureEnabled' in document) {
+            pipButton.disabled = false;
+            pipButton.addEventListener('click', () => {
+                if (document.pictureInPictureElement) {
+                    document.exitPictureInPicture().catch(error => {});
+                } else {
+                    video.requestPictureInPicture().catch(error => {});
+                }
+            });
+        }
+
+        // state variables - کاملاً بازنویسی شده
         let net = null;
         let isMonitoring = false;
-        let studyStartTime = null;
-        let lastUpdateTime = null;
-        let studySeconds = 0;
-        let focusSeconds = 0;
-
+        let statsInterval = null;
+        
+        // زمان‌سنج‌های جدید
+        let sessionStartTime = null;
+        let lastStateChangeTime = null;
+        let totalFocusedTime = 0; // زمان کل تمرکز شده در این session
+        let currentStateStartTime = null;
+        
         // thresholds
         const AWAY_THRESHOLD_SEC = 5;
         const DROWSY_THRESHOLD_SEC = 5;
@@ -951,7 +919,12 @@ let previousState = STUDY_STATES.AWAY;
         let drowsyCounter = 0;
 
         // states
-        const STUDY_STATES = {FOCUSED:'focused',DISTRACTED:'distracted',AWAY:'away',DROWSY:'drowsy'};
+        const STUDY_STATES = {
+            FOCUSED: 'focused', 
+            DISTRACTED: 'distracted', 
+            AWAY: 'away', 
+            DROWSY: 'drowsy'
+        };
         let currentState = STUDY_STATES.AWAY;
 
         // audio (Web Audio) - for alarm
@@ -973,8 +946,13 @@ let previousState = STUDY_STATES.AWAY;
 
         let currentRankIndex = 0;
         let currentLP = 0;
-        let lastRankUpdateTime = null;
 
+        // متغیرهای تشخیص pose
+        let baselineShoulderY = null;
+        let lastNoseY = null;
+        let noseVelBuffer = [];
+
+        // توابع صوتی
         function initAudio(){
             if(!audioCtx){
                 audioCtx = new AudioCtx();
@@ -1077,156 +1055,148 @@ let previousState = STUDY_STATES.AWAY;
             ctx.restore();
         }
 
-        // analysis helpers
-        let baselineShoulderY = null;
-        let lastNoseY = null;
-        let noseVelBuffer = [];
-        
-        function analyzeStudyState(pose) {
-    const now = Date.now();
-    const timeDiff = lastUpdateTime ? (now - lastUpdateTime) / 1000 : 0;
-    lastUpdateTime = now;
-    
-    // اگر زمان بین فریم‌ها خیلی زیاد است، محاسبه نکن
-    if (timeDiff > 1.5) return;
-
-    const nose = pose.keypoints.find(k => k.part === 'nose');
-    const leftShoulder = pose.keypoints.find(k => k.part === 'leftShoulder');
-    const rightShoulder = pose.keypoints.find(k => k.part === 'rightShoulder');
-
-    let newState = STUDY_STATES.AWAY;
-
-    if (!nose || nose.score < 0.45) {
-        // فرد در تصویر نیست
-        awayCounter += timeDiff;
-        drowsyCounter = 0;
-        newState = STUDY_STATES.AWAY;
-    } else {
-        awayCounter = 0;
-
-        if ((!baselineShoulderY) && leftShoulder && rightShoulder && 
-            leftShoulder.score > 0.4 && rightShoulder.score > 0.4) {
-            baselineShoulderY = (leftShoulder.position.y + rightShoulder.position.y) / 2;
-        }
-
-        let midShoulderY = null;
-        if (leftShoulder && rightShoulder && 
-            leftShoulder.score > 0.35 && rightShoulder.score > 0.35) {
-            midShoulderY = (leftShoulder.position.y + rightShoulder.position.y) / 2;
-        }
-
-        let headTilt = 0;
-        if (midShoulderY !== null) {
-            headTilt = nose.position.y - midShoulderY;
-        } else if (baselineShoulderY) {
-            headTilt = nose.position.y - baselineShoulderY;
-        }
-
-        if (lastNoseY !== null) {
-            const vel = (nose.position.y - lastNoseY) / Math.max(timeDiff, 0.001);
-            noseVelBuffer.push(vel);
-            if (noseVelBuffer.length > 6) noseVelBuffer.shift();
-        }
-        lastNoseY = nose.position.y;
-
-        const avgVel = noseVelBuffer.length ? 
-            noseVelBuffer.reduce((a, b) => a + b, 0) / noseVelBuffer.length : 0;
-        const isDrowsy = (headTilt > 28) || (avgVel > 8);
-
-        const leftWrist = pose.keypoints.find(k => k.part === 'leftWrist');
-        const rightWrist = pose.keypoints.find(k => k.part === 'rightWrist');
-        let isHandsHigh = false;
-        if (leftWrist && leftWrist.score > 0.4 && 
-            leftWrist.position.y < nose.position.y - 50) isHandsHigh = true;
-        if (rightWrist && rightWrist.score > 0.4 && 
-            rightWrist.position.y < nose.position.y - 50) isHandsHigh = true;
-
-        if (isDrowsy) {
-            drowsyCounter += timeDiff;
-            newState = STUDY_STATES.DROWSY;
-        } else {
-            drowsyCounter = 0;
-        }
-
-        if (!isDrowsy && !isHandsHigh) {
-            newState = STUDY_STATES.FOCUSED;
-        } else if (!isDrowsy && isHandsHigh) {
-            newState = STUDY_STATES.DISTRACTED;
-        }
-    }
-
-    // محاسبه زمان موثر مطالعه فقط وقتی وضعیت تغییر می‌کند
-    if (newState !== currentState) {
-        const stateDuration = lastStateChangeTime ? 
-            (now - lastStateChangeTime) / 1000 : 0;
-        
-        // فقط زمانی که در حالت FOCUSED هستیم، زمان موثر اضافه شود
-        if (currentState === STUDY_STATES.FOCUSED && stateDuration > 0) {
-            effectiveStudyTime += stateDuration;
-        }
-        
-        previousState = currentState;
-        currentState = newState;
-        lastStateChangeTime = now;
-        
-        // نمایش اعلان فقط برای تغییرات خاص
-        if (newState === STUDY_STATES.FOCUSED && previousState !== STUDY_STATES.FOCUSED) {
-            showAlert("آفرین! در حال مطالعهٔ متمرکز هستی 😊", "success");
-        } else if (newState === STUDY_STATES.DISTRACTED && previousState === STUDY_STATES.FOCUSED) {
-            showAlert("حواس‌پرتی تشخیص داده شد — تمرکز کن", "warning");
-        }
-    }
-
-    // مدیریت هشدارها
-    if (currentState === STUDY_STATES.AWAY) {
-        if (awayCounter >= AWAY_THRESHOLD_SEC) {
-            showAlert("شما از میز دوری — لطفاً بازگردید!", "error");
-            startAlarm();
-        }
-    } else if (currentState === STUDY_STATES.DROWSY) {
-        if (drowsyCounter >= DROWSY_THRESHOLD_SEC) {
-            showAlert("خواب‌آلود به نظر می‌آیید — استراحت کوتاه یا تکان دادن سر!", "error");
-            startAlarm();
-        }
-    } else {
-        stopAlarm();
-    }
-}
-        // state transitions
-        function changeState(newState){
-            if(newState === currentState) return;
+        // تابع تغییر وضعیت - کاملاً بازنویسی شده
+        function changeState(newState) {
+            if (newState === currentState) return;
+            
+            const now = Date.now();
+            
+            // محاسبه زمان صرف شده در وضعیت قبلی
+            if (currentStateStartTime && sessionStartTime) {
+                const timeInState = (now - currentStateStartTime) / 1000;
+                
+                // فقط اگر در حالت FOCUSED بودیم، زمان را اضافه کنیم
+                if (currentState === STUDY_STATES.FOCUSED) {
+                    totalFocusedTime += timeInState;
+                }
+            }
+            
+            const previousState = currentState;
             currentState = newState;
-            if(newState === STUDY_STATES.FOCUSED){
+            currentStateStartTime = now;
+            
+            // بازنشانی شمارنده‌ها هنگام تغییر وضعیت
+            if (newState !== STUDY_STATES.AWAY) {
+                awayCounter = 0;
+            }
+            if (newState !== STUDY_STATES.DROWSY) {
+                drowsyCounter = 0;
+            }
+            
+            // نمایش اعلان برای تغییرات خاص
+            if (newState === STUDY_STATES.FOCUSED && previousState !== STUDY_STATES.FOCUSED) {
                 showAlert("آفرین! در حال مطالعهٔ متمرکز هستی 😊", "success");
-            } else if(newState === STUDY_STATES.DISTRACTED){
+            } else if (newState === STUDY_STATES.DISTRACTED && previousState === STUDY_STATES.FOCUSED) {
                 showAlert("حواس‌پرتی تشخیص داده شد — تمرکز کن", "warning");
+            } else if (newState === STUDY_STATES.AWAY && previousState !== STUDY_STATES.AWAY) {
+                showAlert("شما از میز دور شدید", "warning");
+            } else if (newState === STUDY_STATES.DROWSY && previousState !== STUDY_STATES.DROWSY) {
+                showAlert("خواب‌آلود به نظر می‌آیید", "warning");
             }
         }
 
-        // سیستم رنک‌بندی
-        function updateRankProgress(effectiveStudySeconds) {
-    if (!studyStartTime || currentState !== STUDY_STATES.FOCUSED) return;
-    
-    const studyMinutes = effectiveStudySeconds / 60;
-    const currentRankData = RANKS[currentRankIndex];
-    
-    // محاسبه LP بر اساس زمان مطالعه موثر
-    const earnedLP = studyMinutes * currentRankData.lpPerMinute;
-    
-    if (earnedLP > currentLP) {
-        currentLP = Math.min(earnedLP, currentRankData.maxLP);
-        
-        // بررسی ارتقای رنک
-        if (currentLP >= currentRankData.maxLP && currentRankIndex < RANKS.length - 1) {
-            currentLP = 0;
-            currentRankIndex++;
-            showAlert(`تبریک! شما به رنک ${RANKS[currentRankIndex].name} ارتقا پیدا کردید!`, "success");
-        }
-        
-        updateRankUI();
-    }
-}
+        // analysis helpers - اصلاح شده
+        function analyzeStudyState(pose){
+            const now = Date.now();
+            
+            const nose = pose.keypoints.find(k=>k.part==='nose');
+            const leftShoulder = pose.keypoints.find(k=>k.part==='leftShoulder');
+            const rightShoulder = pose.keypoints.find(k=>k.part==='rightShoulder');
 
+            if(!nose || nose.score < 0.45){
+                // فرد در تصویر نیست
+                changeState(STUDY_STATES.AWAY);
+                
+                // مدیریت هشدار دوری از میز
+                if (sessionStartTime) {
+                    awayCounter += 0.1; // تقریب زمان بین فریم‌ها
+                    if(awayCounter >= AWAY_THRESHOLD_SEC){
+                        showAlert("شما از میز دوری — لطفاً بازگردید!", "error");
+                        startAlarm();
+                    }
+                }
+                return;
+            }
+
+            // اگر به تازگی وارد تصویر شده‌ایم
+            if (currentState === STUDY_STATES.AWAY) {
+                awayCounter = 0;
+                stopAlarm();
+            }
+
+            if((!baselineShoulderY) && leftShoulder && rightShoulder && leftShoulder.score>0.4 && rightShoulder.score>0.4){
+                baselineShoulderY = (leftShoulder.position.y + rightShoulder.position.y)/2;
+            }
+
+            let midShoulderY = null;
+            if(leftShoulder && rightShoulder && leftShoulder.score>0.35 && rightShoulder.score>0.35){
+                midShoulderY = (leftShoulder.position.y + rightShoulder.position.y)/2;
+            }
+
+            let headTilt = 0;
+            if(midShoulderY !== null){
+                headTilt = nose.position.y - midShoulderY;
+            } else if(baselineShoulderY){
+                headTilt = nose.position.y - baselineShoulderY;
+            }
+
+            if(lastNoseY !== null){
+                const timeDiff = 0.1; // تقریب زمان بین فریم‌ها
+                const vel = (nose.position.y - lastNoseY) / Math.max(timeDiff, 0.001);
+                noseVelBuffer.push(vel);
+                if(noseVelBuffer.length>6) noseVelBuffer.shift();
+            }
+            lastNoseY = nose.position.y;
+
+            const avgVel = noseVelBuffer.length? noseVelBuffer.reduce((a,b)=>a+b,0)/noseVelBuffer.length : 0;
+            const isDrowsy = (headTilt > 28) || (avgVel > 8);
+
+            const leftWrist = pose.keypoints.find(k=>k.part==='leftWrist');
+            const rightWrist = pose.keypoints.find(k=>k.part==='rightWrist');
+            let isHandsHigh = false;
+            if(leftWrist && leftWrist.score>0.4 && leftWrist.position.y < nose.position.y - 50) isHandsHigh = true;
+            if(rightWrist && rightWrist.score>0.4 && rightWrist.position.y < nose.position.y - 50) isHandsHigh = true;
+
+            if(isDrowsy){
+                drowsyCounter += 0.1;
+                if(drowsyCounter >= DROWSY_THRESHOLD_SEC){
+                    changeState(STUDY_STATES.DROWSY);
+                    showAlert("خواب‌آلود به نظر می‌آیید — استراحت کوتاه یا تکان دادن سر!", "error");
+                    startAlarm();
+                }
+            } else {
+                drowsyCounter = 0;
+                stopAlarm();
+
+                if(!isHandsHigh){
+                    changeState(STUDY_STATES.FOCUSED);
+                } else {
+                    changeState(STUDY_STATES.DISTRACTED);
+                }
+            }
+        }
+
+        // سیستم رنک‌بندی - اصلاح شده
+        function updateRankProgress(){
+            if(!sessionStartTime || currentState !== STUDY_STATES.FOCUSED) return;
+            
+            const currentRankData = RANKS[currentRankIndex];
+            const earnedLP = (totalFocusedTime / 60) * currentRankData.lpPerMinute;
+            
+            if (earnedLP > currentLP) {
+                currentLP = Math.min(earnedLP, currentRankData.maxLP);
+                
+                // بررسی ارتقای رنک
+                if (currentLP >= currentRankData.maxLP && currentRankIndex < RANKS.length - 1) {
+                    currentLP = 0;
+                    currentRankIndex++;
+                    totalFocusedTime = 0; // بازنشانی زمان برای رنک جدید
+                    showAlert(`تبریک! شما به رنک ${RANKS[currentRankIndex].name} ارتقا پیدا کردید!`, "success");
+                }
+                
+                updateRankUI();
+            }
+        }
 
         function updateRankUI(){
             const currentRankData = RANKS[currentRankIndex];
@@ -1267,38 +1237,31 @@ let previousState = STUDY_STATES.AWAY;
             alertTimeout = setTimeout(()=>{ alertBox.style.display='none'; }, 3500);
         }
 
-        // stats & tree
-        function updateStats() {
-    if (!isMonitoring || !studyStartTime) return;
-    
-    const now = Date.now();
-    
-    // محاسبه زمان کل از شروع نظارت
-    const totalSeconds = Math.floor((now - studyStartTime) / 1000);
-    
-    // زمان مطالعه موثر (فقط زمانی که در حالت FOCUSED هستیم)
-    let currentEffectiveTime = effectiveStudyTime;
-    
-    // اگر در حال حاضر در حالت FOCUSED هستیم، زمان جاری را هم اضافه کن
-    if (currentState === STUDY_STATES.FOCUSED && lastStateChangeTime) {
-        currentEffectiveTime += (now - lastStateChangeTime) / 1000;
-    }
-    
-    // به‌روزرسانی نمایش
-    const totalMinutes = Math.floor(totalSeconds / 60);
-    const effectiveMinutes = Math.floor(currentEffectiveTime / 60);
-    
-    studyTimeEl.textContent = `${effectiveMinutes} دقیقه`;
-    
-    // محاسبه درصد تمرکز
-    const focusPercent = totalSeconds > 0 ? 
-        Math.round((currentEffectiveTime / totalSeconds) * 100) : 0;
-    focusPercentEl.textContent = `${focusPercent}%`;
-    
-    // به‌روزرسانی سیستم رنک‌بندی
-    updateRankProgress(currentEffectiveTime);
-}
+        // stats & tree - کاملاً بازنویسی شده
+        function updateStats(){
+            if(!sessionStartTime) return;
+            
+            const now = Date.now();
+            const totalSessionTime = (now - sessionStartTime) / 1000;
+            
+            // محاسبه زمان تمرکز فعلی (اگر در حالت FOCUSED هستیم، زمان جاری را هم اضافه کنیم)
+            let currentFocusedTime = totalFocusedTime;
+            if (currentState === STUDY_STATES.FOCUSED && currentStateStartTime) {
+                currentFocusedTime += (now - currentStateStartTime) / 1000;
+            }
+            
+            // به روزرسانی نمایش
+            const focusedMinutes = Math.floor(currentFocusedTime / 60);
+            studyTimeEl.textContent = `${focusedMinutes} دقیقه`;
+            
+            // محاسبه درصد تمرکز
+            const focusPercent = totalSessionTime > 0 ? 
+                Math.round((currentFocusedTime / totalSessionTime) * 100) : 0;
+            focusPercentEl.textContent = `${focusPercent}%`;
 
+            // به روزرسانی سیستم رنک‌بندی
+            updateRankProgress();
+        }
 
         // pose loop
         async function detectPoseLoop(){
@@ -1313,101 +1276,99 @@ let previousState = STUDY_STATES.AWAY;
             requestAnimationFrame(detectPoseLoop);
         }
 
-        // start/stop monitoring
-        let statsInterval = null;
-        async function startMonitoring() {
-    if (isMonitoring) return;
-    try {
-        await setupCamera();
-        await loadPoseNet();
-        resizeOverlay();
-        window.addEventListener('resize', resizeOverlay);
-        
-        // بازنشانی همه متغیرهای زمانی
-        isMonitoring = true;
-        studyStartTime = Date.now();
-        lastUpdateTime = Date.now();
-        lastStateChangeTime = Date.now();
-        lastRankUpdateTime = Date.now();
-        studySeconds = 0;
-        focusSeconds = 0;
-        effectiveStudyTime = 0;
-        awayCounter = 0;
-        drowsyCounter = 0;
-        currentState = STUDY_STATES.AWAY;
-        previousState = STUDY_STATES.AWAY;
-        
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-        resetBtn.disabled = false;
-        
-        detectPoseLoop();
-        statsInterval = setInterval(updateStats, 1000);
-        showAlert("نظارت شروع شد — موفق باشید!", "success");
-        updateRankUI();
-    } catch (err) {
-        console.error(err);
-        showAlert('خطا در دسترسی یا بارگیری مدل', 'error');
-    }
-}
+        // start/stop monitoring - کاملاً بازنویسی شده
+        async function startMonitoring(){
+            if(isMonitoring) return;
+            try{
+                await setupCamera();
+                await loadPoseNet();
+                resizeOverlay();
+                window.addEventListener('resize', resizeOverlay);
+                
+                // بازنشانی کامل همه متغیرها
+                isMonitoring = true;
+                sessionStartTime = Date.now();
+                currentStateStartTime = Date.now();
+                totalFocusedTime = 0;
+                awayCounter = 0;
+                drowsyCounter = 0;
+                currentState = STUDY_STATES.AWAY;
+                baselineShoulderY = null;
+                lastNoseY = null;
+                noseVelBuffer = [];
+                
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                resetBtn.disabled = false;
+                
+                detectPoseLoop();
+                statsInterval = setInterval(updateStats, 1000);
+                showAlert("نظارت شروع شد — موفق باشید!", "success");
+                updateRankUI();
+            }catch(err){
+                console.error(err);
+                showAlert('خطا در دسترسی یا بارگیری مدل', 'error');
+            }
+        }
 
+        function stopMonitoring(){
+            if(!isMonitoring) return;
+            isMonitoring = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            // محاسبه نهایی زمان تمرکز قبل از توقف
+            if (currentState === STUDY_STATES.FOCUSED && currentStateStartTime && sessionStartTime) {
+                const timeInState = (Date.now() - currentStateStartTime) / 1000;
+                totalFocusedTime += timeInState;
+            }
+            
+            const stream = video.srcObject;
+            if(stream){
+                stream.getTracks().forEach(t=>t.stop());
+                video.srcObject = null;
+            }
+            
+            if(statsInterval){
+                clearInterval(statsInterval);
+                statsInterval = null;
+            }
+            
+            stopAlarm();
+            showAlert('نظارت متوقف شد', 'warning');
+            
+            // نمایش زمان نهایی
+            updateStats();
+        }
 
-        function stopMonitoring() {
-    if (!isMonitoring) return;
-    isMonitoring = false;
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-    
-    const stream = video.srcObject;
-    if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-        video.srcObject = null;
-    }
-    
-    if (statsInterval) {
-        clearInterval(statsInterval);
-        statsInterval = null;
-    }
-    
-    stopAlarm();
-    showAlert('نظارت متوقف شد', 'warning');
-    
-    // نمایش زمان نهایی
-    const finalMinutes = Math.floor(effectiveStudyTime / 60);
-    studyTimeEl.textContent = `${finalMinutes} دقیقه`;
-}
-
-       function resetAll() {
-    stopMonitoring();
-    
-    // بازنشانی کامل همه متغیرها
-    studyStartTime = null;
-    lastUpdateTime = null;
-    lastStateChangeTime = null;
-    lastRankUpdateTime = null;
-    studySeconds = 0;
-    focusSeconds = 0;
-    effectiveStudyTime = 0;
-    awayCounter = 0;
-    drowsyCounter = 0;
-    currentState = STUDY_STATES.AWAY;
-    previousState = STUDY_STATES.AWAY;
-    currentRankIndex = 0;
-    currentLP = 0;
-    
-    // بازنشانی نمایش
-    studyTimeEl.textContent = '0 دقیقه';
-    focusPercentEl.textContent = '0%';
-    currentRankEl.textContent = 'تازه کار';
-    
-    // پاک کردن overlay
-    const ctx = overlay.getContext('2d');
-    ctx.clearRect(0, 0, overlay.width, overlay.height);
-    
-    updateRankUI();
-    showAlert('همه آمار بازنشانی شد', 'warning');
-}
-
+        function resetAll(){
+            stopMonitoring();
+            
+            // بازنشانی کامل همه متغیرها
+            sessionStartTime = null;
+            currentStateStartTime = null;
+            totalFocusedTime = 0;
+            awayCounter = 0;
+            drowsyCounter = 0;
+            currentState = STUDY_STATES.AWAY;
+            currentRankIndex = 0;
+            currentLP = 0;
+            baselineShoulderY = null;
+            lastNoseY = null;
+            noseVelBuffer = [];
+            
+            // بازنشانی نمایش
+            studyTimeEl.textContent = '0 دقیقه';
+            focusPercentEl.textContent = '0%';
+            currentRankEl.textContent = 'تازه کار';
+            
+            // پاک کردن overlay
+            const ctx = overlay.getContext('2d');
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            
+            updateRankUI();
+            showAlert('همه آمار بازنشانی شد', 'warning');
+        }
 
         // init UI actions
         startBtn.addEventListener('click', startMonitoring);
