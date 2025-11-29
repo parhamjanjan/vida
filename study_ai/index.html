@@ -1280,7 +1280,17 @@ if ('pictureInPictureEnabled' in document) {
                 video.srcObject = null;
             }
             clearInterval(statsInterval);
-            focusPercent = 0;
+            studyStartTime = null;
+            lastUpdateTime = null;
+            studySeconds = 0;
+            focusSeconds = 0;
+            awayCounter = 0;
+            drowsyCounter = 0;
+            currentState = STUDY_STATES.AWAY;
+            studyTimeEl.textContent = '0 دقیقه';
+            focusPercentEl.textContent = '0%';
+            currentRankEl.textContent = 'تازه کار';
+            showAlert('صفرشد! آمار بازنشانی شد', 'warning');
             stopAlarm();
             showAlert('نظارت متوقف شد', 'warning');
         }
