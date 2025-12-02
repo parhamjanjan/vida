@@ -1,0 +1,2643 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>دفترچه یادداشت دیجیتال - سامانه آموزشی ویدا</title>
+
+<!-- Tailwind + FontAwesome -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<!-- PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- Fabric.js for drawing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+  
+  :root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --green: #10b981;
+    --card: #1e293b;
+    --bg-color: #0f172a;
+    --text-color: #e2e8f0;
+    --sidebar-bg: rgba(30,41,59,0.9);
+    --card-bg: rgba(30,41,59,0.5);
+    --border-color: rgba(255,255,255,0.04);
+    --input-bg: rgba(30,41,59,0.8);
+  }
+
+  [data-theme="light"] {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --green: #10b981;
+    --card: #f8fafc;
+    --bg-color: #f1f5f9;
+    --text-color: #1e293b;
+    --sidebar-bg: rgba(255,255,255,0.9);
+    --card-bg: rgba(255,255,255,0.7);
+    --border-color: rgba(0,0,0,0.08);
+    --input-bg: rgba(255,255,255,0.9);
+  }
+
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.5s ease, color 0.5s ease;
+    margin: 0;
+    font-family: 'Vazirmatn', sans-serif;
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* استایل‌های اصلی */
+  nav {
+    height: 72px;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .notebook-container {
+    display: flex;
+    gap: 16px;
+    padding: 18px 0;
+    height: calc(100vh - 72px);
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    height: 100%;
+    overflow: auto;
+    position: relative;
+  }
+  
+  .main-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* دکمه‌ها */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+  }
+  
+  .btn-secondary {
+    background: var(--card-bg);
+    color: var(--text-color);
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+  }
+  
+  .btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn-icon:hover {
+    background: var(--card-bg);
+  }
+  
+  .btn-icon.active {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .btn-icon.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* استایل‌های دفترچه یادداشت */
+  .notebook-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+  }
+  
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    border-left: 1px solid var(--border-color);
+  }
+  
+  .toolbar-group:first-child {
+    border-left: none;
+  }
+  
+  .notebook-canvas-container {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    position: relative;
+  }
+  
+  .canvas-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+  }
+  
+  #notebook-canvas {
+    display: block;
+    background: white;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  }
+  
+  /* استایل‌های PDF نمایشگر */
+  .pdf-viewer {
+    width: 100%;
+    height: calc(100% - 60px);
+    overflow: auto;
+    background: #525659;
+    position: relative;
+  }
+  
+  .pdf-page-wrapper {
+    position: relative;
+    margin: 20px auto;
+    display: inline-block;
+  }
+  
+  .pdf-page-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .pdf-page-canvas {
+    display: block;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+  
+  .pdf-annotations {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    cursor: crosshair;
+  }
+  
+  /* استایل‌های مدال */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(2,6,23,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  
+  .modal .modal-content {
+    background: var(--card);
+    padding: 24px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid var(--border-color);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.5rem;
+  }
+  
+  /* استایل‌های فرم */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  }
+  
+  .form-select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+  }
+  
+  /* استایل‌های لیست‌ها */
+  .notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .note-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+  }
+  
+  .note-item:hover {
+    background: rgba(79,70,229,0.1);
+  }
+  
+  .note-item.active {
+    background: rgba(79,70,229,0.15);
+    border-right: 3px solid var(--primary);
+  }
+  
+  .note-title {
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  
+  .note-meta {
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+  
+  .note-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  /* پالت رنگ */
+  .color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  
+  .color-option:hover {
+    transform: scale(1.1);
+  }
+  
+  .color-option.active {
+    border-color: white;
+    box-shadow: 0 0 0 2px var(--primary);
+  }
+  
+  /* نوتیفیکیشن */
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card);
+    color: var(--text-color);
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 350px;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+  }
+  
+  .notification.show {
+    transform: translateX(0);
+  }
+  
+  .notification-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+  
+  .notification-close {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+  
+  /* حالت‌های مختلف */
+  .view-mode {
+    display: none;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .view-mode.active {
+    display: block;
+  }
+  
+  /* اسلایدر */
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .slider {
+    width: 100px;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--border-color);
+    border-radius: 3px;
+    outline: none;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+  }
+  
+  /* صفحه‌بندی PDF */
+  .pdf-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    height: 60px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  /* صفحات یادداشت */
+  .pages-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .page-tab {
+    padding: 6px 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+  }
+  
+  .page-tab:hover {
+    background: rgba(79,70,229,0.1);
+  }
+  
+  .page-tab.active {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .page-tab-add {
+    padding: 6px;
+    min-width: 32px;
+  }
+  
+  /* موبایل */
+  @media (max-width: 768px) {
+    .notebook-container {
+      flex-direction: column;
+      height: auto;
+    }
+    
+    .sidebar {
+      width: 100%;
+      height: 300px;
+    }
+    
+    .notebook-toolbar {
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    
+    .toolbar-group {
+      padding: 0 4px;
+    }
+    
+    .notebook-canvas-container {
+      height: 500px;
+    }
+    
+    .pdf-pagination {
+      position: relative;
+    }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="container flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center">
+        <i class="fas fa-book text-white"></i>
+      </div>
+      <div style="-webkit-background-clip:text;background:linear-gradient(135deg,var(--primary),var(--green));color:white;" class="font-bold text-lg" id="pageTitle">دفترچه یادداشت دیجیتال</div>
+    </div>
+    <div class="flex items-center gap-4">
+      <button id="themeToggle" class="theme-toggle btn-icon">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button id="exportBtn" class="btn-primary">
+        <i class="fas fa-download ml-2"></i>
+        خروجی PDF
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="notebook-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="mb-8">
+        <button class="btn-primary w-full mb-4" id="newNoteBtn">
+          <i class="fas fa-plus ml-2"></i>
+          یادداشت جدید
+        </button>
+        <button class="btn-secondary w-full mb-4" id="uploadPdfBtn">
+          <i class="fas fa-file-pdf ml-2"></i>
+          بارگذاری PDF
+        </button>
+        <input type="text" class="form-input" placeholder="جستجو در یادداشت‌ها..." id="searchNotes">
+      </div>
+      
+      <div class="mb-6">
+        <h3 class="text-lg font-bold mb-3">یادداشت‌های من</h3>
+        <div class="notes-list" id="notesList">
+          <!-- یادداشت‌ها در اینجا نمایش داده می‌شوند -->
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <h3 class="text-lg font-bold mb-3">فایل‌های PDF</h3>
+        <div class="notes-list" id="pdfList">
+          <!-- فایل‌های PDF در اینجا نمایش داده می‌شوند -->
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="text-lg font-bold mb-3">ابزارهای ترسیم</h3>
+        <div class="color-palette" id="colorPalette">
+          <!-- رنگ‌ها در اینجا نمایش داده می‌شوند -->
+        </div>
+        <div class="mt-4">
+          <div class="slider-container">
+            <span>ضخامت:</span>
+            <input type="range" min="1" max="20" value="3" class="slider" id="brushSize">
+            <span id="brushSizeValue">3px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Toolbar -->
+      <div class="notebook-toolbar">
+        <!-- حالت‌های نمایش -->
+        <div class="toolbar-group">
+          <button class="btn-icon active" data-mode="draw" id="modeDraw" title="رسم">
+            <i class="fas fa-pen"></i>
+          </button>
+          <button class="btn-icon" data-mode="text" id="modeText" title="متن">
+            <i class="fas fa-font"></i>
+          </button>
+          <button class="btn-icon" data-mode="highlight" id="modeHighlight" title="هایلایت">
+            <i class="fas fa-highlighter"></i>
+          </button>
+          <button class="btn-icon" data-mode="erase" id="modeErase" title="پاک کن">
+            <i class="fas fa-eraser"></i>
+          </button>
+          <button class="btn-icon" data-mode="select" id="modeSelect" title="انتخاب">
+            <i class="fas fa-mouse-pointer"></i>
+          </button>
+        </div>
+        
+        <!-- ابزارهای ترسیم -->
+        <div class="toolbar-group">
+          <button class="btn-icon active" id="toolPen" title="قلم">
+            <i class="fas fa-pen-nib"></i>
+          </button>
+          <button class="btn-icon" id="toolLine" title="خط">
+            <i class="fas fa-slash"></i>
+          </button>
+          <button class="btn-icon" id="toolRectangle" title="مستطیل">
+            <i class="fas fa-square"></i>
+          </button>
+          <button class="btn-icon" id="toolCircle" title="دایره">
+            <i class="fas fa-circle"></i>
+          </button>
+          <button class="btn-icon" id="toolArrow" title="فلش">
+            <i class="fas fa-long-arrow-alt-right"></i>
+          </button>
+        </div>
+        
+        <!-- ابزارهای متن -->
+        <div class="toolbar-group">
+          <select class="form-select" id="fontFamily" style="width: 150px;" title="فونت">
+            <option value="Vazirmatn">Vazirmatn</option>
+            <option value="Arial">Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Tahoma">Tahoma</option>
+          </select>
+          <select class="form-select" id="fontSize" style="width: 80px;" title="سایز فونت">
+            <option value="12">12px</option>
+            <option value="14">14px</option>
+            <option value="16">16px</option>
+            <option value="18">18px</option>
+            <option value="24">24px</option>
+            <option value="32">32px</option>
+          </select>
+          <button class="btn-icon" id="textBold" title="ضخیم">
+            <i class="fas fa-bold"></i>
+          </button>
+          <button class="btn-icon" id="textItalic" title="ایتالیک">
+            <i class="fas fa-italic"></i>
+          </button>
+          <button class="btn-icon" id="textUnderline" title="زیرخط">
+            <i class="fas fa-underline"></i>
+          </button>
+        </div>
+        
+        <!-- ابزارهای مدیریت -->
+        <div class="toolbar-group">
+          <button class="btn-icon" id="undoBtn" title="برگشت">
+            <i class="fas fa-undo"></i>
+          </button>
+          <button class="btn-icon" id="redoBtn" title="بازگشت">
+            <i class="fas fa-redo"></i>
+          </button>
+          <button class="btn-icon" id="clearBtn" title="پاک کردن">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="btn-icon" id="saveBtn" title="ذخیره">
+            <i class="fas fa-save"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- تب‌های صفحات یادداشت -->
+      <div class="pages-tabs" id="pagesTabs" style="display: none;">
+        <!-- تب‌های صفحات در اینجا نمایش داده می‌شوند -->
+      </div>
+
+      <!-- Canvas Container -->
+      <div class="notebook-canvas-container">
+        <!-- حالت یادداشت -->
+        <div class="view-mode active" id="noteView">
+          <div class="canvas-wrapper">
+            <canvas id="notebook-canvas"></canvas>
+          </div>
+        </div>
+        
+        <!-- حالت PDF -->
+        <div class="view-mode" id="pdfView">
+          <div class="pdf-viewer" id="pdfViewer">
+            <!-- صفحات PDF در اینجا نمایش داده می‌شوند -->
+          </div>
+          <div class="pdf-pagination" id="pdfPagination">
+            <button class="btn-icon" id="prevPage" title="صفحه قبل">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <span id="pageInfo">صفحه 1 از 1</span>
+            <button class="btn-icon" id="nextPage" title="صفحه بعد">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <input type="number" min="1" value="1" class="form-input" style="width: 80px;" id="pageInput" title="شماره صفحه">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- نوتیفیکیشن -->
+<div class="notification" id="notification">
+  <div class="notification-icon">
+    <i class="fas fa-bell"></i>
+  </div>
+  <div class="notification-content">
+    <div class="notification-title font-bold" id="notification-title">یادداشت</div>
+    <div class="notification-message text-sm" id="notification-message">یادداشت ذخیره شد!</div>
+  </div>
+  <button class="notification-close" id="notification-close">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
+<!-- مدال ایجاد یادداشت جدید -->
+<div class="modal" id="newNoteModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">یادداشت جدید</div>
+      <button class="modal-close" id="closeNewNoteModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">عنوان یادداشت</label>
+      <input type="text" class="form-input" id="noteTitle" placeholder="عنوان یادداشت">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">نوع برگه</label>
+      <select class="form-select" id="notePaperType">
+        <option value="plain">ساده</option>
+        <option value="lined">خط‌دار</option>
+        <option value="grid">شطرنجی</option>
+        <option value="dotted">نقطه‌چین</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">رنگ پس‌زمینه</label>
+      <input type="color" class="form-input" id="noteBackground" value="#ffffff">
+    </div>
+    
+    <div class="flex justify-end gap-2 mt-6">
+      <button class="btn-primary" id="createNoteBtn">ایجاد یادداشت</button>
+      <button class="btn-secondary" id="cancelNoteBtn">لغو</button>
+    </div>
+  </div>
+</div>
+
+<!-- مدال بارگذاری PDF -->
+<div class="modal" id="uploadPdfModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">بارگذاری PDF</div>
+      <button class="modal-close" id="closeUploadPdfModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">انتخاب فایل PDF</label>
+      <input type="file" class="form-input" id="pdfFile" accept=".pdf">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">نام فایل</label>
+      <input type="text" class="form-input" id="pdfName" placeholder="نام فایل">
+    </div>
+    
+    <div class="flex justify-end gap-2 mt-6">
+      <button class="btn-primary" id="uploadPdfSubmit">بارگذاری</button>
+      <button class="btn-secondary" id="cancelPdfBtn">لغو</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// داده‌ها و ذخیره‌سازی
+let notes = JSON.parse(localStorage.getItem('digitalNotebookNotes') || '[]');
+let pdfFiles = JSON.parse(localStorage.getItem('digitalNotebookPdfs') || '[]');
+let currentNoteId = null;
+let currentPdfId = null;
+let currentMode = 'draw';
+let currentColor = '#4f46e5';
+let currentTool = 'pen';
+let canvas = null;
+let pdfCanvas = null;
+let pdfDoc = null;
+let currentPage = 1;
+let pdfScale = 1.5;
+
+// حالت ترسیم شکل
+let isDrawingShape = false;
+let drawingShape = null;
+let drawingShapeType = null;
+let startX = 0;
+let startY = 0;
+
+// مدیریت صفحات یادداشت
+let currentNotePages = [];
+let currentPageIndex = 0;
+
+// تاریخچه برای Undo/Redo
+let history = [];
+let historyIndex = -1;
+
+// رنگ‌های پیش‌فرض
+const defaultColors = [
+  '#4f46e5', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+  '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#64748b',
+  '#000000', '#ffffff', 'rgba(255,255,0,0.5)', 'rgba(0,255,255,0.5)', 'rgba(255,0,255,0.5)'
+];
+
+// مدیریت تم
+let currentTheme = localStorage.getItem('plannerTheme') || 'dark';
+
+// راه‌اندازی اولیه
+function init() {
+  initTheme();
+  initCanvas();
+  initColorPalette();
+  loadNotes();
+  loadPdfs();
+  setupEventListeners();
+}
+
+// راه‌اندازی بوم Fabric.js
+function initCanvas() {
+  canvas = new fabric.Canvas('notebook-canvas', {
+    backgroundColor: '#ffffff',
+    preserveObjectStacking: true,
+    selection: false
+  });
+  
+  updateCanvasSize();
+  
+  // تنظیم حالت اولیه
+  canvas.isDrawingMode = true;
+  canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+  canvas.freeDrawingBrush.width = 3;
+  canvas.freeDrawingBrush.color = currentColor;
+  
+  // ذخیره تاریخچه
+  canvas.on('object:added', saveHistory);
+  canvas.on('object:modified', saveHistory);
+  canvas.on('object:removed', saveHistory);
+  
+  // رویدادهای ترسیم شکل‌ها
+  canvas.on('mouse:down', handleMouseDown);
+  canvas.on('mouse:move', handleMouseMove);
+  canvas.on('mouse:up', handleMouseUp);
+}
+
+// به‌روزرسانی اندازه بوم
+function updateCanvasSize() {
+  const wrapper = document.querySelector('.canvas-wrapper');
+  canvas.setWidth(wrapper.offsetWidth);
+  canvas.setHeight(wrapper.offsetHeight);
+  canvas.renderAll();
+}
+
+// کنترل‌کننده کلیک موس
+function handleMouseDown(options) {
+  // فقط اگر حالت رسم شکل فعال باشد
+  if (currentTool !== 'pen' && currentTool !== 'highlight' && currentMode !== 'erase' && currentMode !== 'text') {
+    isDrawingShape = true;
+    drawingShapeType = currentTool;
+    const pointer = canvas.getPointer(options.e);
+    startX = pointer.x;
+    startY = pointer.y;
+    
+    // غیرفعال کردن سایر ابزارها هنگام رسم شکل
+    disableOtherTools();
+    
+    // ایجاد شکل اولیه
+    createInitialShape(pointer.x, pointer.y);
+  }
+}
+
+// کنترل‌کننده حرکت موس
+function handleMouseMove(options) {
+  if (!isDrawingShape || !drawingShape) return;
+  
+  const pointer = canvas.getPointer(options.e);
+  
+  // به‌روزرسانی شکل
+  updateDrawingShape(pointer.x, pointer.y);
+  
+  canvas.renderAll();
+}
+
+// کنترل‌کننده رها کردن موس
+function handleMouseUp() {
+  if (!isDrawingShape || !drawingShape) return;
+  
+  isDrawingShape = false;
+  
+  // برای فلش، سر فلش اضافه کن
+  if (drawingShapeType === 'arrow') {
+    addArrowHeadToShape();
+  }
+  
+  drawingShape.set('selectable', true);
+  drawingShape = null;
+  drawingShapeType = null;
+  
+  saveHistory();
+}
+
+// غیرفعال کردن سایر ابزارها هنگام رسم شکل
+function disableOtherTools() {
+  canvas.isDrawingMode = false;
+  canvas.selection = false;
+  canvas.forEachObject(obj => obj.selectable = false);
+}
+
+// ایجاد شکل اولیه
+function createInitialShape(x, y) {
+  startX = x;
+  startY = y;
+  
+  switch(drawingShapeType) {
+    case 'line':
+      drawingShape = new fabric.Line([x, y, x, y], {
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+      
+    case 'rectangle':
+      drawingShape = new fabric.Rect({
+        left: x,
+        top: y,
+        width: 0,
+        height: 0,
+        fill: 'transparent',
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+      
+    case 'circle':
+      drawingShape = new fabric.Circle({
+        left: x,
+        top: y,
+        radius: 0,
+        fill: 'transparent',
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+      
+    case 'arrow':
+      drawingShape = new fabric.Line([x, y, x, y], {
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+  }
+  
+  if (drawingShape) {
+    canvas.add(drawingShape);
+  }
+}
+
+// به‌روزرسانی شکل در حال رسم
+function updateDrawingShape(x, y) {
+  if (!drawingShape) return;
+  
+  switch(drawingShapeType) {
+    case 'line':
+    case 'arrow':
+      drawingShape.set({ x2: x, y2: y });
+      break;
+      
+    case 'rectangle':
+      const width = x - startX;
+      const height = y - startY;
+      drawingShape.set({
+        width: Math.abs(width),
+        height: Math.abs(height),
+        left: width < 0 ? x : startX,
+        top: height < 0 ? y : startY
+      });
+      break;
+      
+    case 'circle':
+      const radius = Math.sqrt(
+        Math.pow(x - startX, 2) + 
+        Math.pow(y - startY, 2)
+      ) / 2;
+      drawingShape.set({
+        radius: radius,
+        left: startX - radius,
+        top: startY - radius
+      });
+      break;
+  }
+}
+
+// اضافه کردن سر فلش
+function addArrowHeadToShape() {
+  if (!drawingShape || drawingShapeType !== 'arrow') return;
+  
+  const x1 = drawingShape.x1;
+  const y1 = drawingShape.y1;
+  const x2 = drawingShape.x2;
+  const y2 = drawingShape.y2;
+  
+  // محاسبه زاویه
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const headLength = 15;
+  
+  // ایجاد مثلث برای سر فلش
+  const arrowHead = new fabric.Triangle({
+    left: x2,
+    top: y2,
+    angle: angle * 180 / Math.PI,
+    fill: currentColor,
+    width: headLength,
+    height: headLength,
+    originX: 'center',
+    originY: 'center',
+    selectable: false
+  });
+  
+  canvas.add(arrowHead);
+  
+  // گروه کردن خط و سر فلش
+  const group = new fabric.Group([drawingShape, arrowHead], {
+    selectable: true
+  });
+  
+  canvas.remove(drawingShape);
+  canvas.remove(arrowHead);
+  canvas.add(group);
+  canvas.setActiveObject(group);
+  drawingShape = group;
+}
+
+// ذخیره تاریخچه
+function saveHistory() {
+  const state = JSON.stringify(canvas.toJSON());
+  if (history[historyIndex] !== state) {
+    history = history.slice(0, historyIndex + 1);
+    history.push(state);
+    historyIndex = history.length - 1;
+  }
+}
+
+// Undo
+function undo() {
+  if (historyIndex > 0) {
+    historyIndex--;
+    const state = history[historyIndex];
+    canvas.loadFromJSON(state, () => {
+      canvas.renderAll();
+    });
+  }
+}
+
+// Redo
+function redo() {
+  if (historyIndex < history.length - 1) {
+    historyIndex++;
+    const state = history[historyIndex];
+    canvas.loadFromJSON(state, () => {
+      canvas.renderAll();
+    });
+  }
+}
+
+// راه‌اندازی پالت رنگ
+function initColorPalette() {
+  const palette = document.getElementById('colorPalette');
+  palette.innerHTML = '';
+  
+  defaultColors.forEach(color => {
+    const colorEl = document.createElement('div');
+    colorEl.className = 'color-option';
+    if (color === currentColor) {
+      colorEl.classList.add('active');
+    }
+    colorEl.style.backgroundColor = color;
+    colorEl.dataset.color = color;
+    
+    if (color === '#ffffff') {
+      colorEl.style.border = '1px solid var(--border-color)';
+    }
+    
+    colorEl.addEventListener('click', () => {
+      document.querySelectorAll('.color-option').forEach(el => el.classList.remove('active'));
+      colorEl.classList.add('active');
+      currentColor = color;
+      
+      // به‌روزرسانی براش‌ها
+      updateBrushColor();
+    });
+    
+    palette.appendChild(colorEl);
+  });
+}
+
+// به‌روزرسانی رنگ براش
+function updateBrushColor() {
+  if (currentMode === 'erase') return;
+  
+  if (canvas) {
+    if (currentMode === 'draw' || currentMode === 'highlight') {
+      canvas.isDrawingMode = true;
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.width = currentMode === 'highlight' ? 20 : parseInt(document.getElementById('brushSize').value);
+      canvas.freeDrawingBrush.color = currentColor;
+    }
+  }
+  
+  if (pdfCanvas) {
+    if (currentMode === 'draw' || currentMode === 'highlight') {
+      pdfCanvas.isDrawingMode = true;
+      pdfCanvas.freeDrawingBrush = new fabric.PencilBrush(pdfCanvas);
+      pdfCanvas.freeDrawingBrush.width = currentMode === 'highlight' ? 20 : parseInt(document.getElementById('brushSize').value);
+      pdfCanvas.freeDrawingBrush.color = currentColor;
+    }
+  }
+}
+
+// مدیریت تم
+function initTheme() {
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const themeToggle = document.getElementById('themeToggle');
+  if (currentTheme === 'dark') {
+    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+  } else {
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+  }
+}
+
+function toggleTheme() {
+  if (currentTheme === 'dark') {
+    currentTheme = 'light';
+  } else {
+    currentTheme = 'dark';
+  }
+  
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  localStorage.setItem('plannerTheme', currentTheme);
+  
+  const themeToggle = document.getElementById('themeToggle');
+  if (currentTheme === 'dark') {
+    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+  } else {
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+  }
+}
+
+// بارگذاری یادداشت‌ها
+function loadNotes() {
+  const notesList = document.getElementById('notesList');
+  notesList.innerHTML = '';
+  
+  if (notes.length === 0) {
+    notesList.innerHTML = '<div class="text-slate-400 text-center py-4">هیچ یادداشتی وجود ندارد</div>';
+    return;
+  }
+  
+  notes.forEach(note => {
+    const noteEl = document.createElement('div');
+    noteEl.className = 'note-item';
+    if (note.id === currentNoteId) {
+      noteEl.classList.add('active');
+    }
+    noteEl.dataset.noteId = note.id;
+    
+    noteEl.innerHTML = `
+      <div>
+        <div class="note-title">${note.title}</div>
+        <div class="note-meta">${note.category || 'عمومی'} • ${new Date(note.updatedAt).toLocaleDateString('fa-IR')} • ${note.pages || 1} صفحه</div>
+      </div>
+      <div class="note-actions">
+        <button class="btn-icon delete-note" data-note-id="${note.id}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+    
+    noteEl.addEventListener('click', (e) => {
+      if (!e.target.closest('.delete-note')) {
+        openNote(note.id);
+      }
+    });
+    
+    const deleteBtn = noteEl.querySelector('.delete-note');
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteNote(note.id);
+    });
+    
+    notesList.appendChild(noteEl);
+  });
+}
+
+// بارگذاری PDFها
+function loadPdfs() {
+  const pdfList = document.getElementById('pdfList');
+  pdfList.innerHTML = '';
+  
+  if (pdfFiles.length === 0) {
+    pdfList.innerHTML = '<div class="text-slate-400 text-center py-4">هیچ فایل PDF وجود ندارد</div>';
+    return;
+  }
+  
+  pdfFiles.forEach(pdf => {
+    const pdfEl = document.createElement('div');
+    pdfEl.className = 'note-item';
+    if (pdf.id === currentPdfId) {
+      pdfEl.classList.add('active');
+    }
+    pdfEl.dataset.pdfId = pdf.id;
+    
+    pdfEl.innerHTML = `
+      <div>
+        <div class="note-title">${pdf.name}</div>
+        <div class="note-meta">${new Date(pdf.uploadedAt).toLocaleDateString('fa-IR')} • ${pdf.pages || '?'} صفحه</div>
+      </div>
+      <div class="note-actions">
+        <button class="btn-icon delete-pdf" data-pdf-id="${pdf.id}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+    
+    pdfEl.addEventListener('click', (e) => {
+      if (!e.target.closest('.delete-pdf')) {
+        openPdf(pdf.id);
+      }
+    });
+    
+    const deleteBtn = pdfEl.querySelector('.delete-pdf');
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deletePdf(pdf.id);
+    });
+    
+    pdfList.appendChild(pdfEl);
+  });
+}
+
+// ایجاد یادداشت جدید
+function createNote(title, paperType, backgroundColor) {
+  const note = {
+    id: 'note_' + Date.now(),
+    title: title || 'یادداشت جدید',
+    paperType: paperType || 'plain',
+    backgroundColor: backgroundColor || '#ffffff',
+    pages: [{
+      id: 'page_1',
+      content: null,
+      paperType: paperType || 'plain',
+      backgroundColor: backgroundColor || '#ffffff'
+    }],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  notes.push(note);
+  localStorage.setItem('digitalNotebookNotes', JSON.stringify(notes));
+  loadNotes();
+  
+  return note.id;
+}
+
+// اضافه کردن صفحه جدید به یادداشت
+function addPageToNote() {
+  if (!currentNoteId) return;
+  
+  const noteIndex = notes.findIndex(n => n.id === currentNoteId);
+  if (noteIndex === -1) return;
+  
+  const note = notes[noteIndex];
+  const pageNumber = note.pages.length + 1;
+  
+  note.pages.push({
+    id: `page_${pageNumber}`,
+    content: null,
+    paperType: note.paperType || 'plain',
+    backgroundColor: note.backgroundColor || '#ffffff'
+  });
+  
+  note.updatedAt = new Date().toISOString();
+  
+  localStorage.setItem('digitalNotebookNotes', JSON.stringify(notes));
+  renderPagesTabs();
+  switchPage(pageNumber - 1);
+  
+  showNotification('صفحه اضافه شد', `صفحه ${pageNumber} اضافه شد.`);
+}
+
+// رندر تب‌های صفحات
+function renderPagesTabs() {
+  if (!currentNoteId) {
+    document.getElementById('pagesTabs').style.display = 'none';
+    return;
+  }
+  
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note) return;
+  
+  const tabsContainer = document.getElementById('pagesTabs');
+  tabsContainer.innerHTML = '';
+  tabsContainer.style.display = 'flex';
+  
+  note.pages.forEach((page, index) => {
+    const tab = document.createElement('div');
+    tab.className = `page-tab ${index === currentPageIndex ? 'active' : ''}`;
+    tab.textContent = index + 1;
+    tab.dataset.pageIndex = index;
+    
+    tab.addEventListener('click', () => {
+      switchPage(index);
+    });
+    
+    tabsContainer.appendChild(tab);
+  });
+  
+  // دکمه اضافه کردن صفحه
+  const addTab = document.createElement('div');
+  addTab.className = 'page-tab page-tab-add';
+  addTab.innerHTML = '<i class="fas fa-plus"></i>';
+  addTab.title = 'اضافه کردن صفحه';
+  
+  addTab.addEventListener('click', addPageToNote);
+  
+  tabsContainer.appendChild(addTab);
+}
+
+// تغییر صفحه
+function switchPage(pageIndex) {
+  if (!currentNoteId) return;
+  
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note || pageIndex < 0 || pageIndex >= note.pages.length) return;
+  
+  // ذخیره صفحه فعلی
+  saveCurrentPage();
+  
+  // تغییر به صفحه جدید
+  currentPageIndex = pageIndex;
+  const page = note.pages[pageIndex];
+  
+  // پاک کردن بوم و بارگذاری محتوا
+  canvas.clear();
+  canvas.backgroundColor = page.backgroundColor || note.backgroundColor || '#ffffff';
+  
+  // اعمال طرح برگه
+  applyPaperPattern(page.paperType || note.paperType || 'plain');
+  
+  if (page.content) {
+    canvas.loadFromJSON(JSON.parse(page.content), () => {
+      canvas.renderAll();
+      history = [JSON.stringify(canvas.toJSON())];
+      historyIndex = 0;
+    });
+  } else {
+    canvas.renderAll();
+    history = [JSON.stringify(canvas.toJSON())];
+    historyIndex = 0;
+  }
+  
+  // به‌روزرسانی تب‌ها
+  renderPagesTabs();
+}
+
+// ذخیره صفحه فعلی
+function saveCurrentPage() {
+  if (!currentNoteId) return;
+  
+  const noteIndex = notes.findIndex(n => n.id === currentNoteId);
+  if (noteIndex === -1) return;
+  
+  const note = notes[noteIndex];
+  if (!note.pages[currentPageIndex]) return;
+  
+  note.pages[currentPageIndex].content = JSON.stringify(canvas.toJSON());
+  note.updatedAt = new Date().toISOString();
+  
+  localStorage.setItem('digitalNotebookNotes', JSON.stringify(notes));
+}
+
+// اعمال طرح برگه
+function applyPaperPattern(paperType) {
+  if (!canvas) return;
+  
+  // پاک کردن اشیاء طرح قبلی
+  canvas.getObjects().forEach(obj => {
+    if (obj.paperPattern) {
+      canvas.remove(obj);
+    }
+  });
+  
+  const width = canvas.width;
+  const height = canvas.height;
+  
+  switch(paperType) {
+    case 'lined':
+      // خطوط افقی
+      for (let y = 20; y < height; y += 20) {
+        const line = new fabric.Line([0, y, width, y], {
+          stroke: '#e0e0e0',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          paperPattern: true
+        });
+        canvas.add(line);
+      }
+      // خط قرمز کناری
+      const redLine = new fabric.Line([30, 0, 30, height], {
+        stroke: '#ff6b6b',
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+        paperPattern: true
+      });
+      canvas.add(redLine);
+      break;
+      
+    case 'grid':
+      // خطوط شطرنجی
+      for (let x = 0; x < width; x += 20) {
+        const vLine = new fabric.Line([x, 0, x, height], {
+          stroke: '#e0e0e0',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          paperPattern: true
+        });
+        canvas.add(vLine);
+      }
+      for (let y = 0; y < height; y += 20) {
+        const hLine = new fabric.Line([0, y, width, y], {
+          stroke: '#e0e0e0',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          paperPattern: true
+        });
+        canvas.add(hLine);
+      }
+      break;
+      
+    case 'dotted':
+      // نقطه‌چین
+      for (let x = 10; x < width; x += 20) {
+        for (let y = 10; y < height; y += 20) {
+          const dot = new fabric.Circle({
+            left: x,
+            top: y,
+            radius: 1,
+            fill: '#e0e0e0',
+            selectable: false,
+            evented: false,
+            paperPattern: true
+          });
+          canvas.add(dot);
+        }
+      }
+      break;
+  }
+  
+  canvas.renderAll();
+}
+
+// حذف یادداشت
+function deleteNote(noteId) {
+  if (confirm('آیا از حذف این یادداشت مطمئن هستید؟')) {
+    notes = notes.filter(note => note.id !== noteId);
+    localStorage.setItem('digitalNotebookNotes', JSON.stringify(notes));
+    loadNotes();
+    
+    if (currentNoteId === noteId) {
+      currentNoteId = null;
+      clearCanvas();
+      document.getElementById('pagesTabs').style.display = 'none';
+    }
+    
+    showNotification('یادداشت حذف شد', 'یادداشت با موفقیت حذف شد.');
+  }
+}
+
+// باز کردن یادداشت
+function openNote(noteId) {
+  const note = notes.find(n => n.id === noteId);
+  if (!note) return;
+  
+  currentNoteId = noteId;
+  currentPdfId = null;
+  currentPageIndex = 0;
+  
+  // تغییر حالت نمایش
+  document.getElementById('noteView').classList.add('active');
+  document.getElementById('pdfView').classList.remove('active');
+  
+  // به‌روزرسانی لیست‌ها
+  loadNotes();
+  loadPdfs();
+  
+  // بارگذاری صفحه اول
+  const page = note.pages[0] || {};
+  canvas.clear();
+  canvas.backgroundColor = page.backgroundColor || note.backgroundColor || '#ffffff';
+  
+  // اعمال طرح برگه
+  applyPaperPattern(page.paperType || note.paperType || 'plain');
+  
+  if (page.content) {
+    canvas.loadFromJSON(JSON.parse(page.content), () => {
+      canvas.renderAll();
+      history = [JSON.stringify(canvas.toJSON())];
+      historyIndex = 0;
+    });
+  } else {
+    canvas.renderAll();
+    history = [JSON.stringify(canvas.toJSON())];
+    historyIndex = 0;
+  }
+  
+  // نمایش تب‌های صفحات
+  renderPagesTabs();
+  
+  // تغییر عنوان
+  document.getElementById('pageTitle').textContent = note.title + ' - دفترچه یادداشت دیجیتال';
+}
+
+// ذخیره یادداشت
+function saveNote() {
+  if (!currentNoteId) return;
+  
+  saveCurrentPage();
+  showNotification('ذخیره شد', 'یادداشت با موفقیت ذخیره شد.');
+}
+
+// بارگذاری PDF
+function uploadPdf(file, name) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+      const pdfData = {
+        id: 'pdf_' + Date.now(),
+        name: name || file.name,
+        data: e.target.result.split(',')[1],
+        uploadedAt: new Date().toISOString(),
+        annotations: {}
+      };
+      
+      pdfFiles.push(pdfData);
+      localStorage.setItem('digitalNotebookPdfs', JSON.stringify(pdfFiles));
+      loadPdfs();
+      resolve(pdfData.id);
+    };
+    
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// حذف PDF
+function deletePdf(pdfId) {
+  if (confirm('آیا از حذف این فایل PDF مطمئن هستید؟')) {
+    pdfFiles = pdfFiles.filter(pdf => pdf.id !== pdfId);
+    localStorage.setItem('digitalNotebookPdfs', JSON.stringify(pdfFiles));
+    loadPdfs();
+    
+    if (currentPdfId === pdfId) {
+      currentPdfId = null;
+      document.getElementById('pdfViewer').innerHTML = '';
+      document.getElementById('pdfView').classList.remove('active');
+      document.getElementById('noteView').classList.add('active');
+      document.getElementById('pageTitle').textContent = 'دفترچه یادداشت دیجیتال';
+    }
+    
+    showNotification('PDF حذف شد', 'فایل PDF با موفقیت حذف شد.');
+  }
+}
+
+// باز کردن PDF
+async function openPdf(pdfId) {
+  const pdf = pdfFiles.find(p => p.id === pdfId);
+  if (!pdf) return;
+  
+  currentPdfId = pdfId;
+  currentNoteId = null;
+  
+  // تغییر حالت نمایش
+  document.getElementById('pdfView').classList.add('active');
+  document.getElementById('noteView').classList.remove('active');
+  document.getElementById('pagesTabs').style.display = 'none';
+  
+  // به‌روزرسانی لیست‌ها
+  loadNotes();
+  loadPdfs();
+  
+  // بارگذاری PDF
+  try {
+    const pdfData = atob(pdf.data);
+    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+    pdfDoc = await loadingTask.promise;
+    
+    // ذخیره تعداد صفحات
+    pdf.pages = pdfDoc.numPages;
+    localStorage.setItem('digitalNotebookPdfs', JSON.stringify(pdfFiles));
+    loadPdfs();
+    
+    currentPage = 1;
+    await renderPdfPage();
+    updatePagination();
+    
+    // تغییر عنوان
+    document.getElementById('pageTitle').textContent = pdf.name + ' - دفترچه یادداشت دیجیتال';
+  } catch (error) {
+    console.error('خطا در بارگذاری PDF:', error);
+    showNotification('خطا', 'خطا در بارگذاری فایل PDF.');
+  }
+}
+
+// رندر صفحه PDF
+async function renderPdfPage() {
+  if (!pdfDoc) return;
+  
+  const viewer = document.getElementById('pdfViewer');
+  viewer.innerHTML = '';
+  
+  const page = await pdfDoc.getPage(currentPage);
+  const viewport = page.getViewport({ scale: pdfScale });
+  
+  // ساختار اصلی
+  const wrapper = document.createElement('div');
+  wrapper.className = 'pdf-page-wrapper';
+  wrapper.style.width = viewport.width + 'px';
+  wrapper.style.height = viewport.height + 'px';
+  wrapper.style.position = 'relative';
+  wrapper.style.display = 'inline-block';
+  
+  const container = document.createElement('div');
+  container.className = 'pdf-page-container';
+  container.style.width = viewport.width + 'px';
+  container.style.height = viewport.height + 'px';
+  container.style.position = 'relative';
+  
+  // کانوس PDF (تصویر اصلی)
+  const pdfCanvasElement = document.createElement('canvas');
+  pdfCanvasElement.className = 'pdf-page-canvas';
+  pdfCanvasElement.width = viewport.width;
+  pdfCanvasElement.height = viewport.height;
+  
+  const context = pdfCanvasElement.getContext('2d');
+  
+  const renderContext = {
+    canvasContext: context,
+    viewport: viewport
+  };
+  
+  await page.render(renderContext).promise;
+  
+  container.appendChild(pdfCanvasElement);
+  
+  // کانوس آنوتیشن (روی PDF)
+  const annotationCanvasElement = document.createElement('canvas');
+  annotationCanvasElement.id = 'pdf-annotation-canvas';
+  annotationCanvasElement.className = 'pdf-annotations';
+  annotationCanvasElement.width = viewport.width;
+  annotationCanvasElement.height = viewport.height;
+  annotationCanvasElement.style.width = viewport.width + 'px';
+  annotationCanvasElement.style.height = viewport.height + 'px';
+  
+  container.appendChild(annotationCanvasElement);
+  wrapper.appendChild(container);
+  viewer.appendChild(wrapper);
+  
+  // تنظیمات بوم آنوتیشن
+  setupPdfAnnotationCanvas(annotationCanvasElement);
+  
+  // اسکرول به بالا
+  viewer.scrollTop = 0;
+}
+
+// راه‌اندازی بوم آنوتیشن PDF
+function setupPdfAnnotationCanvas(canvasElement) {
+  if (pdfCanvas) {
+    pdfCanvas.dispose();
+  }
+  
+  pdfCanvas = new fabric.Canvas(canvasElement, {
+    selection: currentMode === 'select',
+    preserveObjectStacking: true,
+    backgroundColor: 'transparent'
+  });
+  
+  // غیرفعال کردن حالت رسم پیش‌فرض
+  pdfCanvas.isDrawingMode = false;
+  
+  // رویدادهای ترسیم برای PDF
+  pdfCanvas.on('mouse:down', handlePdfMouseDown);
+  pdfCanvas.on('mouse:move', handlePdfMouseMove);
+  pdfCanvas.on('mouse:up', handlePdfMouseUp);
+  
+  // بارگذاری آنوتیشن‌های ذخیره شده
+  loadPdfAnnotations();
+  
+  // تنظیم حالت فعلی
+  setPdfMode(currentMode);
+}
+
+// کنترل‌کننده کلیک موس روی PDF
+function handlePdfMouseDown(options) {
+  // فقط اگر حالت رسم شکل فعال باشد
+  if (currentTool !== 'pen' && currentTool !== 'highlight' && currentMode !== 'erase' && currentMode !== 'text') {
+    isDrawingShape = true;
+    drawingShapeType = currentTool;
+    const pointer = pdfCanvas.getPointer(options.e);
+    startX = pointer.x;
+    startY = pointer.y;
+    
+    // غیرفعال کردن سایر ابزارها هنگام رسم شکل
+    disableOtherPdfTools();
+    
+    // ایجاد شکل اولیه
+    createInitialPdfShape(pointer.x, pointer.y);
+  }
+}
+
+// کنترل‌کننده حرکت موس روی PDF
+function handlePdfMouseMove(options) {
+  if (!isDrawingShape || !drawingShape) return;
+  
+  const pointer = pdfCanvas.getPointer(options.e);
+  
+  // به‌روزرسانی شکل
+  updatePdfDrawingShape(pointer.x, pointer.y);
+  
+  pdfCanvas.renderAll();
+}
+
+// کنترل‌کننده رها کردن موس روی PDF
+function handlePdfMouseUp() {
+  if (!isDrawingShape || !drawingShape) return;
+  
+  isDrawingShape = false;
+  
+  // برای فلش، سر فلش اضافه کن
+  if (drawingShapeType === 'arrow') {
+    addArrowHeadToPdfShape();
+  }
+  
+  drawingShape.set('selectable', true);
+  drawingShape = null;
+  drawingShapeType = null;
+  
+  savePdfAnnotations();
+}
+
+// غیرفعال کردن سایر ابزارها هنگام رسم شکل روی PDF
+function disableOtherPdfTools() {
+  pdfCanvas.isDrawingMode = false;
+  pdfCanvas.selection = false;
+  pdfCanvas.forEachObject(obj => obj.selectable = false);
+}
+
+// ایجاد شکل اولیه روی PDF
+function createInitialPdfShape(x, y) {
+  startX = x;
+  startY = y;
+  
+  switch(drawingShapeType) {
+    case 'line':
+      drawingShape = new fabric.Line([x, y, x, y], {
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+      
+    case 'rectangle':
+      drawingShape = new fabric.Rect({
+        left: x,
+        top: y,
+        width: 0,
+        height: 0,
+        fill: 'transparent',
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+      
+    case 'circle':
+      drawingShape = new fabric.Circle({
+        left: x,
+        top: y,
+        radius: 0,
+        fill: 'transparent',
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+      
+    case 'arrow':
+      drawingShape = new fabric.Line([x, y, x, y], {
+        stroke: currentColor,
+        strokeWidth: parseInt(document.getElementById('brushSize').value),
+        selectable: false
+      });
+      break;
+  }
+  
+  if (drawingShape) {
+    pdfCanvas.add(drawingShape);
+  }
+}
+
+// به‌روزرسانی شکل در حال رسم روی PDF
+function updatePdfDrawingShape(x, y) {
+  if (!drawingShape) return;
+  
+  switch(drawingShapeType) {
+    case 'line':
+    case 'arrow':
+      drawingShape.set({ x2: x, y2: y });
+      break;
+      
+    case 'rectangle':
+      const width = x - startX;
+      const height = y - startY;
+      drawingShape.set({
+        width: Math.abs(width),
+        height: Math.abs(height),
+        left: width < 0 ? x : startX,
+        top: height < 0 ? y : startY
+      });
+      break;
+      
+    case 'circle':
+      const radius = Math.sqrt(
+        Math.pow(x - startX, 2) + 
+        Math.pow(y - startY, 2)
+      ) / 2;
+      drawingShape.set({
+        radius: radius,
+        left: startX - radius,
+        top: startY - radius
+      });
+      break;
+  }
+}
+
+// اضافه کردن سر فلش روی PDF
+function addArrowHeadToPdfShape() {
+  if (!drawingShape || drawingShapeType !== 'arrow') return;
+  
+  const x1 = drawingShape.x1;
+  const y1 = drawingShape.y1;
+  const x2 = drawingShape.x2;
+  const y2 = drawingShape.y2;
+  
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const headLength = 15;
+  
+  const arrowHead = new fabric.Triangle({
+    left: x2,
+    top: y2,
+    angle: angle * 180 / Math.PI,
+    fill: currentColor,
+    width: headLength,
+    height: headLength,
+    originX: 'center',
+    originY: 'center',
+    selectable: false
+  });
+  
+  pdfCanvas.add(arrowHead);
+  
+  const group = new fabric.Group([drawingShape, arrowHead], {
+    selectable: true
+  });
+  
+  pdfCanvas.remove(drawingShape);
+  pdfCanvas.remove(arrowHead);
+  pdfCanvas.add(group);
+  pdfCanvas.setActiveObject(group);
+  drawingShape = group;
+}
+
+// تنظیم حالت PDF
+function setPdfMode(mode) {
+  if (!pdfCanvas) return;
+  
+  currentMode = mode;
+  
+  pdfCanvas.isDrawingMode = false;
+  pdfCanvas.selection = mode === 'select';
+  
+  if (mode === 'draw' || mode === 'highlight') {
+    pdfCanvas.isDrawingMode = true;
+    pdfCanvas.freeDrawingBrush = new fabric.PencilBrush(pdfCanvas);
+    pdfCanvas.freeDrawingBrush.width = mode === 'highlight' ? 20 : parseInt(document.getElementById('brushSize').value);
+    pdfCanvas.freeDrawingBrush.color = currentColor;
+    pdfCanvas.freeDrawingBrush.globalCompositeOperation = 'source-over';
+  } else if (mode === 'erase') {
+    // پاک‌کن واقعی - حذف شیء هنگام کلیک
+    setupRealEraser();
+  } else if (mode === 'text') {
+    addTextToPdfCanvas();
+  }
+}
+
+// راه‌اندازی پاک‌کن واقعی
+function setupRealEraser() {
+  if (!pdfCanvas) return;
+  
+  pdfCanvas.isDrawingMode = false;
+  pdfCanvas.selection = false;
+  pdfCanvas.forEachObject(obj => obj.selectable = false);
+  
+  pdfCanvas.on('mouse:down', handleErase);
+}
+
+// کنترل‌کننده پاک‌کن واقعی
+function handleErase(options) {
+  if (!pdfCanvas || currentMode !== 'erase') return;
+  
+  const pointer = pdfCanvas.getPointer(options.e);
+  const objects = pdfCanvas.getObjects();
+  
+  // حذف اشیاء در نزدیکی نقطه کلیک
+  for (let i = objects.length - 1; i >= 0; i--) {
+    const obj = objects[i];
+    if (obj.containsPoint(pointer)) {
+      pdfCanvas.remove(obj);
+      pdfCanvas.renderAll();
+      savePdfAnnotations();
+      break;
+    }
+  }
+}
+
+// اضافه کردن متن به بوم PDF
+function addTextToPdfCanvas() {
+  if (!pdfCanvas) return;
+  
+  pdfCanvas.isDrawingMode = false;
+  
+  const text = new fabric.IText('متن خود را اینجا تایپ کنید...', {
+    left: 100,
+    top: 100,
+    fontFamily: document.getElementById('fontFamily').value,
+    fontSize: parseInt(document.getElementById('fontSize').value),
+    fill: currentColor,
+    selectable: true
+  });
+  
+  pdfCanvas.add(text);
+  pdfCanvas.setActiveObject(text);
+  pdfCanvas.renderAll();
+  savePdfAnnotations();
+}
+
+// بارگذاری آنوتیشن‌های PDF
+function loadPdfAnnotations() {
+  if (!currentPdfId || !pdfCanvas) return;
+  
+  const pdf = pdfFiles.find(p => p.id === currentPdfId);
+  if (!pdf || !pdf.annotations || !pdf.annotations[currentPage]) return;
+  
+  try {
+    pdfCanvas.loadFromJSON(pdf.annotations[currentPage], () => {
+      pdfCanvas.renderAll();
+    });
+  } catch (error) {
+    console.error('خطا در بارگذاری آنوتیشن‌ها:', error);
+  }
+}
+
+// ذخیره آنوتیشن‌های PDF
+function savePdfAnnotations() {
+  if (!currentPdfId || !pdfCanvas) return;
+  
+  const pdfIndex = pdfFiles.findIndex(p => p.id === currentPdfId);
+  if (pdfIndex === -1) return;
+  
+  if (!pdfFiles[pdfIndex].annotations) {
+    pdfFiles[pdfIndex].annotations = {};
+  }
+  
+  pdfFiles[pdfIndex].annotations[currentPage] = pdfCanvas.toJSON();
+  localStorage.setItem('digitalNotebookPdfs', JSON.stringify(pdfFiles));
+}
+
+// به‌روزرسانی صفحه‌بندی
+function updatePagination() {
+  if (!pdfDoc) return;
+  
+  document.getElementById('pageInfo').textContent = `صفحه ${currentPage} از ${pdfDoc.numPages}`;
+  document.getElementById('pageInput').value = currentPage;
+  document.getElementById('pageInput').max = pdfDoc.numPages;
+}
+
+// تغییر حالت
+function setMode(mode) {
+  currentMode = mode;
+  
+  // به‌روزرسانی دکمه‌ها
+  document.querySelectorAll('[data-mode]').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+  
+  // تنظیمات بوم
+  if (currentNoteId && canvas) {
+    if (mode === 'draw') {
+      canvas.isDrawingMode = true;
+      canvas.selection = false;
+      canvas.forEachObject(obj => obj.selectable = false);
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.width = parseInt(document.getElementById('brushSize').value);
+      canvas.freeDrawingBrush.color = currentColor;
+      canvas.freeDrawingBrush.globalCompositeOperation = 'source-over';
+    } else if (mode === 'text') {
+      canvas.isDrawingMode = false;
+      addTextToCanvas();
+    } else if (mode === 'highlight') {
+      canvas.isDrawingMode = true;
+      canvas.selection = false;
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.width = 20;
+      // برای هایلایت، رنگ شفاف استفاده کن
+      const highlightColor = currentColor.includes('rgba') ? currentColor : 
+                           (currentColor === '#ffffff' ? 'rgba(255,255,0,0.5)' : 
+                            currentColor.replace('rgb', 'rgba').replace(')', ',0.5)'));
+      canvas.freeDrawingBrush.color = highlightColor;
+      canvas.freeDrawingBrush.globalCompositeOperation = 'source-over';
+    } else if (mode === 'erase') {
+      // پاک‌کن واقعی - حذف شیء هنگام کلیک
+      setupCanvasRealEraser();
+    } else if (mode === 'select') {
+      canvas.isDrawingMode = false;
+      canvas.selection = true;
+      canvas.forEachObject(obj => obj.selectable = true);
+    }
+  }
+  
+  // تنظیمات بوم PDF
+  if (currentPdfId && pdfCanvas) {
+    setPdfMode(mode);
+  }
+}
+
+// راه‌اندازی پاک‌کن واقعی برای بوم
+function setupCanvasRealEraser() {
+  if (!canvas) return;
+  
+  canvas.isDrawingMode = false;
+  canvas.selection = false;
+  canvas.forEachObject(obj => obj.selectable = false);
+  
+  canvas.off('mouse:down'); // حذف event listener قبلی
+  canvas.on('mouse:down', handleCanvasErase);
+}
+
+// کنترل‌کننده پاک‌کن واقعی برای بوم
+function handleCanvasErase(options) {
+  if (!canvas || currentMode !== 'erase') return;
+  
+  const pointer = canvas.getPointer(options.e);
+  const objects = canvas.getObjects();
+  
+  // حذف اشیاء در نزدیکی نقطه کلیک
+  for (let i = objects.length - 1; i >= 0; i--) {
+    const obj = objects[i];
+    if (obj.containsPoint(pointer)) {
+      canvas.remove(obj);
+      canvas.renderAll();
+      saveHistory();
+      break;
+    }
+  }
+}
+
+// تغییر ابزار
+function setTool(tool) {
+  currentTool = tool;
+  
+  // به‌روزرسانی دکمه‌ها
+  document.querySelectorAll('.toolbar-group:nth-child(2) .btn-icon').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.getElementById(`tool${tool.charAt(0).toUpperCase() + tool.slice(1)}`).classList.add('active');
+  
+  // تنظیم حالت
+  if (tool === 'pen') {
+    setMode('draw');
+  } else {
+    // برای شکل‌ها، حالت draw را فعال کن اما ابزارهای دیگر را غیرفعال کن
+    setMode('draw');
+    // غیرفعال کردن ابزارهای دیگر
+    disableOtherModesWhenShapeActive();
+  }
+}
+
+// غیرفعال کردن سایر حالت‌ها هنگام فعال بودن شکل
+function disableOtherModesWhenShapeActive() {
+  // این تابع برای اطمینان از اینکه هنگام رسم شکل، سایر ابزارها غیرفعال هستند
+  if (currentTool !== 'pen' && currentTool !== 'highlight') {
+    canvas.isDrawingMode = false;
+    canvas.selection = false;
+    canvas.forEachObject(obj => obj.selectable = false);
+  }
+}
+
+// اضافه کردن متن به بوم
+function addTextToCanvas() {
+  if (!canvas) return;
+  
+  const text = new fabric.IText('متن خود را اینجا تایپ کنید...', {
+    left: 100,
+    top: 100,
+    fontFamily: document.getElementById('fontFamily').value,
+    fontSize: parseInt(document.getElementById('fontSize').value),
+    fill: currentColor,
+    selectable: true
+  });
+  
+  canvas.add(text);
+  canvas.setActiveObject(text);
+  canvas.renderAll();
+  saveHistory();
+}
+
+// پاک کردن بوم
+function clearCanvas() {
+  if (canvas) {
+    canvas.clear();
+    canvas.backgroundColor = '#ffffff';
+    canvas.renderAll();
+    history = [JSON.stringify(canvas.toJSON())];
+    historyIndex = 0;
+  }
+}
+
+// خروجی به PDF - نسخه بهبودیافته
+// خروجی به PDF - نسخه بهبودیافته
+// خروجی PDF ساده اما مطمئن
+// خروجی PDF با صفحات متراکم
+async function exportToPDF() {
+  if (currentNoteId) {
+    const note = notes.find(n => n.id === currentNoteId);
+    if (!note) return;
+    
+    saveCurrentPage();
+    
+    if (typeof jspdf === 'undefined') {
+      showNotification('خطا', 'لطفاً کتابخانه jsPDF را بارگذاری کنید.');
+      return;
+    }
+    
+    showNotification('در حال پردازش', `در حال جمع‌آوری ${note.pages.length} صفحه...`);
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const currentPageBackup = currentPageIndex;
+    
+    try {
+      // پارامترهای صفحه
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 0; // حاشیه کوچک
+      const maxContentHeight = pageHeight - (2 * margin);
+      
+      let currentY = margin; // موقعیت عمودی فعلی
+      let pageNumber = 1;
+      
+      // حلقه روی تمام صفحات یادداشت
+      for (let i = 0; i < note.pages.length; i++) {
+        await switchPageForExport(i);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // محاسبه نسبت و اندازه برای چسباندن
+        const canvasRatio = canvas.width / canvas.height;
+        
+        // برای چسباندن به هم، عرض را ثابت نگه داریم
+        const targetWidth = pageWidth - (2 * margin);
+        const targetHeight = targetWidth / canvasRatio;
+        
+        // بررسی آیا این تصویر در صفحه فعلی جا می‌شود
+        if (currentY + targetHeight > maxContentHeight) {
+          // اگر جا نمی‌شود، صفحه جدید ایجاد کن
+          pdf.addPage();
+          currentY = margin;
+          pageNumber++;
+        }
+        
+        // تبدیل به تصویر
+        const imgData = canvas.toDataURL('image/jpeg', 0.9);
+        
+        // اضافه کردن تصویر به موقعیت فعلی
+        pdf.addImage(imgData, 'JPEG', margin, currentY, targetWidth, targetHeight);
+        
+        // اضافه کردن جداکننده بین صفحات (به جز آخرین صفحه)
+        
+        
+        // به روز رسانی موقعیت عمودی برای تصویر بعدی
+        currentY += targetHeight; // 5mm فاصله بین تصاویر
+      }
+      
+      // بازگشت به صفحه اصلی
+      await switchPageForExport(currentPageBackup);
+      
+
+      
+      // اضافه کردن فوتر در همه صفحات
+      
+      
+      // ذخیره PDF
+      const fileName = `${note.title}_فشرده.pdf`;
+      pdf.save(fileName);
+      
+      showNotification('موفق', `PDF با ${totalPages} صفحه ایجاد شد (${note.pages.length} صفحه یادداشت).`);
+      
+    } catch (err) {
+      console.error('خطا در ایجاد PDF:', err);
+      showNotification('خطا', 'خطا در ایجاد PDF. لطفاً دوباره امتحان کنید.');
+    }
+    
+  } else if (currentPdfId) {
+    // کد قبلی برای PDFهای آپلود شده
+    const pdfFile = pdfFiles.find(p => p.id === currentPdfId);
+    if (!pdfFile) return;
+    
+    const pdfData = atob(pdfFile.data);
+    const byteArray = new Uint8Array(pdfData.length);
+    for (let i = 0; i < pdfData.length; i++) {
+      byteArray[i] = pdfData.charCodeAt(i);
+    }
+    
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = pdfFile.name;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showNotification('خروجی', 'فایل PDF دانلود شد.');
+  } else {
+    showNotification('خطا', 'ابتدا یک یادداشت یا PDF باز کنید.');
+  }
+}
+function applyPaperPatternForExport(paperType) {
+  // از تابع اصلی استفاده کن
+  applyPaperPattern(paperType);
+}
+
+
+async function switchPageForExport(pageIndex) {
+  if (!currentNoteId) return;
+  
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note || pageIndex < 0 || pageIndex >= note.pages.length) return;
+  
+  currentPageIndex = pageIndex;
+  const page = note.pages[pageIndex];
+  
+  // پاک کردن بوم و بارگذاری محتوا
+  canvas.clear();
+  canvas.backgroundColor = page.backgroundColor || note.backgroundColor || '#ffffff';
+  
+  // اعمال طرح برگه
+  applyPaperPatternForExport(page.paperType || note.paperType || 'plain');
+  
+  if (page.content) {
+    await new Promise(resolve => {
+      canvas.loadFromJSON(JSON.parse(page.content), () => {
+        canvas.renderAll();
+        resolve();
+      });
+    });
+  } else {
+    canvas.renderAll();
+  }
+  
+  await new Promise(resolve => setTimeout(resolve, 50));
+}
+
+
+async function exportAllPagesAsImages(note) {
+  showNotification('در حال پردازش', 'در حال ایجاد تصاویر از تمام صفحات...');
+  
+  const currentPageBackup = currentPageIndex;
+  
+  for (let i = 0; i < note.pages.length; i++) {
+    await switchPageForExport(i);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const dataURL = canvas.toDataURL({
+      format: 'png',
+      multiplier: 1.5
+    });
+    
+    // دانلود این تصویر
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = `${note.title}_صفحه_${i + 1}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // کمی تاخیر بین دانلودها
+    if (i < note.pages.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  
+  // بازگشت به صفحه اصلی
+  await switchPageForExport(currentPageBackup);
+  showNotification('خروجی', `${note.pages.length} تصویر دانلود شدند.`);
+}
+
+
+// نمایش نوتیفیکیشن
+function showNotification(title, message) {
+  const notification = document.getElementById('notification');
+  const notificationTitle = document.getElementById('notification-title');
+  const notificationMessage = document.getElementById('notification-message');
+  
+  notificationTitle.textContent = title;
+  notificationMessage.textContent = message;
+  
+  notification.classList.add('show');
+  
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
+}
+
+// راه‌اندازی event listeners
+function setupEventListeners() {
+  // دکمه ایجاد یادداشت جدید
+  document.getElementById('newNoteBtn').addEventListener('click', () => {
+    document.getElementById('newNoteModal').style.display = 'flex';
+  });
+  
+  document.getElementById('createNoteBtn').addEventListener('click', () => {
+    const title = document.getElementById('noteTitle').value.trim();
+    const paperType = document.getElementById('notePaperType').value;
+    const background = document.getElementById('noteBackground').value;
+    
+    if (!title) {
+      showNotification('خطا', 'لطفاً عنوان یادداشت را وارد کنید.');
+      return;
+    }
+    
+    const noteId = createNote(title, paperType, background);
+    closeModal('newNoteModal');
+    openNote(noteId);
+  });
+  
+  document.getElementById('cancelNoteBtn').addEventListener('click', () => {
+    closeModal('newNoteModal');
+  });
+  
+  document.getElementById('closeNewNoteModal').addEventListener('click', () => {
+    closeModal('newNoteModal');
+  });
+  
+  // دکمه بارگذاری PDF
+  document.getElementById('uploadPdfBtn').addEventListener('click', () => {
+    document.getElementById('uploadPdfModal').style.display = 'flex';
+  });
+  
+  document.getElementById('uploadPdfSubmit').addEventListener('click', async () => {
+    const fileInput = document.getElementById('pdfFile');
+    const nameInput = document.getElementById('pdfName');
+    
+    if (!fileInput.files.length) {
+      showNotification('خطا', 'لطفاً یک فایل PDF انتخاب کنید.');
+      return;
+    }
+    
+    const file = fileInput.files[0];
+    const name = nameInput.value.trim() || file.name;
+    
+    try {
+      const pdfId = await uploadPdf(file, name);
+      closeModal('uploadPdfModal');
+      await openPdf(pdfId);
+    } catch (error) {
+      console.error('خطا:', error);
+      showNotification('خطا', 'خطا در بارگذاری فایل PDF.');
+    }
+  });
+  
+  document.getElementById('cancelPdfBtn').addEventListener('click', () => {
+    closeModal('uploadPdfModal');
+  });
+  
+  document.getElementById('closeUploadPdfModal').addEventListener('click', () => {
+    closeModal('uploadPdfModal');
+  });
+  
+  // حالت‌های مختلف
+  document.getElementById('modeDraw').addEventListener('click', () => {
+    setTool('pen');
+    setMode('draw');
+  });
+  
+  document.getElementById('modeText').addEventListener('click', () => setMode('text'));
+  document.getElementById('modeHighlight').addEventListener('click', () => setMode('highlight'));
+  document.getElementById('modeErase').addEventListener('click', () => setMode('erase'));
+  document.getElementById('modeSelect').addEventListener('click', () => setMode('select'));
+  
+  // ابزارها
+  document.getElementById('toolPen').addEventListener('click', () => setTool('pen'));
+  document.getElementById('toolLine').addEventListener('click', () => setTool('line'));
+  document.getElementById('toolRectangle').addEventListener('click', () => setTool('rectangle'));
+  document.getElementById('toolCircle').addEventListener('click', () => setTool('circle'));
+  document.getElementById('toolArrow').addEventListener('click', () => setTool('arrow'));
+  
+  // ابزارهای متن
+  document.getElementById('fontFamily').addEventListener('change', function() {
+    if (canvas && canvas.getActiveObject() && canvas.getActiveObject().type === 'i-text') {
+      canvas.getActiveObject().set('fontFamily', this.value);
+      canvas.renderAll();
+      saveHistory();
+    }
+    if (pdfCanvas && pdfCanvas.getActiveObject() && pdfCanvas.getActiveObject().type === 'i-text') {
+      pdfCanvas.getActiveObject().set('fontFamily', this.value);
+      pdfCanvas.renderAll();
+      savePdfAnnotations();
+    }
+  });
+  
+  document.getElementById('fontSize').addEventListener('change', function() {
+    if (canvas && canvas.getActiveObject() && canvas.getActiveObject().type === 'i-text') {
+      canvas.getActiveObject().set('fontSize', parseInt(this.value));
+      canvas.renderAll();
+      saveHistory();
+    }
+    if (pdfCanvas && pdfCanvas.getActiveObject() && pdfCanvas.getActiveObject().type === 'i-text') {
+      pdfCanvas.getActiveObject().set('fontSize', parseInt(this.value));
+      pdfCanvas.renderAll();
+      savePdfAnnotations();
+    }
+  });
+  
+  document.getElementById('textBold').addEventListener('click', function() {
+    if (canvas && canvas.getActiveObject() && canvas.getActiveObject().type === 'i-text') {
+      const currentWeight = canvas.getActiveObject().fontWeight;
+      canvas.getActiveObject().set('fontWeight', currentWeight === 'bold' ? 'normal' : 'bold');
+      canvas.renderAll();
+      saveHistory();
+    }
+    if (pdfCanvas && pdfCanvas.getActiveObject() && pdfCanvas.getActiveObject().type === 'i-text') {
+      const currentWeight = pdfCanvas.getActiveObject().fontWeight;
+      pdfCanvas.getActiveObject().set('fontWeight', currentWeight === 'bold' ? 'normal' : 'bold');
+      pdfCanvas.renderAll();
+      savePdfAnnotations();
+    }
+  });
+  
+  document.getElementById('textItalic').addEventListener('click', function() {
+    if (canvas && canvas.getActiveObject() && canvas.getActiveObject().type === 'i-text') {
+      const currentStyle = canvas.getActiveObject().fontStyle;
+      canvas.getActiveObject().set('fontStyle', currentStyle === 'italic' ? 'normal' : 'italic');
+      canvas.renderAll();
+      saveHistory();
+    }
+    if (pdfCanvas && pdfCanvas.getActiveObject() && pdfCanvas.getActiveObject().type === 'i-text') {
+      const currentStyle = pdfCanvas.getActiveObject().fontStyle;
+      pdfCanvas.getActiveObject().set('fontStyle', currentStyle === 'italic' ? 'normal' : 'italic');
+      pdfCanvas.renderAll();
+      savePdfAnnotations();
+    }
+  });
+  
+  document.getElementById('textUnderline').addEventListener('click', function() {
+    if (canvas && canvas.getActiveObject() && canvas.getActiveObject().type === 'i-text') {
+      const currentUnderline = canvas.getActiveObject().underline;
+      canvas.getActiveObject().set('underline', !currentUnderline);
+      canvas.renderAll();
+      saveHistory();
+    }
+    if (pdfCanvas && pdfCanvas.getActiveObject() && pdfCanvas.getActiveObject().type === 'i-text') {
+      const currentUnderline = pdfCanvas.getActiveObject().underline;
+      pdfCanvas.getActiveObject().set('underline', !currentUnderline);
+      pdfCanvas.renderAll();
+      savePdfAnnotations();
+    }
+  });
+  
+  // ابزارهای مدیریت
+  document.getElementById('undoBtn').addEventListener('click', undo);
+  document.getElementById('redoBtn').addEventListener('click', redo);
+  
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (confirm('آیا از پاک کردن تمام محتوا مطمئن هستید؟')) {
+      if (currentNoteId && canvas) {
+        clearCanvas();
+      }
+      if (currentPdfId && pdfCanvas) {
+        pdfCanvas.clear();
+        pdfCanvas.renderAll();
+        savePdfAnnotations();
+      }
+      showNotification('پاک شد', 'تمام محتوا پاک شد.');
+    }
+  });
+  
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    if (currentNoteId) {
+      saveNote();
+    } else if (currentPdfId) {
+      savePdfAnnotations();
+      showNotification('ذخیره شد', 'تغییرات PDF ذخیره شدند.');
+    }
+  });
+  
+  // خروجی PDF
+  document.getElementById('exportBtn').addEventListener('click', exportToPDF);
+  
+  // تغییر تم
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+  
+  // بستن نوتیفیکیشن
+  document.getElementById('notification-close').addEventListener('click', () => {
+    document.getElementById('notification').classList.remove('show');
+  });
+  
+  // تغییر اندازه قلم مو
+  document.getElementById('brushSize').addEventListener('input', function() {
+    document.getElementById('brushSizeValue').textContent = this.value + 'px';
+    if (canvas && canvas.isDrawingMode && currentMode !== 'highlight' && currentMode !== 'erase') {
+      canvas.freeDrawingBrush.width = parseInt(this.value);
+    }
+    if (pdfCanvas && pdfCanvas.isDrawingMode && currentMode !== 'highlight' && currentMode !== 'erase') {
+      pdfCanvas.freeDrawingBrush.width = parseInt(this.value);
+    }
+  });
+  
+  // مدیریت پنجره‌های مدال
+  window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal')) {
+      e.target.style.display = 'none';
+    }
+  });
+  
+  // مدیریت تغییر اندازه پنجره
+  window.addEventListener('resize', () => {
+    updateCanvasSize();
+  });
+  
+  // صفحه‌بندی PDF
+  document.getElementById('prevPage').addEventListener('click', async () => {
+    if (pdfDoc && currentPage > 1) {
+      savePdfAnnotations();
+      currentPage--;
+      await renderPdfPage();
+      updatePagination();
+    }
+  });
+  
+  document.getElementById('nextPage').addEventListener('click', async () => {
+    if (pdfDoc && currentPage < pdfDoc.numPages) {
+      savePdfAnnotations();
+      currentPage++;
+      await renderPdfPage();
+      updatePagination();
+    }
+  });
+  
+  document.getElementById('pageInput').addEventListener('change', async function() {
+    const pageNum = parseInt(this.value);
+    if (pdfDoc && pageNum >= 1 && pageNum <= pdfDoc.numPages) {
+      savePdfAnnotations();
+      currentPage = pageNum;
+      await renderPdfPage();
+      updatePagination();
+    }
+  });
+}
+
+// بستن مدال
+function closeModal(modalId) {
+  document.getElementById(modalId).style.display = 'none';
+}
+
+// راه‌اندازی برنامه
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
