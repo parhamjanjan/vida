@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="بارکد اسکن برای اپلیکیشن زنگ هشدار - برای خاموش کردن هشدار باید این بارکد را اسکن کنید">
+    <meta name="keywords" content="بارکد, اسکن, زنگ هشدار, ویدا, Wake-Up-Barcode">
+    
+    <title>بارکد اپلیکیشن زنگ هشدار - سامانه آموزشی ویدا</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(79, 70, 229, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            z-index: 0;
+        }
+        
+        .floating-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .floating-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+        
+        .floating-card:hover::before {
+            opacity: 1;
+        }
+        
+        .floating-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            margin: 2rem 0;
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+        
+        .barcode-container {
+            position: relative;
+            padding: 2rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            margin: 2rem auto;
+            max-width: 600px;
+        }
+        
+        .barcode-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+            z-index: 0;
+        }
+        
+        .barcode-image {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .scan-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.8), transparent);
+            z-index: 2;
+            animation: scan 3s ease-in-out infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        
+        .instruction-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-right: 4px solid var(--secondary-color);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- نوار ناوبری -->
+    <nav class="py-4 px-6 md:px-12 bg-opacity-80 bg-slate-900 backdrop-blur-md sticky top-0 z-50 border-b border-slate-700">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center ml-3">
+                    <i class="fas fa-graduation-cap text-white"></i>
+                </div>
+                <span class="text-xl font-bold gradient-text">سامانه آموزشی ویدا</span>
+            </div>
+            
+            <!-- منوی دسکتاپ -->
+            <div class="hidden md:flex space-x-2 space-x-reverse">
+                <a href="/" class="nav-link text-slate-400 hover:text-slate-200 font-medium">صفحه اصلی</a>
+                <a href="#" class="nav-link text-slate-400 hover:text-slate-200 font-medium">درباره ما</a>
+                <a href="#" class="nav-link text-slate-400 hover:text-slate-200 font-medium">تماس با ما</a>
+            </div>
+            
+            <!-- دکمه منوی موبایل -->
+            <button id="mobileMenuButton" class="md:hidden text-slate-300">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- منوی موبایل -->
+        <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 h-full w-64 bg-slate-900 p-6 md:hidden">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center ml-2">
+                        <i class="fas fa-graduation-cap text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold gradient-text">سامانه آموزشی ویدا</span>
+                </div>
+                <button id="closeMobileMenu" class="text-slate-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="flex flex-col space-y-4">
+                <a href="/" class="text-slate-400 hover:text-slate-200 font-medium py-2 border-b border-slate-700">صفحه اصلی</a>
+                <a href="#" class="text-slate-400 hover:text-slate-200 font-medium py-2 border-b border-slate-700">درباره ما</a>
+                <a href="#" class="text-slate-400 hover:text-slate-200 font-medium py-2 border-b border-slate-700">تماس با ما</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- بخش اصلی -->
+    <main>
+        <!-- بخش قهرمان -->
+        <section class="hero-section py-12 md:py-16 px-6 md:px-12">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-10">
+                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+                        <span class="text-white">بارکد اسکن برای</span>
+                        <span class="gradient-text block mt-2">اپلیکیشن زنگ هشدار</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto">
+                        برای خاموش کردن هشدار اپلیکیشن، باید این بارکد را با دوربین گوشی خود اسکن کنید
+                    </p>
+                </div>
+                
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="md:w-1/2 mb-10 md:mb-0 md:pr-8">
+                        <div class="floating-card p-6 md:p-8">
+                            <div class="card-content">
+                                <div class="feature-icon">
+                                    <i class="fas fa-qrcode"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-white mb-4">نحوه استفاده از بارکد</h3>
+                                <div class="instruction-box mb-6">
+                                    <ul class="space-y-3 text-slate-300 text-right">
+                                        <li class="flex items-start">
+                                            <span class="ml-3 mt-1"><i class="fas fa-mobile-alt text-emerald-400"></i></span>
+                                            <span>اپلیکیشن زنگ هشدار را روی گوشی خود باز کنید</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <span class="ml-3 mt-1"><i class="fas fa-camera text-emerald-400"></i></span>
+                                            <span>گزینه "اسکن بارکد" را در اپلیکیشن انتخاب کنید</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <span class="ml-3 mt-1"><i class="fas fa-expand-arrows-alt text-emerald-400"></i></span>
+                                            <span>دوربین را روی بارکد مقابل تنظیم کنید تا کاملاً در کادر قرار گیرد</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <span class="ml-3 mt-1"><i class="fas fa-bell-slash text-emerald-400"></i></span>
+                                            <span>با اسکن موفق، زنگ هشدار خاموش خواهد شد</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <h4 class="text-lg font-bold text-white mb-2">اطلاعات بارکد</h4>
+                                    <div class="bg-slate-800 rounded-lg p-4 mb-4">
+                                        <p class="text-slate-300 font-mono text-lg">Wake-Up-Barcode</p>
+                                        <p class="text-slate-400 text-sm mt-2">شناسه: WUB-2024-001</p>
+                                    </div>
+                                    
+                                    <a href="https://barcode.tec-it.com/barcode.ashx?data=Wake-Up-Barcode&translate-esc=on" 
+                                       target="_blank" 
+                                       class="btn-primary inline-block">
+                                        <i class="fas fa-external-link-alt ml-2"></i>
+                                        مشاهده بارکد در صفحه جداگانه
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/2 md:pl-8">
+                        <div class="barcode-container">
+                            <div class="scan-animation"></div>
+                            <img src="https://barcode.tec-it.com/barcode.ashx?data=Wake-Up-Barcode&translate-esc=on&code=QRCode&multiplebarcodes=false&translate-esc=false&unit=Fit&dpi=96&imagetype=PNG&rotation=0&color=%23000000&bgcolor=%23ffffff&qunit=Mm&quiet=0" 
+                                 alt="بارکد اسکن برای اپلیکیشن زنگ هشدار" 
+                                 class="barcode-image">
+                                 
+                            <div class="text-center mt-6">
+                                <p class="text-slate-300 mb-2">
+                                    <i class="fas fa-info-circle text-indigo-400 ml-1"></i>
+                                    بارکد مخصوص خاموش کردن هشدار
+                                </p>
+                                <p class="text-slate-400 text-sm">
+                                    تا زمان اسکن این بارکد، هشدار اپلیکیشن خاموش نمی‌شود
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- بخش نکات مهم -->
+        <section class="py-12 md:py-16 px-6 md:px-12">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-8 text-center">نکات مهم درباره بارکد</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- نکته ۱ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-lightbulb text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">هدف از این بارکد</h3>
+                            <p class="text-slate-300">این بارکد به عنوان یک مکانیزم امنیتی طراحی شده تا مطمئن شوید واقعاً از خواب بیدار شده‌اید و گوشی را در دست دارید.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- نکته ۲ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-camera text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">کیفیت اسکن</h3>
+                            <p class="text-slate-300">برای اسکن بهتر، مطمئن شوید که بارکد کاملاً در کادر دوربین قرار گرفته و نور کافی وجود دارد.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- نکته ۳ -->
+                    <div class="floating-card p-6">
+                        <div class="card-content">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-4">
+                                <i class="fas fa-sync-alt text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-3">بارکد یکبار مصرف</h3>
+                            <p class="text-slate-300">این بارکد برای هر بار هشدار، یکتا است و پس از استفاده، برای هشدار بعدی تغییر می‌کند.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-divider"></div>
+                
+                <!-- بخش راهنمای عیب‌یابی -->
+                <div class="floating-card p-8 mt-8">
+                    <div class="card-content">
+                        <h3 class="text-2xl font-bold text-white mb-6 text-center">راهنمای عیب‌یابی</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-slate-800 rounded-xl p-5">
+                                <h4 class="text-lg font-bold text-white mb-3 flex items-center">
+                                    <i class="fas fa-times-circle text-red-400 ml-2"></i>
+                                    اگر بارکد اسکن نمی‌شود
+                                </h4>
+                                <ul class="space-y-2 text-slate-300 text-right">
+                                    <li class="flex items-start">
+                                        <span class="ml-2 mt-1"><i class="fas fa-check text-xs text-emerald-400"></i></span>
+                                        <span>مطمئن شوید دوربین تمیز است</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="ml-2 mt-1"><i class="fas fa-check text-xs text-emerald-400"></i></span>
+                                        <span>فاصله مناسب از بارکد را رعایت کنید (حدود ۲۰ سانتی‌متر)</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="ml-2 mt-1"><i class="fas fa-check text-xs text-emerald-400"></i></span>
+                                        <span>صفحه نمایش را با نور کافی مشاهده کنید</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-slate-800 rounded-xl p-5">
+                                <h4 class="text-lg font-bold text-white mb-3 flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-amber-400 ml-2"></i>
+                                    اگر هشدار خاموش نمی‌شود
+                                </h4>
+                                <ul class="space-y-2 text-slate-300 text-right">
+                                    <li class="flex items-start">
+                                        <span class="ml-2 mt-1"><i class="fas fa-check text-xs text-emerald-400"></i></span>
+                                        <span>بارکد صحیح این صفحه را اسکن کنید</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="ml-2 mt-1"><i class="fas fa-check text-xs text-emerald-400"></i></span>
+                                        <span>اتصال اینترنت خود را بررسی کنید</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="ml-2 mt-1"><i class="fas fa-check text-xs text-emerald-400"></i></span>
+                                        <span>اپلیکیشن را به روز رسانی کنید</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- بخش اقدام -->
+        <section class="py-12 md:py-16 px-6 md:px-12 bg-slate-800 bg-opacity-30">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-6">آیا مشکل دیگری دارید؟</h2>
+                <p class="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
+                    اگر پس از اسکن بارکد، هشدار همچنان فعال است یا با مشکل دیگری مواجه شده‌اید، از راه‌های زیر با پشتیبانی تماس بگیرید.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="mailto:support@vida-education.ir" class="btn-primary text-lg py-3 px-8">
+                        <i class="fas fa-envelope ml-2"></i>
+                        ارسال ایمیل به پشتیبانی
+                    </a>
+                    <a href="/" class="bg-slate-700 hover:bg-slate-600 text-white text-lg py-3 px-8 rounded-xl font-medium transition-colors">
+                        <i class="fas fa-home ml-2"></i>
+                        بازگشت به صفحه اصلی
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- پاورقی -->
+    <footer class="py-8 px-6 md:px-12 bg-slate-900 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center ml-2">
+                        <i class="fas fa-graduation-cap text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold gradient-text">سامانه آموزشی ویدا</span>
+                </div>
+                
+                <p class="text-slate-500 text-sm text-center md:text-left">
+                    تمامی حقوق مادی و معنوی این سامانه متعلق به تیم ویدا می‌باشد. © ۱۴۰۳
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // مدیریت منوی موبایل
+        document.getElementById('mobileMenuButton').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.add('open');
+        });
+        
+        document.getElementById('closeMobileMenu').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.remove('open');
+        });
+        
+        // بستن منوی موبایل با کلیک بیرون از آن
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            
+            if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
+                mobileMenu.classList.remove('open');
+            }
+        });
+        
+        // انیمیشن اسکرول برای کارت‌ها
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // مشاهده کارت‌ها برای انیمیشن
+        document.querySelectorAll('.floating-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+        
+        // افزودن افکت کلیک بر روی بارکد
+        const barcodeImage = document.querySelector('.barcode-image');
+        if (barcodeImage) {
+            barcodeImage.addEventListener('click', function() {
+                // ایجاد افکت زوم موقت
+                this.style.transform = 'scale(1.05)';
+                this.style.transition = 'transform 0.3s ease';
+                
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+                
+                // باز کردن تصویر در صفحه جدید
+                window.open(this.src, '_blank');
+            });
+            
+            // اضافه کردن نشانگر قابلیت کلیک
+            barcodeImage.style.cursor = 'pointer';
+            barcodeImage.title = 'برای مشاهده در اندازه بزرگتر کلیک کنید';
+        }
+    </script>
+</body>
+</html>
