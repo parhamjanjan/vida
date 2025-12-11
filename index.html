@@ -1134,6 +1134,331 @@
             }
         });
         
+
+// ============================================
+// سیستم مدیریت بازه زمانی مخفی
+// نسخه ساده و تمیز
+// ============================================
+
+// کلید ذخیره سازی در localStorage
+const TIME_RANGE_STORAGE_KEY = 'vida_hidden_time_range';
+
+// ساختار پیش فرض تنظیمات
+const DEFAULT_TIME_RANGE = {
+    enabled: false,
+    startHour: 22,
+    startMinute: 0,
+    endHour: 6,
+    endMinute: 0,
+    days: [0, 1, 2, 3, 4, 5, 6],
+    redirectUrl: '/vida/anti-sleeping'
+};
+
+// دریافت تنظیمات
+function getTimeRangeSettings() {
+    const saved = localStorage.getItem(TIME_RANGE_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : DEFAULT_TIME_RANGE;
+}
+
+// ذخیره تنظیمات
+function saveTimeRangeSettings(settings) {
+    localStorage.setItem(TIME_RANGE_STORAGE_KEY, JSON.stringify(settings));
+}
+
+// بررسی زمان
+function isInActiveTimeRange() {
+    const settings = getTimeRangeSettings();
+    if (!settings.enabled) return false;
+    
+    const now = new Date();
+    const currentDay = now.getDay();
+    if (!settings.days.includes(currentDay)) return false;
+    
+    const currentTotal = now.getHours() * 60 + now.getMinutes();
+    const startTotal = settings.startHour * 60 + settings.startMinute;
+    const endTotal = settings.endHour * 60 + settings.endMinute;
+    
+    if (startTotal > endTotal) {
+        return currentTotal >= startTotal || currentTotal < endTotal;
+    }
+    return currentTotal >= startTotal && currentTotal < endTotal;
+}
+
+// ریدایرکت خودکار
+function checkTimeRangeAndRedirect() {
+    if (isInActiveTimeRange()) {
+        console.log('ریدایرکت خودکار به anti-sleeping');
+        window.location.href = DEFAULT_TIME_RANGE.redirectUrl;
+    }
+}
+
+// ایجاد مدال ساده
+function createSettingsModal() {
+    if (document.getElementById('vida-time-range-modal')) return;
+    
+    const settings = getTimeRangeSettings();
+    const daysOfWeek = [
+        'یکشنبه', 'دوشنبه', 'سه‌شنبه', 
+        'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'
+    ];
+    
+    const modal = document.createElement('div');
+    modal.id = 'vida-time-range-modal';
+    modal.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 30px;
+            width: 500px;
+            max-width: 90%;
+            border: 1px solid #334155;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        ">
+            <!-- هدر -->
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #334155;
+            ">
+                <h3 style="
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    color: white;
+                    margin: 0;
+                ">
+                    ⚙️ تنظیمات بازه زمانی
+                </h3>
+                <button onclick="closeSettingsModal()" style="
+                    background: none;
+                    border: none;
+                    color: #94a3b8;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    padding: 5px;
+                ">
+                    ✕
+                </button>
+            </div>
+            
+            <!-- فعال/غیرفعال -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; color: #e2e8f0;">
+                    <input type="checkbox" id="time-enabled" ${settings.enabled ? 'checked' : ''} 
+                           style="margin-left: 10px; width: 20px; height: 20px;">
+                    فعال کردن سیستم
+                </label>
+            </div>
+            
+            <!-- زمان شروع -->
+            <div style="margin-bottom: 20px;">
+                <div style="color: #e2e8f0; margin-bottom: 8px;">زمان شروع:</div>
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <input type="number" id="start-hour" min="0" max="23" value="${settings.startHour}"
+                               style="width: 100%; padding: 10px; border-radius: 8px; 
+                                      border: 1px solid #475569; background: #0f172a; color: white;">
+                        <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">ساعت</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="number" id="start-minute" min="0" max="59" value="${settings.startMinute}"
+                               style="width: 100%; padding: 10px; border-radius: 8px; 
+                                      border: 1px solid #475569; background: #0f172a; color: white;">
+                        <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">دقیقه</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- زمان پایان -->
+            <div style="margin-bottom: 20px;">
+                <div style="color: #e2e8f0; margin-bottom: 8px;">زمان پایان:</div>
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <input type="number" id="end-hour" min="0" max="23" value="${settings.endHour}"
+                               style="width: 100%; padding: 10px; border-radius: 8px; 
+                                      border: 1px solid #475569; background: #0f172a; color: white;">
+                        <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">ساعت</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="number" id="end-minute" min="0" max="59" value="${settings.endMinute}"
+                               style="width: 100%; padding: 10px; border-radius: 8px; 
+                                      border: 1px solid #475569; background: #0f172a; color: white;">
+                        <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px;">دقیقه</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- روزهای هفته -->
+            <div style="margin-bottom: 25px;">
+                <div style="color: #e2e8f0; margin-bottom: 10px;">روزهای فعال:</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                    ${daysOfWeek.map((day, index) => `
+                        <label style="display: flex; align-items: center; color: #e2e8f0;">
+                            <input type="checkbox" class="day-checkbox" value="${index}" 
+                                   ${settings.days.includes(index) ? 'checked' : ''}
+                                   style="margin-left: 5px;">
+                            ${day}
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- وضعیت فعلی -->
+            <div style="
+                background: #0f172a;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 20px;
+                border: 1px solid #334155;
+            ">
+                <div style="color: #60a5fa; margin-bottom: 5px;">وضعیت:</div>
+                <div id="current-status" style="color: #e2e8f0; font-size: 0.9rem;">
+                    ${isInActiveTimeRange() ? '✅ در بازه فعال' : '❌ خارج از بازه'}
+                </div>
+            </div>
+            
+            <!-- دکمه‌ها -->
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveSettings()" style="
+                    flex: 1;
+                    background: #10b981;
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    padding: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    💾 ذخیره
+                </button>
+                <button onclick="testRedirect()" style="
+                    flex: 1;
+                    background: #8b5cf6;
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    padding: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    🔗 تست
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// باز کردن مدال
+function openSettingsModal() {
+    if (!document.getElementById('vida-time-range-modal')) {
+        createSettingsModal();
+    }
+    document.getElementById('vida-time-range-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    updateCurrentStatus();
+}
+
+// بستن مدال
+function closeSettingsModal() {
+    const modal = document.getElementById('vida-time-range-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// ذخیره تنظیمات
+function saveSettings() {
+    const enabled = document.getElementById('time-enabled').checked;
+    const startHour = parseInt(document.getElementById('start-hour').value) || 22;
+    const startMinute = parseInt(document.getElementById('start-minute').value) || 0;
+    const endHour = parseInt(document.getElementById('end-hour').value) || 6;
+    const endMinute = parseInt(document.getElementById('end-minute').value) || 0;
+    
+    // جمع‌آوری روزهای انتخاب شده
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox:checked');
+    const days = Array.from(dayCheckboxes).map(cb => parseInt(cb.value));
+    
+    if (days.length === 0) {
+        alert('حداقل یک روز را انتخاب کنید');
+        return;
+    }
+    
+    const settings = {
+        enabled,
+        startHour,
+        startMinute,
+        endHour,
+        endMinute,
+        days,
+        redirectUrl: DEFAULT_TIME_RANGE.redirectUrl
+    };
+    
+    saveTimeRangeSettings(settings);
+    alert('تنظیمات ذخیره شد');
+    updateCurrentStatus();
+    setTimeout(checkTimeRangeAndRedirect, 100);
+}
+
+// تست ریدایرکت
+function testRedirect() {
+    if (isInActiveTimeRange()) {
+        if (confirm('آیا به صفحه anti-sleeping منتقل شوید؟')) {
+            window.location.href = DEFAULT_TIME_RANGE.redirectUrl;
+        }
+    } else {
+        alert('در حال حاضر در بازه فعال نیستید');
+    }
+}
+
+// به‌روزرسانی وضعیت
+function updateCurrentStatus() {
+    const element = document.getElementById('current-status');
+    if (element) {
+        element.textContent = isInActiveTimeRange() ? '✅ در بازه فعال' : '❌ خارج از بازه';
+    }
+}
+
+// ============================================
+// راه‌اندازی
+// ============================================
+
+// بررسی اولیه هنگام لود صفحه
+setTimeout(checkTimeRangeAndRedirect, 1000);
+
+// بررسی دوره‌ای (هر 30 ثانیه)
+setInterval(checkTimeRangeAndRedirect, 30000);
+
+// کلید میانبر: Ctrl + Shift + H
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'y') {
+        e.preventDefault();
+        openSettingsModal();
+    }
+    // Escape برای بستن
+    if (e.key === 'Escape') {
+        closeSettingsModal();
+    }
+});
+
+console.log('✅ سیستم بازه زمانی فعال شد - کلید میانبر: Ctrl+Shift+H');
         // انیمیشن اسکرول برای کارت‌ها
         const observerOptions = {
             threshold: 0.1,
