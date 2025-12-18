@@ -1851,11 +1851,10 @@ let userStats = JSON.parse(localStorage.getItem('plannerUserStats') || '{}');
 if (lists.length === 0) {
   lists = [
     { id: 'math', name: 'ریاضیات', color: '#4f46e5' },
-    { id: 'science', name: 'علوم', color: '#10b981' },
-    { id: 'english', name: 'زبان انگلیسی', color: '#f59e0b' },
-    { id: 'history', name: 'تاریخ', color: '#ef4444' },
-    { id: 'shopping', name: 'خرید', color: '#8b5cf6' },
-    { id: 'home', name: 'کارهای خانه', color: '#06b6d4' }
+    { id: 'biology', name: 'زیست شناسی', color: '#10b981' },
+    { id: 'chemistry', name: 'شیمی', color: '#f59e0b' },
+    { id: 'physics', name: 'فیزیک', color: '#ef4444' },
+    { id: 'earth', name: 'زمین شناسی', color: '#8b5cf6' },
   ];
   localStorage.setItem('plannerLists', JSON.stringify(lists));
 }
@@ -1910,12 +1909,11 @@ function detectCategoryFromTitle(title) {
   
   // کلمات کلیدی برای هر دسته‌بندی
   const keywords = {
-    'math': [],
-    'science': [],
-    'english': [],
-    'history': [],
-    'shopping': [],
-    'home': []
+    'math': ['ریاضی'],
+    'biology': ['زیست'],
+    'chemistry': ['شیمی'],
+    'physics': ['فیزیک'],
+    'earth': ['فیزیک'],
   };
   
   // محاسبه امتیاز برای هر دسته
@@ -2768,15 +2766,8 @@ function getCategoryName(id){
   return l ? l.name : 'عمومی'; 
 }
 function getCategoryIcon(id){ 
-  const map = { 
-    math:'fa-calculator', 
-    science:'fa-flask', 
-    english:'fa-language', 
-    history:'fa-history', 
-    shopping:'fa-shopping-cart', 
-    home:'fa-home' 
-  }; 
-  return map[id] || 'fa-list'; 
+  
+  return 'fa-list'; 
 }
 function getCategoryColor(id){ 
   const l = lists.find(x=>x.id===id); 
@@ -3677,16 +3668,9 @@ function populateCategorySelect(){
         o.value = l.id;
         
         // آیکون‌های مختلف برای دسته‌های مختلف
-        const icons = {
-          'math': '📊',
-          'science': '🔬', 
-          'english': '🔤',
-          'history': '📜',
-          'shopping': '🛒',
-          'home': '🏠'
-        };
         
-        const icon = icons[l.id] || '📁';
+        
+        const icon =  '📁';
         o.textContent = `${icon} ${l.name}`;
         
         
