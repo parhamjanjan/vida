@@ -1827,19 +1827,18 @@
    Data & persistence (start with default lists)
    --------------------------- */
 
-
-   // تنظیمات کاربر برای دروس پیش‌بینی
 let predictionSettings = JSON.parse(localStorage.getItem('plannerPredictionSettings') || '{}');
 
-// اگر تنظیمات وجود ندارد، ایجاد کن
+// اگر تنظیمات وجود ندارد، ایجاد کن - همه دروس را فعال کن
 if (Object.keys(predictionSettings).length === 0) {
   predictionSettings = {
-    enabledSubjects: [], // دروس فعال به صورت پیش‌فرض
+    enabledSubjects: ['math', 'biology', 'chemistry', 'physics', 'earth'], // همه دروس به صورت پیش‌فرض فعال
     predictionMethod: 'advanced', // simple یا advanced
     targetPercentage: 70 // درصد هدف برای پیش‌بینی
   };
   localStorage.setItem('plannerPredictionSettings', JSON.stringify(predictionSettings));
 }
+
 
 let tasks = JSON.parse(localStorage.getItem('plannerTasks') || '[]');
 let lists = JSON.parse(localStorage.getItem('plannerLists') || '[]');
