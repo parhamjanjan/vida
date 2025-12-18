@@ -2093,6 +2093,14 @@ function calculateGradePredictions() {
 }
 
 
+// تابع کمکی برای محاسبه نمره از درصد
+function calculateGradeFromPercentage(percentage) {
+  // تبدیل درصد به نمره 20 (یک رقم اعشار)
+  const grade = (percentage / 100) * 20;
+  return Math.round(grade * 10) / 10;
+}
+
+  
 // تابع برای باز کردن مودال تنظیمات
 function openPredictionSettingsModal() {
   const modal = document.getElementById('predictionSettingsModal');
