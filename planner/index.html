@@ -2819,10 +2819,10 @@ function formatStartTime(task) {
 /* ---------------------------
    تابع جدید برای تعیین دسته‌بندی زمانی بر اساس زمان پایان
    --------------------------- */
-function getTimeCategory(endTime) {
-  if (!endTime) return 'no-time';
+function getTimeCategory(startTime) {
+  if (!startTime) return 'no-time';
   
-  const [hours, minutes] = endTime.split(':').map(Number);
+  const [hours, minutes] = startTime.split(':').map(Number);
   const totalMinutes = hours * 60 + minutes;
   
   // دسته‌بندی‌های زمانی بر اساس زمان پایان
@@ -3032,12 +3032,10 @@ function renderTasks(){
   // دسته‌بندی تسک‌های فعال
   active.forEach(task => {
     // اگر زمان پایان وجود دارد، از آن استفاده کن، در غیر این صورت از زمان شروع و مدت مطالعه محاسبه کن
-    let endTime = task.endTime;
-    if (!endTime && task.startTime && task.studyTime) {
-      endTime = calculateEndTime(task.startTime, task.studyTime);
-    }
+    let startTime = task.startTime;
     
-    const timeCategory = getTimeCategory(endTime);
+    
+    const timeCategory = getTimeCategory(startTime);
     timeCategories[timeCategory].tasks.push(task);
   });
 
@@ -4016,11 +4014,11 @@ document.addEventListener('DOMContentLoaded', () => {
         studyTimeHours = studyTime / 60;
       }
       
-      const endTime = calculateEndTime(startTime, studyTimeHours);
+      const endTime = endTime
       document.getElementById('taskEndTimeInput').value = endTime;
       
       // محاسبه خودکار دسته‌بندی زمانی
-      const timeCategory = getTimeCategory(endTime);
+      const timeCategory = getTimeCategory(startTime);
       document.getElementById('taskTimeCategoryInput').value = timeCategory;
     }
   });
