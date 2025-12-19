@@ -3032,10 +3032,10 @@ function renderTasks(){
   // دسته‌بندی تسک‌های فعال
   active.forEach(task => {
     // اگر زمان پایان وجود دارد، از آن استفاده کن، در غیر این صورت از زمان شروع و مدت مطالعه محاسبه کن
-    let startTime = task.startTime;
+    let endTime = task.endTime;
     
     
-    const timeCategory = getTimeCategory(startTime);
+    const timeCategory = getTimeCategory(task.startTime);
     timeCategories[timeCategory].tasks.push(task);
   });
 
@@ -4014,7 +4014,7 @@ document.addEventListener('DOMContentLoaded', () => {
         studyTimeHours = studyTime / 60;
       }
       
-      const endTime = endTime
+      const endTime = calculateEndTime(startTime, studyTimeHours);
       document.getElementById('taskEndTimeInput').value = endTime;
       
       // محاسبه خودکار دسته‌بندی زمانی
@@ -4039,7 +4039,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('taskEndTimeInput').value = endTime;
       
       // محاسبه خودکار دسته‌بندی زمانی
-      const timeCategory = getTimeCategory(endTime);
+      const timeCategory = getTimeCategory(startTime);
       document.getElementById('taskTimeCategoryInput').value = timeCategory;
     }
   });
