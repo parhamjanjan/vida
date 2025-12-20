@@ -1984,8 +1984,10 @@ function showCategoryDetection(categoryId) {
 function applyDetectedCategory(categoryId) {
   const select = document.getElementById('taskCategoryInput');
   if (select) {
+    if(select.value != categoryId){
     select.value = categoryId;
     showNotification('تشخیص خودکار', `دسته‌بندی "${getCategoryName(categoryId)}" اعمال شد.`);
+    }
   }
 }
 
