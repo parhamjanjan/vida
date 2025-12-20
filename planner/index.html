@@ -1912,7 +1912,7 @@ function detectCategoryFromTitle(title) {
     'biology': ['زیست'],
     'chemistry': ['شیمی'],
     'physics': ['فیزیک'],
-    'earth': ['فیزیک'],
+    'earth': ['زمین'],
   };
   
   // محاسبه امتیاز برای هر دسته
@@ -3637,7 +3637,7 @@ function populateCategorySelect(){
   // add an empty/general option
   const opt0 = document.createElement('option'); 
   opt0.value = ''; 
-  opt0.textContent = '🎯 عمومی (بدون دسته)'; 
+  opt0.textContent = '🎯 دروس عمومی'; 
   sel.appendChild(opt0);
   
   if (lists.length === 0) {
