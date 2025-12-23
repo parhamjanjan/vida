@@ -24,7 +24,6 @@
     --card-bg: rgba(30,41,59,0.5);
     --border-color: rgba(255,255,255,0.04);
     --input-bg: rgba(30,41,59,0.8);
-    --sidebar-width: 320px;
   }
 
   [data-theme="light"] {
@@ -86,26 +85,12 @@
     to { transform: scale(1); opacity: 1; }
   }
 
-  /* انیمیشن‌های منوی همبرگر */
-  @keyframes slideInFromRight {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
-  }
-
-  @keyframes slideOutToRight {
-    from { transform: translateX(0); }
-    to { transform: translateX(100%); }
-  }
-
   /* انیمیشن تغییر تم */
   body {
     background: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.5s ease, color 0.5s ease;
     animation: fadeIn 0.5s ease-out;
-    font-family: 'Vazirmatn', sans-serif;
-    overflow-x: hidden;
-    margin: 0;
   }
 
   * {
@@ -395,15 +380,12 @@
     }
   }
 
-  /* استایل‌های اصلی */
-  .container {
-    max-width: 1400px;
-    margin: 0 auto;
-    width: 100%;
-    padding: 0 20px;
+  body {
+    margin: 0;
+    font-family: 'Vazirmatn', sans-serif;
+    overflow-x: hidden;
   }
   
-  /* ناوبری */
   nav {
     height: 80px;
     background: var(--card-bg);
@@ -413,99 +395,43 @@
     border-bottom: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
     animation: slideInLeft 0.5s ease-out;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
   }
   
-  .nav-container {
-    width: 100%;
+  .container {
     max-width: 1400px;
     margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    width: 100%;
     padding: 0 20px;
   }
   
-  /* دکمه همبرگر */
-  .hamburger-btn {
-    display: none;
-    background: transparent;
-    border: none;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    z-index: 1100;
-  }
-  
-  .hamburger-btn:hover {
-    background: rgba(255,255,255,0.1);
-    transform: scale(1.1);
-  }
-  
-  .logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .logo-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #4f46e5, #10b981);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: float 3s ease-in-out infinite;
-  }
-  
-  .logo-text {
-    font-weight: 700;
-    font-size: 1.25rem;
-    background: linear-gradient(135deg, var(--primary), var(--green));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  /* پلنر اصلی */
   .planner {
     display: flex;
     gap: 24px;
     padding: 24px 0;
     animation: fadeIn 0.8s ease-out;
-    position: relative;
   }
   
-  /* سایدبار */
+  /* Sidebar full-height */
   .sidebar {
-    width: var(--sidebar-width);
+    width: 320px;
     background: var(--sidebar-bg);
     border-radius: 16px;
     padding: 24px;
     border: 1px solid var(--border-color);
     height: calc(100vh - 104px);
-    overflow-y: auto;
+    overflow: auto;
     position: sticky;
     top: 24px;
     backdrop-filter: blur(10px);
     animation: slideInLeft 0.6s ease-out;
-    transition: transform 0.3s ease;
   }
   
-  /* محتوای اصلی */
   .main {
     flex: 1;
     overflow: auto;
     padding-bottom: 40px;
-    width: 100%;
   }
 
-  /* دکمه‌های اصلی */
   .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: white;
@@ -560,119 +486,769 @@
     transform: translateY(0);
   }
   
-  /* استایل‌های باقی مانده ... */
+  .add-task-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem 0;
+    color: inherit;
+    outline: none;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+
+  .add-task-input:focus {
+    border-bottom-color: var(--primary);
+  }
+
+  .list-item.active {
+    background: linear-gradient(135deg, rgba(79,70,229,.15), rgba(79,70,229,.25));
+    border-right: 4px solid var(--primary);
+  }
   
-  /* موبایل - کوچکتر از 768px */
+  .list-count {
+    background: var(--card-bg);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* menu (three-dot) */
+  .list-controls {
+    position: relative;
+  }
+  
+  .list-menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .list-menu-btn:hover {
+    background: rgba(255,255,255,0.1);
+    opacity: 1;
+    transform: rotate(90deg);
+  }
+  
+  .list-menu {
+    position: absolute;
+    left: 0;
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    border-radius: 12px;
+    display: none;
+    min-width: 160px;
+    z-index: 80;
+    backdrop-filter: blur(10px);
+    animation: scaleIn 0.2s ease-out;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+  
+  .list-menu button {
+    display: block;
+    width: 100%;
+    text-align: right;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .list-menu button:hover {
+    background: rgba(255,255,255,0.1);
+    padding-right: 20px;
+  }
+  
+  .list-item:hover .list-menu-btn {
+    opacity: 1;
+  }
+  
+  .list-item:hover .list-menu {
+    display: block;
+  }
+
+  /* week */
+  .weekly-planner {
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  .week-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .day-cell {
+    min-height: 160px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 12px;
+    border: 2px dashed var(--border-color);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .day-cell.today {
+    background: linear-gradient(135deg, rgba(79,70,229,.12), rgba(79,70,229,.2));
+    border-color: var(--primary);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(79,70,229,0.2);
+  }
+  
+  .day-task {
+    background: var(--card-bg);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    animation: scaleIn 0.3s ease-out;
+  }
+  
+  .day-task:hover {
+    transform: translateX(-5px);
+    border-color: var(--primary);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .day-task .delete-task-btn {
+    color: #ef4444;
+    cursor: pointer;
+    margin-left: 12px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .day-task .delete-task-btn:hover {
+    background: rgba(239,68,68,0.1);
+    transform: scale(1.1);
+  }
+
+  /* task list */
+  .task-list {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  .task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    animation: slideInRight 0.4s ease-out;
+  }
+  
+  .task-item:hover {
+    background: rgba(255,255,255,0.03);
+    transform: translateX(-5px);
+  }
+  
+  .task-checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .task-checkbox:hover {
+    border-color: var(--primary);
+    transform: scale(1.1);
+  }
+  
+  .task-checkbox.checked {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-color: var(--primary);
+    color: white;
+    animation: bounce 0.5s ease-in-out;
+  }
+  
+  .task-title.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+
+  /* modal */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(2,6,23,0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .modal .modal-content {
+    background: var(--card);
+    padding: 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 560px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(20px);
+    animation: scaleIn 0.3s ease-out;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  .drop-active {
+    background: rgba(79,70,229,0.12);
+    border-color: var(--primary);
+    transform: scale(1.02);
+  }
+
+  /* دکمه تغییر تم */
+  .theme-toggle {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.3rem;
+    padding: 10px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .theme-toggle:hover {
+    transform: rotate(30deg) scale(1.1);
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* نوتیفیکیشن */
+  .notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    background: var(--card);
+    color: var(--text-color);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 5px solid var(--primary);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 400px;
+    transform: translateX(500px);
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    backdrop-filter: blur(10px);
+  }
+
+  .notification.show {
+    transform: translateX(0);
+  }
+
+  .notification-icon {
+    font-size: 1.8rem;
+    color: var(--primary);
+    animation: pulse 2s infinite;
+  }
+
+  .notification-close {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.3rem;
+    padding: 5px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .notification-close:hover {
+    background: rgba(255,255,255,0.1);
+    transform: rotate(90deg);
+  }
+
+  /* نشانگر زمان شروع تسک */
+  .task-time-badge {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(79, 70, 229, 0.3));
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .task-time-badge.past {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.3));
+    color: #ef4444;
+  }
+
+  .task-time-badge.upcoming {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.3));
+    color: #f59e0b;
+  }
+
+  /* استایل‌های جدید برای دسته‌بندی زمانی */
+  .time-category {
+    margin-bottom: 25px;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .time-category-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .time-category-header:hover {
+    background: rgba(255,255,255,0.05);
+    transform: translateX(-5px);
+  }
+
+  .time-category-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .time-category-count {
+    background: var(--card-bg);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .time-category-content {
+    display: none;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .time-category.expanded .time-category-content {
+    display: block;
+  }
+
+  .time-category.expanded .time-category-header {
+    border-bottom: none;
+    background: rgba(79,70,229,0.1);
+  }
+
+  .time-category-icon {
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .time-category.expanded .time-category-icon {
+    transform: rotate(90deg);
+  }
+
+  /* استایل‌های جدید برای سیستم لیگ */
+  .league-section {
+    background: var(--card-bg);
+    padding: 25px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 25px;
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.6s ease-out;
+    transition: all 0.3s ease;
+  }
+
+  .league-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  }
+
+  .league-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+
+  .league-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .league-icon {
+    font-size: 2rem;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .league-info {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+  }
+
+  .league-stat {
+    text-align: center;
+    flex: 1;
+    padding: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    animation: scaleIn 0.5s ease-out;
+  }
+
+  .league-stat:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .league-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--primary), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .league-stat-label {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+  }
+
+  .league-progress {
+    height: 12px;
+    background: var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    position: relative;
+  }
+
+  .league-progress-bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .league-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(255,255,255,0.3), 
+      transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  .league-rankings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .ranking-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+    animation: scaleIn 0.5s ease-out;
+  }
+
+  .ranking-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    border-color: var(--primary);
+  }
+
+  .ranking-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 1.2rem;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .ranking-info {
+    flex: 1;
+  }
+
+  .ranking-name {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+  }
+
+  .ranking-stats {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+
+  .ranking-position {
+    font-weight: 700;
+    font-size: 1.4rem;
+    background: linear-gradient(135deg, var(--primary), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .badges-container {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    animation: scaleIn 0.5s ease-out;
+    cursor: pointer;
+  }
+
+  .badge:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+
+  .badge-icon {
+    font-size: 1.2rem;
+  }
+
+  /* استایل‌های لیگ‌ها */
+  .league-legendary {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #000;
+  }
+
+  .league-professional {
+    background: linear-gradient(135deg, #c0c0c0, #808080);
+    color: #fff;
+  }
+
+  .league-beginner {
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    color: #fff;
+  }
+
+  .league-training {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    color: #fff;
+  }
+
+  /* استایل برای بخش پیش‌بینی نمره */
+  .grade-prediction-section {
+    background: linear-gradient(135deg, rgba(79,70,229,0.1), rgba(16,185,129,0.1));
+    border: 2px solid rgba(79,70,229,0.2);
+    animation: pulse 2s infinite;
+  }
+
+  .grade-prediction {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 25px;
+  }
+
+  .grade-card {
+    background: var(--card-bg);
+    padding: 25px;
+    border-radius: 16px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    animation: scaleIn 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .grade-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+  }
+
+  .grade-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary), var(--green));
+  }
+
+  .grade-percentage {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 15px 0;
+    background: linear-gradient(135deg, var(--primary), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .grade-subject {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .grade-progress {
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 15px 0;
+  }
+
+  .grade-progress-bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    background: linear-gradient(90deg, var(--primary), var(--green));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .grade-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(255,255,255,0.4), 
+      transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  /* استایل برای تشخیص خودکار دسته‌بندی */
+  .auto-category-detection {
+    background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(79,70,229,0.1));
+    border: 2px dashed rgba(16,185,129,0.3);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+    animation: slideInRight 0.5s ease-out;
+    display: none;
+  }
+
+  .detected-category {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    margin-top: 10px;
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .detected-category i {
+    font-size: 1.5rem;
+    animation: bounce 1s infinite;
+  }
+
+  /* موبایل */
   @media (max-width: 768px) {
-    .container {
-      padding: 0 15px;
-    }
-    
-    nav {
-      height: 70px;
-      padding: 0 15px;
-    }
-    
-    .nav-container {
-      padding: 0;
-    }
-    
-    .hamburger-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-    }
-    
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-    }
-    
-    .logo-text {
-      font-size: 1.1rem;
-    }
-    
     .planner {
       flex-direction: column;
-      gap: 15px;
-      padding: 15px 0;
+      gap: 20px;
     }
     
     .sidebar {
-      position: fixed;
-      top: 0;
-      right: -100%;
-      height: 100vh;
-      width: 85%;
-      max-width: 350px;
-      border-radius: 0;
-      border-right: 1px solid var(--border-color);
-      z-index: 1050;
-      transition: right 0.3s ease;
-      padding-top: 80px;
-      box-shadow: -5px 0 30px rgba(0,0,0,0.3);
-    }
-    
-    .sidebar.active {
-      right: 0;
-    }
-    
-    /* overlay برای منو */
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(3px);
-      z-index: 1040;
+      height: auto;
+      position: static;
     }
     
-    .sidebar-overlay.active {
-      display: block;
-      animation: fadeIn 0.3s ease;
+    .week-days {
+      grid-template-columns: repeat(2, 1fr);
     }
     
-    /* بخش اصلی */
-    .main {
-      padding-bottom: 20px;
-    }
-    
-    /* stats grid */
-    .stats-grid {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 15px;
-    }
-    
-    /* نمودارها */
     .charts-container {
       grid-template-columns: 1fr;
-      gap: 15px;
-    }
-    
-    .chart-card {
-      padding: 15px;
+      gap: 20px;
     }
     
     .chart-wrapper {
-      height: 200px;
+      height: 250px;
     }
     
-    /* روزهای هفته */
-    .week-days {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 10px;
+    .chart-card {
+      padding: 20px;
+      margin-bottom: 0;
     }
-    
-    .day-cell {
-      min-height: 140px;
-    }
-    
-    /* input group */
+
     .time-input-group {
       flex-direction: column;
       gap: 10px;
@@ -681,227 +1257,127 @@
     .time-input-group .form-input:last-child {
       width: 100%;
     }
-    
-    /* لیگ */
+
+    .print-page {
+      padding: 10mm;
+      width: 100%;
+    }
+
+    .print-table {
+      font-size: 12px;
+    }
+
+    .print-table th,
+    .print-table td {
+      padding: 10px 6px;
+    }
+
+    .league-rankings {
+      grid-template-columns: 1fr;
+    }
+
     .league-info {
       flex-direction: column;
       gap: 15px;
     }
-    
-    .league-rankings {
-      grid-template-columns: 1fr !important;
-    }
-    
+
     .grade-prediction {
-      grid-template-columns: 1fr !important;
-    }
-    
-    /* مودال‌ها */
-    .modal .modal-content {
-      padding: 20px;
-      max-width: 95%;
-      margin: 10px;
-    }
-    
-    /* دکمه‌های action */
-    .nav-actions {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .theme-toggle,
-    .print-report-btn {
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .print-report-btn span {
-      display: none;
-    }
-    
-    .print-report-btn i {
-      margin: 0 !important;
+      grid-template-columns: 1fr;
     }
   }
-  
-  /* موبایل کوچک - کوچکتر از 480px */
+
+  /* موبایل کوچک */
   @media (max-width: 480px) {
-    .container {
-      padding: 0 10px;
+    .charts-container {
+      gap: 15px;
     }
     
-    nav {
-      padding: 0 10px;
-    }
-    
-    .logo-text {
-      font-size: 1rem;
-    }
-    
-    .stats-grid {
-      grid-template-columns: 1fr !important;
-    }
-    
-    .week-days {
-      grid-template-columns: 1fr !important;
-    }
-    
-    .day-cell {
-      min-height: 120px;
+    .chart-card {
+      padding: 15px;
     }
     
     .chart-wrapper {
-      height: 180px;
+      height: 220px;
     }
     
-    .grade-prediction {
-      gap: 10px;
+    .chart-title {
+      font-size: 16px;
     }
-    
-    .grade-percentage {
-      font-size: 2rem;
-    }
-    
-    .notification {
-      top: 15px;
-      right: 15px;
-      left: 15px;
-      max-width: calc(100% - 30px);
-    }
-  }
-  
-  /* تبلت - بین 769px و 1024px */
-  @media (min-width: 769px) and (max-width: 1024px) {
-    .container {
-      max-width: 95%;
-    }
-    
-    .sidebar {
-      width: 280px;
-    }
-    
-    .charts-container {
+
+    .week-days {
       grid-template-columns: 1fr;
     }
-    
-    .week-days {
-      grid-template-columns: repeat(3, 1fr) !important;
+
+    .league-stat-value {
+      font-size: 1.8rem;
     }
-    
-    .league-rankings {
-      grid-template-columns: repeat(2, 1fr) !important;
-    }
-    
-    .grade-prediction {
-      grid-template-columns: repeat(2, 1fr) !important;
-    }
-  }
-  
-  /* برای نمایش پرینت */
-  @media print {
-    .sidebar,
-    .hamburger-btn,
-    .nav-actions,
-    .no-print {
-      display: none !important;
-    }
-    
-    .planner {
-      display: block;
-    }
-    
-    .main {
-      width: 100%;
-    }
-  }
-  
-  /* بهبود قابلیت لمس در موبایل */
-  @media (hover: none) and (pointer: coarse) {
-    .list-item,
-    .task-item,
-    .day-task,
-    .btn-primary {
-      min-height: 44px; /* حداقل ارتفاع برای لمس */
-    }
-    
-    .list-menu-btn,
-    .notification-close,
-    .theme-toggle {
-      min-width: 44px;
-      min-height: 44px;
-    }
-    
-    input,
-    select,
-    textarea {
-      font-size: 16px; /* جلوگیری از زوم در iOS */
-    }
-  }
-  
-  /* پشتیبانی از حالت تیره/روشن سیستم */
-  @media (prefers-color-scheme: dark) {
-    [data-theme="system-dark"] {
-      --primary: #4f46e5;
-      --primary-dark: #4338ca;
-      --green: #10b981;
-      --card: #1e293b;
-      --bg-color: #0f172a;
-      --text-color: #e2e8f0;
-      --sidebar-bg: rgba(30,41,59,0.9);
-      --card-bg: rgba(30,41,59,0.5);
-      --border-color: rgba(255,255,255,0.04);
-      --input-bg: rgba(30,41,59,0.8);
-    }
-  }
-  
-  @media (prefers-color-scheme: light) {
-    [data-theme="system-light"] {
-      --primary: #4f46e5;
-      --primary-dark: #4338ca;
-      --green: #10b981;
-      --card: #f8fafc;
-      --bg-color: #f1f5f9;
-      --text-color: #1e293b;
-      --sidebar-bg: rgba(255,255,255,0.9);
-      --card-bg: rgba(255,255,255,0.7);
-      --border-color: rgba(0,0,0,0.08);
-      --input-bg: rgba(255,255,255,0.9);
+
+    .grade-percentage {
+      font-size: 2.5rem;
     }
   }
 
-  /* استایل‌های باقی‌مانده از کد اصلی شما */
-  /* ... (بقیه استایل‌ها بدون تغییر) ... */
+  /* انیمیشن برای المان‌های جدید */
+  .new-item {
+    animation: slideInRight 0.5s ease-out, pulse 2s 0.5s;
+  }
+
+  .removing-item {
+    animation: slideInLeft 0.3s ease-out reverse forwards;
+  }
+
+  /* استایل برای ripple effect */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+  }
+
+  @keyframes ripple-animation {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  /* استایل برای glass effect */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* استایل برای hover 3D */
+  .hover-3d {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .hover-3d:hover {
+    transform: translateY(-10px) rotateX(5deg);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
 </style>
 </head>
 <body>
-<!-- Overlay برای منو -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
 <nav>
-  <div class="nav-container">
-    <div class="logo-container">
-      <button class="hamburger-btn" id="hamburgerBtn" aria-label="منو">
-        <i class="fas fa-bars"></i>
-      </button>
-      <div class="logo-icon">
+  <div class="container flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center animate-float">
         <i class="fas fa-graduation-cap text-white text-xl"></i>
       </div>
-      <div class="logo-text animate-slide-in-right">
+      <div style="-webkit-background-clip:text;background:linear-gradient(135deg,var(--primary),var(--green));color:white;" class="font-bold text-xl animate-slide-in-right">
         سامانه آموزشی ویدا
       </div>
     </div>
-    
-    <div class="nav-actions no-print">
-      <button id="themeToggle" class="theme-toggle" aria-label="تغییر تم">
+    <div class="flex items-center gap-4 no-print">
+      <button id="themeToggle" class="theme-toggle">
         <i class="fas fa-moon"></i>
       </button>
-      <button id="printReportBtn" class="btn-primary print-report-btn">
+      <button id="printReportBtn" class="btn-primary">
         <i class="fas fa-print ml-2"></i>
-        <span>گزارش هفتگی</span>
+        گزارش هفتگی
       </button>
     </div>
   </div>
@@ -909,8 +1385,8 @@
 
 <div class="container">
   <div class="planner">
-    <!-- سایدبار -->
-    <div class="sidebar" id="sidebar">
+    <!-- Sidebar -->
+    <div class="sidebar h-full" id="sidebar">
       <div class="mb-8 animate-fade-in">
         <button class="btn-primary w-full mb-6" id="addListBtn">
             <i class="fas fa-plus ml-2"></i>
@@ -971,9 +1447,9 @@
       </div>
     </div>
 
-    <!-- محتوای اصلی -->
+    <!-- MAIN -->
     <div class="main">
-      <!-- آمار -->
+      <!-- stats -->
       <div class="stats-grid mb-6" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:24px">
         <div class="stat-card animate-fade-in" style="animation-delay: 0.1s">
           <div class="text-3xl font-bold" id="total-study-time">0</div>
@@ -989,7 +1465,7 @@
         </div>
       </div>
 
-      <!-- برنامه‌ریز هفتگی -->
+      <!-- weekly planner -->
       <div class="weekly-planner mb-6">
         <div class="flex justify-between items-center">
           <button id="prev-week" class="btn-primary animate-slide-in-left"><i class="fas fa-chevron-right ml-2"></i> هفته قبل</button>
@@ -1002,20 +1478,23 @@
 
       <!-- لیگ مطالعاتی -->
       <div id="league-view" style="display: none;">
+
         <div class="league-section">
-          <div class="league-header">
-            <div class="league-title">
-              <i class="fas fa-trophy league-icon" id="league-icon"></i>
-              <span id="league-name">لیگ آموزشی</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span id="league-points">امتیاز: 0</span>
-              <button id="predictionSettingsBtn" class="btn-primary py-2 px-3 text-sm">
-                <i class="fas fa-cog ml-1"></i>
-                تنظیمات پیش‌بینی
-              </button>
-            </div>
-          </div>
+          <!-- در بخش league-header تغییر دهید -->
+<div class="league-header">
+  <div class="league-title">
+    <i class="fas fa-trophy league-icon" id="league-icon"></i>
+    <span id="league-name">لیگ آموزشی</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <span id="league-points">امتیاز: 0</span>
+    <button id="predictionSettingsBtn" class="btn-primary py-2 px-3 text-sm">
+      <i class="fas fa-cog ml-1"></i>
+      تنظیمات پیش‌بینی
+    </button>
+  </div>
+</div>
+
           <div class="league-info">
             <div class="league-stat">
               <div class="league-stat-value" id="daily-hours">0</div>
@@ -1030,23 +1509,30 @@
               <div class="league-stat-label">روزهای متوالی</div>
             </div>
           </div>
+
           <div class="league-progress">
             <div class="league-progress-bar" id="league-progress-bar" style="width: 0%;"></div>
           </div>
+
           <div class="flex justify-between items-center mb-3">
             <div class="text-sm">پیشرفت به لیگ بعدی</div>
             <div class="text-sm font-bold" id="league-next">0%</div>
           </div>
-          <div class="badges-container" id="badges-container"></div>
+
+          <div class="badges-container" id="badges-container">
+            <!-- نشان‌ها اینجا نمایش داده می‌شوند -->
+          </div>
         </div>
 
-        <!-- پیش‌بینی نمره آزمون -->
+        <!-- بخش جدید: پیش‌بینی نمره آزمون -->
         <div class="league-section grade-prediction-section">
           <h3 class="section-title mb-4 flex items-center gap-3">
             <i class="fas fa-chart-line text-green-500"></i>
             پیش‌بینی نمره آزمون‌های آخر هفته
           </h3>
-          <div class="grade-prediction" id="grade-prediction"></div>
+          <div class="grade-prediction" id="grade-prediction">
+            <!-- پیش‌بینی نمره دروس اینجا نمایش داده می‌شود -->
+          </div>
         </div>
 
         <div class="league-section">
@@ -1054,11 +1540,13 @@
             <i class="fas fa-award text-yellow-500"></i>
             دستاوردهای شما
           </h3>
-          <div class="league-rankings flex" id="league-rankings"></div>
+          <div class="league-rankings flex" id="league-rankings">
+            <!-- دستاوردهای کاربر اینجا نمایش داده می‌شود -->
+          </div>
         </div>
       </div>
 
-      <!-- نمودارها -->
+      <!-- charts -->
       <div class="charts-container">
         <div class="chart-card">
           <div class="chart-title mb-4 text-lg font-semibold"><i class="fas fa-chart-line ml-2"></i> ساعات مطالعه هفته جاری</div>
@@ -1074,20 +1562,22 @@
         </div>
       </div>
 
-      <!-- تسک‌ها -->
+      <!-- tasks -->
       <div id="tasks-view">
         <div class="section-title mb-6">
           <i class="fas fa-inbox ml-2"></i>
           <span id="current-list-title" class="text-xl font-bold animate-fade-in">صندوق ورودی</span>
         </div>
 
-        <!-- تشخیص خودکار دسته‌بندی -->
+        <!-- بخش تشخیص خودکار دسته‌بندی -->
         <div class="auto-category-detection" id="auto-category-detection">
           <div class="flex items-center gap-3 mb-3">
             <i class="fas fa-robot text-green-500"></i>
             <span class="font-semibold">تشخیص خودکار دسته‌بندی</span>
           </div>
-          <div class="detected-category" id="detected-category"></div>
+          <div class="detected-category" id="detected-category">
+            <!-- تشخیص دسته‌بندی اینجا نمایش داده می‌شود -->
+          </div>
         </div>
 
         <div class="mb-6 flex gap-4">
@@ -1123,7 +1613,7 @@
   </button>
 </div>
 
-<!-- گزارش هفتگی -->
+<!-- صفحه گزارش هفتگی -->
 <div class="print-report" id="printReport">
   <div class="print-page">
     <div class="print-header">
@@ -1133,6 +1623,7 @@
         <div id="report-generation-date">تاریخ تولید: -</div>
       </div>
     </div>
+
     <div class="print-summary">
       <h3>خلاصه عملکرد هفتگی</h3>
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 15px;">
@@ -1150,6 +1641,7 @@
         </div>
       </div>
     </div>
+
     <table class="print-table">
       <thead>
         <tr>
@@ -1162,12 +1654,18 @@
           <th>توضیحات</th>
         </tr>
       </thead>
-      <tbody id="report-tasks-table"></tbody>
+      <tbody id="report-tasks-table">
+        <!-- داده‌های تسک‌ها اینجا پر می‌شود -->
+      </tbody>
     </table>
+
     <div class="print-summary">
       <h3>توزیع زمانی بر اساس روزهای هفته</h3>
-      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; margin-top: 15px; font-size: 14px;"></div>
+      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; margin-top: 15px; font-size: 14px;">
+        <!-- داده‌های توزیع زمانی اینجا پر می‌شود -->
+      </div>
     </div>
+
     <div class="print-footer">
       <p>این گزارش به صورت خودکار توسط سامانه آموزشی ویدا تولید شده است</p>
       <p>تاریخ تولید: <span id="report-footer-date">-</span></p>
@@ -1175,7 +1673,7 @@
   </div>
 </div>
 
-<!-- مودال‌ها -->
+<!-- Modals -->
 <div class="modal" id="listModal">
   <div class="modal-content">
     <h2 class="text-2xl font-bold mb-6" id="listModalTitle">ایجاد لیست جدید</h2>
@@ -1197,15 +1695,21 @@
 <div class="modal" id="taskModal">
   <div class="modal-content">
     <h2 class="text-xl font-bold mb-4" id="taskModalTitle">ایجاد تسک جدید</h2>
+    
     <div class="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
+      <!-- Title -->
       <div>
         <label class="block mb-1 text-sm font-semibold">عنوان</label>
         <input id="taskTitleInput" class="form-input py-2" placeholder="عنوان تسک">
       </div>
+      
+      <!-- Description -->
       <div>
         <label class="block mb-1 text-sm font-semibold">توضیحات</label>
         <textarea id="taskDescriptionInput" class="form-input py-2" rows="2" placeholder="توضیحات اختیاری"></textarea>
       </div>
+      
+      <!-- Date and Study Time in one row -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block mb-1 text-sm font-semibold">تاریخ سررسید</label>
@@ -1222,6 +1726,8 @@
           </div>
         </div>
       </div>
+      
+      <!-- Start and End Time -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block mb-1 text-sm font-semibold">زمان شروع</label>
@@ -1232,6 +1738,8 @@
           <input id="taskEndTimeInput" type="time" class="form-input py-2">
         </div>
       </div>
+      
+      <!-- Reminder and Time Category -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block mb-1 text-sm font-semibold">یادآوری</label>
@@ -1256,11 +1764,15 @@
           </select>
         </div>
       </div>
+      
+      <!-- Category -->
       <div>
         <label class="block mb-1 text-sm font-semibold">دسته‌بندی</label>
         <select id="taskCategoryInput" class="form-input py-2"></select>
       </div>
     </div>
+    
+    <!-- Buttons -->
     <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
       <button id="saveTaskBtn" class="btn-primary px-4 py-2">
         <i class="fas fa-save ml-2"></i>
@@ -1272,14 +1784,18 @@
     </div>
   </div>
 </div>
-
+<!-- مودال تنظیمات پیش‌بینی -->
 <div class="modal" id="predictionSettingsModal">
   <div class="modal-content">
     <h2 class="text-2xl font-bold mb-6">تنظیمات پیش‌بینی نمره</h2>
+    
     <div class="mb-6">
       <label class="block mb-3 text-sm font-semibold">انتخاب دروس برای پیش‌بینی</label>
-      <div class="space-y-3" id="subject-selection"></div>
+      <div class="space-y-3" id="subject-selection">
+        <!-- دروس اینجا اضافه می‌شوند -->
+      </div>
     </div>
+    
     <div class="mb-6">
       <label class="block mb-2 text-sm font-semibold">روش پیش‌بینی</label>
       <select id="predictionMethodSelect" class="form-input">
@@ -1287,6 +1803,7 @@
         <option value="advanced">پیشرفته (ساعات + کیفیت + زمان)</option>
       </select>
     </div>
+    
     <div class="mb-6">
       <label class="block mb-2 text-sm font-semibold">درصد هدف برای پیش‌بینی</label>
       <input type="range" id="targetPercentageSlider" min="50" max="100" step="5" value="70" class="w-full">
@@ -1296,6 +1813,7 @@
         <span>100%</span>
       </div>
     </div>
+    
     <div class="flex justify-end gap-3">
       <button id="savePredictionSettingsBtn" class="btn-primary">ذخیره تنظیمات</button>
       <button id="cancelPredictionSettingsBtn" class="btn-primary" style="background:transparent;border:2px solid var(--border-color)">لغو</button>
@@ -1303,117 +1821,8 @@
   </div>
 </div>
 
+
 <script>
-/* ---------------------------
-   مدیریت منوی همبرگر
-   --------------------------- */
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  
-  sidebar.classList.toggle('active');
-  overlay.classList.toggle('active');
-  
-  // تغییر آیکون همبرگر به X و بالعکس
-  if (sidebar.classList.contains('active')) {
-    hamburgerBtn.innerHTML = '<i class="fas fa-times"></i>';
-    hamburgerBtn.setAttribute('aria-label', 'بستن منو');
-    // جلوگیری از اسکرول صفحه بدن
-    document.body.style.overflow = 'hidden';
-  } else {
-    hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>';
-    hamburgerBtn.setAttribute('aria-label', 'باز کردن منو');
-    document.body.style.overflow = '';
-  }
-}
-
-function closeSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  
-  sidebar.classList.remove('active');
-  overlay.classList.remove('active');
-  hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>';
-  hamburgerBtn.setAttribute('aria-label', 'باز کردن منو');
-  document.body.style.overflow = '';
-}
-
-// تنظیم رویدادهای منوی همبرگر
-document.addEventListener('DOMContentLoaded', () => {
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  const overlay = document.getElementById('sidebarOverlay');
-  const sidebar = document.getElementById('sidebar');
-  
-  // رویداد کلیک روی دکمه همبرگر
-  if (hamburgerBtn) {
-    hamburgerBtn.addEventListener('click', toggleSidebar);
-  }
-  
-  // رویداد کلیک روی overlay
-  if (overlay) {
-    overlay.addEventListener('click', closeSidebar);
-  }
-  
-  // بستن منو با کلیک روی لینک‌های داخلی
-  const sidebarLinks = sidebar.querySelectorAll('.list-item');
-  sidebarLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      if (window.innerWidth <= 768) {
-        closeSidebar();
-      }
-    });
-  });
-  
-  // بستن منو با فشار دکمه ESC
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-      closeSidebar();
-    }
-  });
-});
-
-/* ---------------------------
-   مدیریت ریسپانسیو و تنظیم مجدد سایز
-   --------------------------- */
-function handleResize() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  
-  // اگر صفحه بزرگتر از 768px است، منو را باز نگه دار
-  if (window.innerWidth > 768) {
-    sidebar.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
-    if (hamburgerBtn) {
-      hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>';
-      hamburgerBtn.setAttribute('aria-label', 'باز کردن منو');
-    }
-    document.body.style.overflow = '';
-  }
-}
-
-// رویداد resize
-window.addEventListener('resize', handleResize);
-
-/* ---------------------------
-   بقیه کدهای جاوااسکریپت شما بدون تغییر باقی می‌ماند
-   فقط تابع‌های مدیریت منو و ریسپانسیو بالا اضافه شده است
-   --------------------------- */
-
-// تمام کدهای جاوااسکریپت قبلی شما در اینجا قرار می‌گیرد
-// برای صرفه‌جویی در فضا، کدهای اصلی جاوااسکریپت را تکرار نمی‌کنم
-// زیرا تغییر خاصی در منطق برنامه‌ای شما ایجاد نشده است
-// فقط توابع مدیریت منوی همبرگر اضافه شده است
-
-// این قسمت باید تمام کدهای جاوااسکریپت قبلی شما باشد
-// از خط 1300 به بعد کد اصلی شما قرار می‌گیرد
-
-// فقط کدهای مربوط به مدیریت منوی همبرگر اضافه شده و بقیه کدها بدون تغییر باقی می‌مانند
-
-// مثال: تابع initTheme و بقیه توابع...
-
 /* ---------------------------
    Data & persistence (start with default lists)
    --------------------------- */
