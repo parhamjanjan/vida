@@ -12,6 +12,42 @@
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
+/* استایل برای تسک‌های مهم با رنگ قرمز */
+.day-task.important-task {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+  border: 2px solid rgba(239, 68, 68, 0.25);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+  position: relative;
+}
+
+.day-task.important-task::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #ef4444, #f87171);
+  border-radius: 2px;
+}
+
+.day-task.important-task:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15));
+  border-color: #ef4444;
+  transform: translateX(-5px);
+}
+
+/* یا با رنگ بنفش (هماهنگ با تم اصلی) */
+.day-task.important-task.alternative {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.08));
+  border: 2px solid rgba(139, 92, 246, 0.25);
+}
+
+.day-task.important-task.alternative::before {
+  background: linear-gradient(to bottom, #8b5cf6, #a78bfa);
+}
+
   
   :root {
     --primary: #4f46e5;
@@ -26,6 +62,10 @@
     --input-bg: rgba(30,41,59,0.8);
   }
 
+
+
+
+  
   [data-theme="light"] {
     --primary: #4f46e5;
     --primary-dark: #4338ca;
