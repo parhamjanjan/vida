@@ -103,6 +103,55 @@
     animation: fadeIn 0.5s ease-out;
   }
 
+
+  /* استایل برای تسک‌های مهم در نوار هفتگی */
+.day-task.important-task {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+  border: 2px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  position: relative;
+  animation: important-pulse 2s infinite;
+}
+
+.day-task.important-task::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #f59e0b, #fbbf24);
+  border-radius: 2px;
+}
+
+.day-task.important-task:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.2));
+  border-color: #f59e0b;
+  transform: translateX(-5px) scale(1.02);
+}
+
+/* انیمیشن برای تسک‌های مهم */
+@keyframes important-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
+  }
+}
+
+/* استایل برای نمایش بهتر در موبایل */
+@media (max-width: 768px) {
+  .day-task.important-task {
+    border-width: 1.5px;
+  }
+  
+  .day-task.important-task .fa-star {
+    font-size: 10px;
+  }
+}
+
+  
   .animate-slide-in-right {
     animation: slideInRight 0.4s ease-out;
   }
@@ -3147,6 +3196,9 @@ function renderTasks(){
 /* ---------------------------
    Weekly planner + drag/drop
    --------------------------- */
+/* ---------------------------
+   Weekly planner + drag/drop - تغییر این تابع
+   --------------------------- */
 function renderWeeklyPlanner(){
   const container = document.getElementById('week-days');
   container.innerHTML = '';
@@ -3166,16 +3218,35 @@ function renderWeeklyPlanner(){
     // tasks for that date
     tasks.filter(t => t.dueDate === key && !t.completed).forEach(t => {
       const dt = document.createElement('div');
-      dt.className = 'day-task new-item';
+      
+      // تغییر اصلی: اضافه کردن کلاس مهم برای تسک‌های مهم
+      dt.className = 'day-task new-item' + (t.important ? ' important-task' : '');
       dt.draggable = true;
       dt.dataset.taskId = t.id;
-      dt.innerHTML = `<div style="flex:1">${t.title} ${t.startTime ? `<small class="text-xs text-slate-400">(${t.startTime})</small>` : ''}</div><div class="delete-task-btn"><i class="fas fa-times"></i></div>`;
+      
+      // تغییر: اضافه کردن آیکون ستاره برای تسک‌های مهم
+      dt.innerHTML = `
+        <div style="flex:1; display: flex; align-items: center; gap: 8px;">
+          ${t.important ? '<i class="fas fa-star text-yellow-400 text-xs animate-pulse"></i>' : ''}
+          <span>${t.title}</span>
+        </div>
+        ${t.startTime ? `<small class="text-xs text-slate-400">(${t.startTime})</small>` : ''}
+        <div class="delete-task-btn"><i class="fas fa-times"></i></div>
+      `;
 
       // delete button
-      dt.querySelector('.delete-task-btn').addEventListener('click', (e) => { e.stopPropagation(); if(confirm('حذف؟')) deleteTask(t.id); });
+      dt.querySelector('.delete-task-btn').addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        if(confirm('حذف؟')) deleteTask(t.id); 
+      });
+      
       // drag
-      dt.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', t.id); dt.classList.add('dragging'); });
+      dt.addEventListener('dragstart', (e) => { 
+        e.dataTransfer.setData('text/plain', t.id); 
+        dt.classList.add('dragging'); 
+      });
       dt.addEventListener('dragend', () => dt.classList.remove('dragging'));
+      
       cell.appendChild(dt);
     });
 
@@ -3183,11 +3254,19 @@ function renderWeeklyPlanner(){
     cell.addEventListener('dragover', (e) => { e.preventDefault(); cell.classList.add('drop-active'); });
     cell.addEventListener('dragleave', () => cell.classList.remove('drop-active'));
     cell.addEventListener('drop', (e) => {
-      e.preventDefault(); cell.classList.remove('drop-active');
-      const id = e.dataTransfer.getData('text/plain'); if(!id) return;
-      const t = tasks.find(x=>x.id===id); if(!t) return;
-      t.dueDate = cell.dataset.date; saveAll(); renderTasks(); renderWeeklyPlanner(); renderCharts(); updateStats();
-      setupReminders(); // تنظیم مجدد یادآوری‌ها
+      e.preventDefault(); 
+      cell.classList.remove('drop-active');
+      const id = e.dataTransfer.getData('text/plain'); 
+      if(!id) return;
+      const t = tasks.find(x=>x.id===id); 
+      if(!t) return;
+      t.dueDate = cell.dataset.date; 
+      saveAll(); 
+      renderTasks(); 
+      renderWeeklyPlanner(); 
+      renderCharts(); 
+      updateStats();
+      setupReminders();
     });
 
     container.appendChild(cell);
@@ -3454,8 +3533,16 @@ function toggleTaskCompletion(id){
     renderLeagueView();
   }
 }
-function toggleTaskImportance(id){ const t = tasks.find(x=>x.id===id); if(!t) return; t.important = !t.important; saveAll(); renderTasks(); updateSidebarCounts(); }
-function deleteTask(id){ 
+function toggleTaskImportance(id){ 
+  const t = tasks.find(x=>x.id===id); 
+  if(!t) return; 
+  t.important = !t.important; 
+  saveAll(); 
+  renderTasks(); 
+  renderWeeklyPlanner(); // اضافه کردن این خط برای به‌روزرسانی نوار هفتگی
+  updateSidebarCounts(); 
+}
+  function deleteTask(id){ 
   const taskElement = document.querySelector(`[data-task-id="${id}"]`);
   if (taskElement) {
     taskElement.classList.add('removing-item');
