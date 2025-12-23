@@ -726,7 +726,7 @@
   .day-task .delete-task-btn {
     color: #ef4444;
     cursor: pointer;
-    margin-left: 12px;
+    margin-right: 12px;
     padding: 4px;
     border-radius: 6px;
     transition: all 0.3s ease;
@@ -3270,7 +3270,7 @@ function renderWeeklyPlanner(){
           ${t.important ? '<i class="fas fa-star text-yellow-400 text-xs animate-pulse"></i>' : ''}
           <span>${t.title}</span>
         </div>
-        ${t.startTime ? `<small class="text-xs text-slate-400">(${t.startTime})</small>` : ''}
+       
         <div class="delete-task-btn"><i class="fas fa-times"></i></div>
       `;
 
