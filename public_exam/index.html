@@ -169,6 +169,17 @@
       transition: all 0.3s ease;
     }
     
+    .btn-gray {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
     /* انیمیشن‌ها */
     @keyframes floating {
       0% { transform: translateY(0px) rotate(0deg); }
@@ -460,27 +471,6 @@
       animation-delay: -10s;
     }
     
-    /* تابع پیکسل‌سازی */
-    .function-graph {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: -1;
-    }
-    
-    .graph-line {
-      stroke: rgba(79, 70, 229, 0.1);
-      stroke-width: 1;
-      fill: none;
-    }
-    
-    .graph-point {
-      fill: rgba(79, 70, 229, 0.2);
-    }
-    
     /* تب‌ها */
     .tab-container {
       display: flex;
@@ -513,6 +503,12 @@
       display: block;
     }
     
+    /* تنظیمات آزمون - حالت فعال */
+    .setup-active {
+      border: 2px solid rgba(79, 70, 229, 0.5);
+      box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+    }
+    
     /* واکنش‌گرا */
     @media (max-width: 768px) {
       .option-box {
@@ -520,7 +516,7 @@
         height: 35px;
       }
       
-      .btn-primary, .btn-secondary, .btn-accent, .btn-purple {
+      .btn-primary, .btn-secondary, .btn-accent, .btn-purple, .btn-gray {
         padding: 0.6rem 1.5rem;
         font-size: 0.9rem;
       }
@@ -599,50 +595,70 @@
 
       <!-- Setup -->
       <div id="setup" class="modern-card p-6 space-y-4 mb-8">
-        <h2 class="text-2xl font-bold mb-4 text-green-400 flex items-center">
-          <i class="fas fa-cog ml-2"></i>تنظیمات آزمون
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold text-green-400 flex items-center">
+            <i class="fas fa-cog ml-2"></i>تنظیمات آزمون
+          </h2>
+          <span id="setupStatus" class="text-sm px-3 py-1 rounded-full bg-gray-700 text-gray-300">
+            آماده برای شروع
+          </span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="setupInputs">
           <div>
             <label class="block text-gray-300 mb-1">زیست‌شناسی:</label>
-            <input type="number" id="bioCount" min="0" value="0" class="input-modern">
+            <input type="number" id="bioCount" min="0" value="0" class="input-modern setup-input">
           </div>
           
           <div>
             <label class="block text-gray-300 mb-1">فیزیک:</label>
-            <input type="number" id="physCount" min="0" value="0" class="input-modern">
+            <input type="number" id="physCount" min="0" value="0" class="input-modern setup-input">
           </div>
           
           <div>
             <label class="block text-gray-300 mb-1">شیمی:</label>
-            <input type="number" id="chemCount" min="0" value="0" class="input-modern">
+            <input type="number" id="chemCount" min="0" value="0" class="input-modern setup-input">
           </div>
           
           <div>
             <label class="block text-gray-300 mb-1">ریاضی:</label>
-            <input type="number" id="mathCount" min="0" value="0" class="input-modern">
+            <input type="number" id="mathCount" min="0" value="0" class="input-modern setup-input">
           </div>
                   
           <div>
             <label class="block text-gray-300 mb-1">زمین‌شناسی:</label>
-            <input type="number" id="geoCount" min="0" value="0" class="input-modern">
+            <input type="number" id="geoCount" min="0" value="0" class="input-modern setup-input">
           </div>
           <div>
             <label class="block text-gray-300 mb-1">مدت آزمون (دقیقه):</label>
-            <input type="number" id="examTime" min="1" value="30" class="input-modern">
+            <input type="number" id="examTime" min="1" value="30" class="input-modern setup-input">
           </div>
         </div>
-        <button onclick="generateExam()" class="btn-primary mt-4 w-full pulse">
-          <i class="fas fa-play ml-2"></i> شروع آزمون جدید
-        </button>
+        
+        <div class="flex gap-3 mt-4">
+          <button onclick="generateExam()" id="startBtn" class="btn-primary flex-1 pulse">
+            <i class="fas fa-play ml-2"></i> شروع آزمون جدید
+          </button>
+          <button onclick="resetExam()" id="resetBtn" class="btn-gray flex-1" style="display: none;">
+            <i class="fas fa-redo ml-2"></i> شروع مجدد
+          </button>
+          <button onclick="editSettings()" id="editBtn" class="btn-accent flex-1" style="display: none;">
+            <i class="fas fa-edit ml-2"></i> ویرایش تنظیمات
+          </button>
+        </div>
       </div>
 
       <!-- Timer -->
       <div id="timer" class="timer-modern hidden mb-6">
-        <div class="flex items-center justify-center gap-3">
-          <i class="fas fa-clock text-green-400 text-xl"></i>
-          <span id="time-display" class="text-xl font-bold">00:00</span>
-          <span class="text-gray-400">زمان باقیمانده</span>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-clock text-green-400 text-xl"></i>
+            <span id="time-display" class="text-xl font-bold">00:00</span>
+            <span class="text-gray-400">زمان باقیمانده</span>
+          </div>
+          <button onclick="pauseTimer()" id="pauseBtn" class="btn-gray text-sm px-3 py-1">
+            <i class="fas fa-pause ml-1"></i> توقف
+          </button>
         </div>
       </div>
 
@@ -651,26 +667,44 @@
 
       <!-- Answer Key -->
       <div id="answerKeys" class="hidden modern-card p-6 mt-8">
-        <h2 class="text-2xl font-bold mb-4 text-green-300 flex items-center">
-          <i class="fas fa-key ml-2"></i> کلید پاسخ‌ها
-        </h2>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold text-green-300 flex items-center">
+            <i class="fas fa-key ml-2"></i> کلید پاسخ‌ها
+          </h2>
+          <button onclick="autoFillKeys()" class="btn-purple text-sm px-3 py-1">
+            <i class="fas fa-magic ml-1"></i> پر کردن تصادفی
+          </button>
+        </div>
         <div id="keyInputs" class="space-y-6"></div>
-        <button onclick="gradeExam()" class="btn-secondary mt-6 w-full">
-          <i class="fas fa-check-circle ml-2"></i> تصحیح آزمون
-        </button>
+        <div class="flex gap-3 mt-6">
+          <button onclick="gradeExam()" class="btn-secondary flex-1">
+            <i class="fas fa-check-circle ml-2"></i> تصحیح آزمون
+          </button>
+          <button onclick="previewExam()" class="btn-purple flex-1">
+            <i class="fas fa-eye ml-2"></i> پیش‌نمایش
+          </button>
+        </div>
       </div>
 
       <!-- Results -->
       <div id="results" class="mt-8 space-y-6"></div>
       
-      <!-- دکمه ذخیره -->
-      <div id="saveSection" class="hidden mt-8 text-center">
-        <button onclick="saveExamResults()" class="btn-purple mr-4">
-          <i class="fas fa-save ml-2"></i> ذخیره آزمون
-        </button>
-        <button onclick="printResults()" class="btn-accent">
-          <i class="fas fa-print ml-2"></i> پرینت کارنامه
-        </button>
+      <!-- دکمه‌های پایانی -->
+      <div id="actionSection" class="hidden mt-8 text-center">
+        <div class="flex flex-wrap gap-3 justify-center">
+          <button onclick="saveExamResults()" class="btn-purple">
+            <i class="fas fa-save ml-2"></i> ذخیره آزمون
+          </button>
+          <button onclick="printResults()" class="btn-accent">
+            <i class="fas fa-print ml-2"></i> پرینت کارنامه
+          </button>
+          <button onclick="createSimilarExam()" class="btn-secondary">
+            <i class="fas fa-copy ml-2"></i> آزمون مشابه
+          </button>
+          <button onclick="resetExam()" class="btn-gray">
+            <i class="fas fa-redo ml-2"></i> آزمون جدید
+          </button>
+        </div>
       </div>
     </div>
 
@@ -702,6 +736,7 @@
   <script>
     // کلید ذخیره‌سازی در localStorage
     const STORAGE_KEY = 'vida_exam_history';
+    const EXAM_STATE_KEY = 'vida_exam_current_state';
     
     const subjects = [
       { name: "زیست‌شناسی", id: "bioCount", icon: "fas fa-dna", color: "from-green-400 to-emerald-500" },
@@ -717,6 +752,9 @@
     let selectedOptions = {};
     let globalQuestionCounter = 1;
     let currentExamResults = null;
+    let isExamActive = false;
+    let isTimerPaused = false;
+    let originalTime = 0;
 
     // مدیریت تب‌ها
     function showTab(tabName) {
@@ -1034,7 +1072,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
       
       showNotification('آزمون با موفقیت ذخیره شد');
-      document.getElementById('saveSection').classList.add('hidden');
+      document.getElementById('actionSection').classList.add('hidden');
     }
 
     // فرمت زمان صرف شده
@@ -1046,30 +1084,29 @@
       return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
 
-    // ادامه کدهای قبلی (generateExam, handleOptionClick, startTimer, gradeExam, etc.)
-    // کدهای قبلی را اینجا قرار دهید
+    // ============ عملکردهای جدید ============
     
-    // نمایش اعلان
-    function showNotification(message) {
-      const notification = document.createElement('div');
-      notification.className = 'fixed top-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg border-l-4 border-green-500 flex items-center z-50 animate-fade-in';
-      notification.innerHTML = `
-        <i class="fas fa-info-circle ml-2 text-green-400"></i>
-        <span>${message}</span>
-      `;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
-    }
-
-    // کدهای باقی‌مانده از نسخه قبلی
+    // تولید آزمون جدید با امکان تغییر تنظیمات
     function generateExam() {
+      // ذخیره تنظیمات فعلی
+      saveCurrentSettings();
+      
+      // بررسی آیا حداقل یک سوال انتخاب شده
+      const hasQuestions = subjects.some(subject => {
+        return parseInt(document.getElementById(subject.id).value) > 0;
+      });
+      
+      if (!hasQuestions) {
+        showNotification('لطفاً حداقل برای یک درس سوال انتخاب کنید');
+        return;
+      }
+      
       clearInterval(timerInterval);
       examStructure = [];
       selectedOptions = {};
       globalQuestionCounter = 1;
+      isExamActive = true;
+      
       const examDiv = document.getElementById('exam');
       examDiv.innerHTML = '';
       const keyInputsDiv = document.getElementById('keyInputs');
@@ -1091,9 +1128,12 @@
           // ایجاد کارت سوالات
           examDiv.innerHTML += `
             <div class="modern-card p-6 mb-6">
-              <h3 class="text-green-300 text-xl font-bold mb-4 flex items-center">
-                <i class="${subject.icon} ml-2"></i> ${subject.name}
-              </h3>
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-green-300 text-xl font-bold flex items-center">
+                  <i class="${subject.icon} ml-2"></i> ${subject.name}
+                </h3>
+                <span class="text-sm bg-gray-700 px-3 py-1 rounded-full text-gray-300">${count} سوال</span>
+              </div>
               <div class="space-y-4" id="questions-${subject.name.replace(/\s+/g, '-')}">
                 ${[...Array(count)].map((_, i) => {
                   const questionNum = globalQuestionCounter++;
@@ -1122,9 +1162,14 @@
           // ایجاد قسمت کلید پاسخ‌ها
           keyInputsDiv.innerHTML += `
             <div class="bg-gray-700/30 p-4 rounded-lg border border-gray-600/50">
-              <h4 class="text-green-400 font-bold mb-3 flex items-center">
-                <i class="${subject.icon} ml-2"></i> ${subject.name}
-              </h4>
+              <div class="flex justify-between items-center mb-3">
+                <h4 class="text-green-400 font-bold flex items-center">
+                  <i class="${subject.icon} ml-2"></i> ${subject.name}
+                </h4>
+                <button onclick="autoFillSubjectKeys('${subject.name}', ${count}, ${startQuestion})" class="text-purple-400 text-sm">
+                  <i class="fas fa-random ml-1"></i> تصادفی
+                </button>
+              </div>
               <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 ${[...Array(count)].map((_, i) => {
                   const questionNum = startQuestion + i;
@@ -1132,7 +1177,7 @@
                   <div class="flex items-center">
                     <label class="text-gray-300 mr-2">${questionNum}:</label>
                     <input type="number" min="1" max="4" id="key-${subject.name}-q${questionNum}" 
-                           class="input-modern w-16 px-3 py-1 rounded-lg focus:outline-none text-center">
+                           class="input-modern w-16 px-3 py-1 rounded-lg focus:outline-none text-center key-input">
                   </div>
                 `}).join('')}
               </div>
@@ -1140,16 +1185,266 @@
         }
       });
 
+      // به‌روزرسانی رابط کاربری
       document.getElementById('answerKeys').classList.remove('hidden');
       document.getElementById('results').innerHTML = '';
-      document.getElementById('saveSection').classList.add('hidden');
+      document.getElementById('actionSection').classList.add('hidden');
+      
+      // غیرفعال کردن تنظیمات
+      disableSetupInputs();
+      
+      // به‌روزرسانی دکمه‌ها
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('resetBtn').style.display = 'block';
+      document.getElementById('editBtn').style.display = 'block';
+      
+      // به‌روزرسانی وضعیت
+      document.getElementById('setupStatus').textContent = 'آزمون فعال';
+      document.getElementById('setupStatus').className = 'text-sm px-3 py-1 rounded-full bg-green-700 text-green-300';
+      document.getElementById('setup').classList.add('setup-active');
+      
       startTimer();
       
       // اسکرول به بخش آزمون
       document.getElementById('exam').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // غیرفعال کردن تنظیمات هنگام شروع آزمون
+    function disableSetupInputs() {
+      document.querySelectorAll('.setup-input').forEach(input => {
+        input.disabled = true;
+        input.classList.add('opacity-50', 'cursor-not-allowed');
+      });
+    }
+
+    // فعال کردن تنظیمات برای ویرایش
+    function enableSetupInputs() {
+      document.querySelectorAll('.setup-input').forEach(input => {
+        input.disabled = false;
+        input.classList.remove('opacity-50', 'cursor-not-allowed');
+      });
+    }
+
+    // ذخیره تنظیمات فعلی
+    function saveCurrentSettings() {
+      const settings = {};
+      subjects.forEach(subject => {
+        settings[subject.id] = document.getElementById(subject.id).value;
+      });
+      settings.examTime = document.getElementById('examTime').value;
+      localStorage.setItem('last_exam_settings', JSON.stringify(settings));
+    }
+
+    // بارگذاری تنظیمات ذخیره شده
+    function loadLastSettings() {
+      const saved = localStorage.getItem('last_exam_settings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        subjects.forEach(subject => {
+          if (settings[subject.id]) {
+            document.getElementById(subject.id).value = settings[subject.id];
+          }
+        });
+        if (settings.examTime) {
+          document.getElementById('examTime').value = settings.examTime;
+        }
+      }
+    }
+
+    // ویرایش تنظیمات
+    function editSettings() {
+      if (confirm('با ویرایش تنظیمات، پاسخ‌های فعلی پاک می‌شوند. آیا ادامه می‌دهید؟')) {
+        // فعال کردن تنظیمات
+        enableSetupInputs();
+        
+        // پاک کردن آزمون فعلی
+        document.getElementById('exam').innerHTML = '';
+        document.getElementById('answerKeys').classList.add('hidden');
+        document.getElementById('timer').classList.add('hidden');
+        document.getElementById('results').innerHTML = '';
+        document.getElementById('actionSection').classList.add('hidden');
+        
+        // توقف تایمر
+        clearInterval(timerInterval);
+        isExamActive = false;
+        
+        // به‌روزرسانی دکمه‌ها
+        document.getElementById('startBtn').style.display = 'block';
+        document.getElementById('resetBtn').style.display = 'none';
+        document.getElementById('editBtn').style.display = 'none';
+        
+        // به‌روزرسانی وضعیت
+        document.getElementById('setupStatus').textContent = 'آماده برای شروع';
+        document.getElementById('setupStatus').className = 'text-sm px-3 py-1 rounded-full bg-gray-700 text-gray-300';
+        document.getElementById('setup').classList.remove('setup-active');
+        
+        showNotification('حالا می‌توانید تنظیمات را تغییر دهید و آزمون جدیدی شروع کنید');
+      }
+    }
+
+    // شروع مجدد آزمون
+    function resetExam() {
+      if (confirm('آیا مطمئن هستید که می‌خواهید آزمون را از نو شروع کنید؟ تمام پاسخ‌های فعلی پاک می‌شوند.')) {
+        // پاک کردن همه چیز
+        document.getElementById('exam').innerHTML = '';
+        document.getElementById('answerKeys').classList.add('hidden');
+        document.getElementById('timer').classList.add('hidden');
+        document.getElementById('results').innerHTML = '';
+        document.getElementById('actionSection').classList.add('hidden');
+        
+        // توقف تایمر
+        clearInterval(timerInterval);
+        isExamActive = false;
+        
+        // فعال کردن تنظیمات
+        enableSetupInputs();
+        
+        // به‌روزرسانی دکمه‌ها
+        document.getElementById('startBtn').style.display = 'block';
+        document.getElementById('resetBtn').style.display = 'none';
+        document.getElementById('editBtn').style.display = 'none';
+        
+        // به‌روزرسانی وضعیت
+        document.getElementById('setupStatus').textContent = 'آماده برای شروع';
+        document.getElementById('setupStatus').className = 'text-sm px-3 py-1 rounded-full bg-gray-700 text-gray-300';
+        document.getElementById('setup').classList.remove('setup-active');
+        
+        // پاک کردن داده‌ها
+        selectedOptions = {};
+        examStructure = [];
+        currentExamResults = null;
+        
+        showNotification('آزمون ریست شد. حالا می‌توانید تنظیمات جدیدی وارد کنید');
+      }
+    }
+
+    // توقف/ادامه تایمر
+    function pauseTimer() {
+      const pauseBtn = document.getElementById('pauseBtn');
+      
+      if (!isTimerPaused) {
+        clearInterval(timerInterval);
+        isTimerPaused = true;
+        pauseBtn.innerHTML = '<i class="fas fa-play ml-1"></i> ادامه';
+        pauseBtn.classList.remove('btn-gray');
+        pauseBtn.classList.add('btn-secondary');
+        showNotification('تایمر متوقف شد');
+      } else {
+        startTimerFromCurrent();
+        isTimerPaused = false;
+        pauseBtn.innerHTML = '<i class="fas fa-pause ml-1"></i> توقف';
+        pauseBtn.classList.remove('btn-secondary');
+        pauseBtn.classList.add('btn-gray');
+        showNotification('تایمر ادامه یافت');
+      }
+    }
+
+    // ادامه تایمر از زمان فعلی
+    function startTimerFromCurrent() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          showNotification("⏰ زمان آزمون به پایان رسید!");
+          gradeExam();
+        }
+      }, 1000);
+    }
+
+    // پر کردن خودکار کلیدهای پاسخ
+    function autoFillKeys() {
+      if (!confirm('آیا می‌خواهید کلیدهای پاسخ به صورت تصادفی پر شوند؟')) return;
+      
+      examStructure.forEach(subject => {
+        for (let i = 0; i < subject.count; i++) {
+          const questionNum = subject.startQuestion + i;
+          const questionId = `${subject.subject}-q${questionNum}`;
+          const randomAnswer = Math.floor(Math.random() * 4) + 1;
+          document.getElementById(`key-${questionId}`).value = randomAnswer;
+        }
+      });
+      
+      showNotification('کلیدهای پاسخ به صورت تصادفی پر شدند');
+    }
+
+    // پر کردن کلیدهای یک درس خاص
+    function autoFillSubjectKeys(subjectName, count, startQuestion) {
+      for (let i = 0; i < count; i++) {
+        const questionNum = startQuestion + i;
+        const questionId = `${subjectName}-q${questionNum}`;
+        const randomAnswer = Math.floor(Math.random() * 4) + 1;
+        document.getElementById(`key-${questionId}`).value = randomAnswer;
+      }
+      showNotification(`کلیدهای ${subjectName} به صورت تصادفی پر شد`);
+    }
+
+    // پیش‌نمایش آزمون
+    function previewExam() {
+      let unanswered = 0;
+      let answered = 0;
+      
+      examStructure.forEach(subject => {
+        for (let i = 0; i < subject.count; i++) {
+          const questionNum = subject.startQuestion + i;
+          const questionId = `${subject.subject}-q${questionNum}`;
+          
+          if (selectedOptions[questionId]) {
+            answered++;
+          } else {
+            unanswered++;
+          }
+        }
+      });
+      
+      const totalQuestions = answered + unanswered;
+      const progress = Math.round((answered / totalQuestions) * 100);
+      
+      showNotification(`پیشرفت: ${answered} پاسخ داده شده، ${unanswered} پاسخ نداده (${progress}%)`);
+    }
+
+    // ایجاد آزمون مشابه
+    function createSimilarExam() {
+      if (!currentExamResults) {
+        showNotification('ابتدا یک آزمون را تصحیح کنید');
+        return;
+      }
+      
+      // بارگذاری تنظیمات مشابه
+      currentExamResults.subjectResults.forEach(subject => {
+        const subjectId = subjects.find(s => s.name === subject.name)?.id;
+        if (subjectId) {
+          document.getElementById(subjectId).value = subject.count;
+        }
+      });
+      
+      // پاک کردن همه چیز
+      document.getElementById('exam').innerHTML = '';
+      document.getElementById('answerKeys').classList.add('hidden');
+      document.getElementById('timer').classList.add('hidden');
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('actionSection').classList.add('hidden');
+      
+      // فعال کردن تنظیمات
+      enableSetupInputs();
+      
+      // به‌روزرسانی دکمه‌ها
+      document.getElementById('startBtn').style.display = 'block';
+      document.getElementById('resetBtn').style.display = 'none';
+      document.getElementById('editBtn').style.display = 'none';
+      
+      // به‌روزرسانی وضعیت
+      document.getElementById('setupStatus').textContent = 'آماده برای شروع';
+      document.getElementById('setupStatus').className = 'text-sm px-3 py-1 rounded-full bg-gray-700 text-gray-300';
+      document.getElementById('setup').classList.remove('setup-active');
+      
+      showNotification('تنظیمات آزمون مشابه بارگذاری شد. حالا می‌توانید آزمون جدیدی شروع کنید');
+    }
+
+    // ادامه کدهای قبلی (handleOptionClick, startTimer, gradeExam, etc.)
     function handleOptionClick(subject, questionNum, optionNum) {
+      if (!isExamActive) return;
+      
       const questionId = `${subject}-q${questionNum}`;
       
       // Reset all options for this question
@@ -1173,7 +1468,9 @@
 
     function startTimer() {
       const timeInMinutes = parseInt(document.getElementById('examTime').value);
-      timeLeft = timeInMinutes * 60;
+      originalTime = timeInMinutes * 60;
+      timeLeft = originalTime;
+      
       const timerDiv = document.getElementById('timer');
       timerDiv.classList.remove('hidden');
       updateTimerDisplay();
@@ -1207,6 +1504,7 @@
 
     function gradeExam() {
       clearInterval(timerInterval);
+      isExamActive = false;
       let totalCorrect = 0;
       let totalWrong = 0;
       let totalBlank = 0;
@@ -1460,7 +1758,7 @@
         </div>`;
 
       document.getElementById('results').innerHTML = resultsHTML;
-      document.getElementById('saveSection').classList.remove('hidden');
+      document.getElementById('actionSection').classList.remove('hidden');
       
       // ذخیره داده‌ها برای ذخیره‌سازی
       currentExamResults = {
@@ -1477,6 +1775,21 @@
       document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // نمایش اعلان
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg border-l-4 border-green-500 flex items-center z-50 animate-fade-in';
+      notification.innerHTML = `
+        <i class="fas fa-info-circle ml-2 text-green-400"></i>
+        <span>${message}</span>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
     // پرینت (نسخه ساده‌تر)
     function printResults() {
       window.print();
@@ -1485,6 +1798,7 @@
     // بارگذاری اولیه
     document.addEventListener('DOMContentLoaded', function() {
       loadExamHistory();
+      loadLastSettings();
     });
   </script>
 </body>
