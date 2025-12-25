@@ -79,7 +79,6 @@
     
     .modern-card::before {
       content: '';
-      position: absolute;
       top: 0;
       left: 0;
       right: 0;
@@ -767,7 +766,7 @@
       </div>
 
       <!-- Setup -->
-      <div id="setup" class="modern-card p-6 space-y-4 mb-8">
+      <div id="setup" class="modern-card p-6 space-y-4 mb-8 z-0">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-2xl font-bold text-green-400 flex items-center">
             <i class="fas fa-cog ml-2"></i>تنظیمات آزمون
@@ -1558,29 +1557,90 @@
           
           // ایجاد سوالات
           for (let i = 0; i < count; i++) {
-            const questionNum = globalQuestionCounter++;
-            const questionHTML = `
-              <div class="question-item" id="question-${questionNum}">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-700/30 p-4 rounded-lg gap-3">
-                  <span class="text-gray-300">سوال ${questionNum}:</span>
-                  <div class="flex items-center gap-3">
-                    ${[1,2,3,4].map(num => `
-                      <label class="option-modern">
-                        <input type="radio" class="option-input" name="${subject.name}-q${questionNum}" 
-                               onclick="handleOptionClick('${subject.name}', ${questionNum}, ${num})">
-                        <div class="option-box" data-question="${subject.name}-q${questionNum}" data-option="${num}">
-                          <span class="option-number">${num}</span>
+    const questionNum = globalQuestionCounter++;
+    const pdfPageNum = questionNum; // صفحه PDF برابر با شماره سوال
+    
+    // بررسی آیا PDF بارگذاری شده و صفحه مورد نظر وجود دارد
+    const hasPDF = totalPDFPages > 0;
+    const hasThisPage = pdfPageNum <= totalPDFPages;
+    
+    let pdfSection = '';
+    
+    if (hasPDF && hasThisPage) {
+        // اگر PDF موجود است، بخش نمایش PDF را اضافه کن
+        pdfSection = `
+            <div class="pdf-question-section mb-4">
+                <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-600">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-400">
+                            <i class="fas fa-file-pdf ml-1 text-red-400"></i>
+                            صفحه ${pdfPageNum} از ${totalPDFPages}
+                        </span>
+                        <span class="text-xs text-purple-400">سوال ${questionNum}</span>
+                    </div>
+                    <div id="pdf-image-${questionNum}" class="pdf-image-">
+                        <!-- تصویر PDF اینجا لود خواهد شد -->
+                        <div class="text-center py-6 text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
+                            <p class="text-sm">در حال بارگذاری صفحه PDF...</p>
                         </div>
-                      </label>
-                    `).join('')}
-                  </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (hasPDF && !hasThisPage) {
+        // اگر PDF موجود است اما این صفحه وجود ندارد
+        pdfSection = `
+            <div class="pdf-question-section mb-4">
+                <div class="bg-yellow-900/20 p-3 rounded-lg border border-yellow-700/30">
+                    <div class="flex items-center text-yellow-400">
+                        <i class="fas fa-exclamation-triangle ml-2"></i>
+                        <span>صفحه PDF برای سوال ${questionNum} موجود نیست</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    const questionHTML = `
+        <div class="question-container mb-6">
+            
+            
+            <div class="question-item" id="question-${questionNum}">
+              
+                <div class=" bg-gray-700/30 p-4 rounded-lg gap-3">
+                    <span class="text-gray-300">سوال ${questionNum}:</span>
+                    
+                    ${pdfSection}
+                    <div class="flex justify-between items-center items-center gap-3 mt-2">
+                        ${[1,2,3,4].map(num => `
+                            <label class="option-modern">
+                              <span class="text-gray-300">گزینه</span>
+                                <input type="radio" class="option-input" name="${subject.name}-q${questionNum}" 
+                                       onclick="handleOptionClick('${subject.name}', ${questionNum}, ${num})">
+                                <div class="option-box" data-question="${subject.name}-q${questionNum}" data-option="${num}">
+                                    <span class="option-number">${num}</span>
+                                </div>
+                            </label>
+                        `).join('')}
+                    </div>
                 </div>
                 <div class="result-card" id="result-${subject.name}-q${questionNum}"></div>
-              </div>
-            `;
-            
-            subjectHTML += questionHTML;
-          }
+            </div>
+        </div>
+    `;
+    
+    subjectHTML += questionHTML;
+    
+    // اگر PDF وجود دارد، بارگذاری تصویر صفحه را شروع کن
+    if (hasPDF && hasThisPage) {
+        // با تأخیر برای جلوگیری از بارگذاری همزمان
+        setTimeout(() => {
+            loadAndRenderPDFPage(pdfPageNum, questionNum);
+        }, i * 100);
+    }
+}
+
           
           subjectHTML += `
             </div>
@@ -1645,7 +1705,266 @@
       document.getElementById('exam').scrollIntoView({ behavior: 'smooth' });
     }
     
-    // بارگذاری صفحات PDF برای آزمون
+
+async function loadAndRenderPDFPage(pageNum, questionNum) {
+    try {
+        const container = document.getElementById(`pdf-image-${questionNum}`);
+        if (!container) return;
+        
+        // اگر صفحه در کش هست
+        if (pdfPages[pageNum]) {
+            renderHighQualityPDF(pageNum, questionNum, pdfPages[pageNum]);
+            return;
+        }
+        
+        // نمایش بارگذار در حین لود
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mb-3"></div>
+                <p class="text-sm text-gray-400">در حال بارگذاری صفحه با کیفیت بالا...</p>
+            </div>
+        `;
+        
+        // بارگذاری صفحه با کیفیت بالا
+        const page = await pdfDoc.getPage(pageNum);
+        
+        // محاسبه scale برای کیفیت خوب
+        const containerWidth = container.clientWidth - 30; // با احتساب padding
+        const viewport = page.getViewport({ scale: 1.0 });
+        const scale = containerWidth / viewport.width;
+        
+        // ایجاد canvas با کیفیت بالا
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        // تنظیم DPI برای کیفیت بالا
+        const dpi = 144;
+        const adjustedScale = scale * (dpi / 96);
+        
+        const adjustedViewport = page.getViewport({ scale: adjustedScale });
+        canvas.height = adjustedViewport.height;
+        canvas.width = adjustedViewport.width;
+        
+        // رندر با کیفیت بالا
+        const renderContext = {
+            canvasContext: context,
+            viewport: adjustedViewport,
+            enableWebGL: true,
+            renderInteractiveForms: false
+        };
+        
+        await page.render(renderContext).promise;
+        
+        // ذخیره با کیفیت بالا
+        pdfPages[pageNum] = canvas.toDataURL('image/png'); // PNG برای کیفیت بهتر
+        
+        // نمایش با کیفیت بالا
+        renderHighQualityPDF(pageNum, questionNum, pdfPages[pageNum]);
+        
+    } catch (error) {
+        console.error(`خطا در بارگذاری صفحه ${pageNum}:`, error);
+        const container = document.getElementById(`pdf-image-${questionNum}`);
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-6 text-yellow-400">
+                    <i class="fas fa-exclamation-triangle text-xl mb-2"></i>
+                    <p class="text-sm">خطا در بارگذاری صفحه</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// تابع برای نمایش PDF با کیفیت بالا
+function renderHighQualityPDF(pageNum, questionNum, imageData) {
+    const container = document.getElementById(`pdf-image-${questionNum}`);
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="relative">
+            <img src="${imageData}" 
+                 alt="سوال ${questionNum} - صفحه ${pageNum}"
+                 class="w-full h-auto rounded-lg border-2 border-gray-700 shadow-lg"
+                 style="max-height: 400px; object-fit: contain;"
+                 onclick="zoomHighQualityPDF(${pageNum}, ${questionNum})">
+            
+            <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-3 opacity-0 hover:opacity-100 transition-opacity duration-300">
+                <button onclick="zoomHighQualityPDF(${pageNum}, ${questionNum})" 
+                        class="bg-black/70 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/90">
+                    <i class="fas fa-search-plus ml-1"></i> بزرگنمایی
+                </button>
+                <button onclick="rotatePDFImage(${questionNum})" 
+                        class="bg-black/70 text-white px-3 py-1 rounded-lg text-sm hover:bg-black/90">
+                    <i class="fas fa-redo ml-1"></i> چرخش
+                </button>
+            </div>
+        </div>
+        <div class="mt-2 text-center text-xs text-gray-400">
+            برای مشاهده با کیفیت کامل، روی تصویر کلیک کنید
+        </div>
+    `;
+}
+
+// تابع بزرگنمایی با کیفیت بالا
+function zoomHighQualityPDF(pageNum, questionNum) {
+    if (!pdfPages[pageNum]) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-2';
+    modal.innerHTML = `
+        <div class="relative w-full h-full flex flex-col">
+            <!-- هدر -->
+            <div class="flex justify-between items-center bg-gray-900/80 p-4">
+                <h3 class="text-lg font-bold text-white">
+                    <i class="fas fa-file-pdf ml-2 text-red-400"></i>
+                    سوال ${questionNum} - صفحه ${pageNum}
+                </h3>
+                <div class="flex gap-2">
+                    <button onclick="rotateZoomedPDF()" 
+                            class="bg-gray-700 text-white p-2 rounded-lg hover:bg-gray-600">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button onclick="downloadPDFPage(${pageNum})" 
+                            class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove(); document.body.style.overflow = 'auto';" 
+                            class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- محتوای PDF -->
+            <div class="flex-1 overflow-auto flex items-center justify-center p-2">
+                <img src="${pdfPages[pageNum]}" 
+                     id="zoomed-pdf-image"
+                     alt="بزرگنمایی صفحه ${pageNum}"
+                     class="max-w-full max-h-full rounded-lg shadow-2xl"
+                     style="cursor: move;">
+            </div>
+            
+            <!-- فوتر -->
+            <div class="bg-gray-900/80 p-3 text-center text-sm text-gray-400">
+                از ماوس چرخان برای زوم استفاده کنید • Escape برای خروج
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // اضافه کردن قابلیت زوم با چرخ ماوس
+    const image = document.getElementById('zoomed-pdf-image');
+    let scale = 1;
+    let rotation = 0;
+    
+    image.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+            scale *= 1.1; // زوم این
+        } else {
+            scale *= 0.9; // زوم اوت
+        }
+        scale = Math.min(Math.max(0.5, scale), 5); // محدود کردن مقیاس
+        image.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+    });
+    
+    // بستن با Escape
+    document.addEventListener('keydown', function closeModal(e) {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.body.style.overflow = 'auto';
+            document.removeEventListener('keydown', closeModal);
+        }
+    });
+    
+    // بستن با کلیک بیرون
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.remove();
+            document.body.style.overflow = 'auto';
+        }
+    });
+}
+
+function rotatePDFImage(questionNum) {
+    const img = document.querySelector(`#pdf-image-${questionNum} img`);
+    if (img) {
+        const currentRotation = parseInt(img.style.transform?.replace(/[^0-9\-]/g, '') || '0');
+        const newRotation = (currentRotation + 90) % 360;
+        img.style.transform = `rotate(${newRotation}deg)`;
+        img.style.transition = 'transform 0.3s ease';
+    }
+}
+
+// تابع چرخش تصویر بزرگنمایی شده
+let zoomedRotation = 0;
+function rotateZoomedPDF() {
+    const img = document.getElementById('zoomed-pdf-image');
+    if (img) {
+        zoomedRotation = (zoomedRotation + 90) % 360;
+        const currentScale = img.style.transform.match(/scale\(([^)]+)\)/)?.[1] || '1';
+        img.style.transform = `scale(${currentScale}) rotate(${zoomedRotation}deg)`;
+        img.style.transition = 'transform 0.3s ease';
+    }
+}
+
+// تابع دانلود صفحه
+function downloadPDFPage(pageNum) {
+    if (!pdfPages[pageNum]) return;
+    
+    const link = document.createElement('a');
+    link.href = pdfPages[pageNum];
+    link.download = `صفحه-${pageNum}-ویدا.pdf`;
+    link.click();
+}
+
+
+// تابع ساده برای بزرگنمایی
+// تابع بزرگنمایی PDF - نسخه اصلاح شده
+function zoomPDFPage(pageNum, questionNum) {
+    if (!pdfPages[pageNum]) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4';
+    modal.id = "CM"
+    modal.innerHTML = `
+        <div class="relative max-w-5xl max-h-[90vh] overflow-auto">
+            <button onclick="document.getElementById("CM").remove();" 
+                    class="absolute top-4 right-4 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 z-10">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="bg-gray-900 p-6 rounded-lg">
+                <img src="${pdfPages[pageNum]}" 
+                     alt="بزرگنمایی صفحه ${pageNum}"
+                     class="max-w-full h-auto rounded-lg">
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // بستن با کلیک بیرون
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            modal.remove();
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // بستن با Escape
+    document.addEventListener('keydown', function closeOnEscape(e) {
+        if (e.key === 'Escape' && modal.parentNode) {
+            modal.remove();
+            document.body.style.overflow = 'auto';
+            document.removeEventListener('keydown', closeOnEscape);
+        }
+    });
+}
+
+
+
     async function loadPDFPagesForExam() {
       let currentPage = 1;
       
