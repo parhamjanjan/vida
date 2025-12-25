@@ -6,6 +6,8 @@
   <title>آزمون خود ارزیابی پیشرفته | ویدا</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- PDF.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
     
@@ -147,6 +149,11 @@
       transition: all 0.3s ease;
     }
     
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    }
+    
     .btn-accent {
       background: var(--gradient-accent);
       color: white;
@@ -156,6 +163,11 @@
       border: none;
       cursor: pointer;
       transition: all 0.3s ease;
+    }
+    
+    .btn-accent:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
     }
     
     .btn-purple {
@@ -169,6 +181,11 @@
       transition: all 0.3s ease;
     }
     
+    .btn-purple:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+    }
+    
     .btn-gray {
       background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
       color: white;
@@ -178,6 +195,27 @@
       border: none;
       cursor: pointer;
       transition: all 0.3s ease;
+    }
+    
+    .btn-gray:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(107, 114, 128, 0.3);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
     }
     
     /* انیمیشن‌ها */
@@ -237,6 +275,11 @@
       border-color: var(--primary-color);
       box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
       background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .input-modern:hover:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.07);
     }
     
     /* حذف فلش‌های input عددی */
@@ -509,6 +552,85 @@
       box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
     }
     
+    /* منطقه آپلود PDF */
+    .pdf-upload-area {
+      border: 2px dashed rgba(79, 70, 229, 0.3);
+      border-radius: 1rem;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      background: rgba(79, 70, 229, 0.05);
+    }
+    
+    .pdf-upload-area:hover {
+      border-color: rgba(79, 70, 229, 0.5);
+      background: rgba(79, 70, 229, 0.08);
+    }
+    
+    .pdf-upload-area.dragover {
+      border-color: var(--primary-color);
+      background: rgba(79, 70, 229, 0.1);
+      transform: scale(1.02);
+    }
+    
+    /* نمایشگر PDF */
+    .pdf-viewer-container {
+      max-height: 500px;
+      overflow-y: auto;
+      border-radius: 0.75rem;
+      background: rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+    
+    .pdf-page {
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pdf-page canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .pdf-page-number {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+    
+    /* کنترل‌های PDF */
+    .pdf-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: 0.75rem;
+    }
+    
+    /* هایلایت سوال فعال */
+    .question-highlight {
+      animation: highlight-pulse 2s infinite;
+      border-left: 4px solid var(--primary-color) !important;
+    }
+    
+    @keyframes highlight-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+    }
+    
     /* واکنش‌گرا */
     @media (max-width: 768px) {
       .option-box {
@@ -516,7 +638,7 @@
         height: 35px;
       }
       
-      .btn-primary, .btn-secondary, .btn-accent, .btn-purple, .btn-gray {
+      .btn-primary, .btn-secondary, .btn-accent, .btn-purple, .btn-gray, .btn-danger {
         padding: 0.6rem 1.5rem;
         font-size: 0.9rem;
       }
@@ -528,6 +650,10 @@
       .timer-modern {
         padding: 0.75rem;
         font-size: 0.9rem;
+      }
+      
+      .pdf-upload-area {
+        padding: 1rem;
       }
     }
     
@@ -569,7 +695,7 @@
     </div>
   </nav>
 
-  <div class="max-w-4xl w-full mx-auto relative z-10 mt-20">
+  <div class="max-w-6xl w-full mx-auto relative z-10 mt-20">
     <!-- تب‌ها -->
     <div class="tab-container">
       <button onclick="showTab('exam')" class="tab active" id="tab-exam">
@@ -593,6 +719,53 @@
         <p class="text-gray-400">طراحی شده برای ارزیابی جامع و ذخیره‌سازی نتایج</p>
       </div>
 
+      <!-- بخش PDF -->
+      <div id="pdfSection" class="modern-card p-6 space-y-4 mb-8">
+        <h2 class="text-2xl font-bold mb-4 text-purple-400 flex items-center">
+          <i class="fas fa-file-pdf ml-2"></i>آپلود سوالات PDF
+        </h2>
+        
+        <div id="pdfUploadArea" class="pdf-upload-area" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onclick="document.getElementById('pdfInput').click()">
+          <i class="fas fa-cloud-upload-alt text-4xl text-purple-400 mb-4"></i>
+          <h3 class="text-lg font-bold text-white mb-2">فایل PDF را اینجا رها کنید</h3>
+          <p class="text-gray-400 mb-4">یا برای انتخاب فایل کلیک کنید</p>
+          <p class="text-sm text-gray-500">فرمت قابل قبول: PDF | حداکثر حجم: 10MB</p>
+          <input type="file" id="pdfInput" accept=".pdf" class="hidden" onchange="handlePDFUpload(event)">
+        </div>
+        
+        <div id="pdfInfo" class="hidden mt-4 p-4 bg-gray-800/50 rounded-lg">
+          <div class="flex justify-between items-center">
+            <div>
+              <h4 class="font-bold text-white flex items-center">
+                <i class="fas fa-file-pdf ml-2 text-red-400"></i>
+                <span id="pdfFileName">فایل PDF</span>
+              </h4>
+              <p class="text-sm text-gray-400 mt-1">
+                <span id="pdfPageCount">0</span> صفحه | 
+                <span id="pdfFileSize">0</span> MB
+              </p>
+            </div>
+            <button onclick="removePDF()" class="btn-danger text-sm px-3 py-1">
+              <i class="fas fa-trash ml-1"></i> حذف
+            </button>
+          </div>
+        </div>
+        
+        <div id="pdfViewer" class="hidden mt-4 pdf-viewer-container"></div>
+        
+        <div id="pdfControls" class="pdf-controls hidden">
+          <button onclick="prevPDFPage()" class="btn-gray text-sm px-3 py-1">
+            <i class="fas fa-chevron-right ml-1"></i> صفحه قبل
+          </button>
+          <span class="text-gray-300">
+            صفحه <span id="currentPage">1</span> از <span id="totalPages">1</span>
+          </span>
+          <button onclick="nextPDFPage()" class="btn-gray text-sm px-3 py-1">
+            صفحه بعد <i class="fas fa-chevron-left mr-1"></i>
+          </button>
+        </div>
+      </div>
+
       <!-- Setup -->
       <div id="setup" class="modern-card p-6 space-y-4 mb-8">
         <div class="flex justify-between items-center mb-4">
@@ -607,31 +780,46 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="setupInputs">
           <div>
             <label class="block text-gray-300 mb-1">زیست‌شناسی:</label>
-            <input type="number" id="bioCount" min="0" value="0" class="input-modern setup-input">
+            <input type="number" id="bioCount" min="0" value="0" class="input-modern setup-input" onclick="handleInputClick(this)" oninput="validateInput(this)">
           </div>
           
           <div>
             <label class="block text-gray-300 mb-1">فیزیک:</label>
-            <input type="number" id="physCount" min="0" value="0" class="input-modern setup-input">
+            <input type="number" id="physCount" min="0" value="0" class="input-modern setup-input" onclick="handleInputClick(this)" oninput="validateInput(this)">
           </div>
           
           <div>
             <label class="block text-gray-300 mb-1">شیمی:</label>
-            <input type="number" id="chemCount" min="0" value="0" class="input-modern setup-input">
+            <input type="number" id="chemCount" min="0" value="0" class="input-modern setup-input" onclick="handleInputClick(this)" oninput="validateInput(this)">
           </div>
           
           <div>
             <label class="block text-gray-300 mb-1">ریاضی:</label>
-            <input type="number" id="mathCount" min="0" value="0" class="input-modern setup-input">
+            <input type="number" id="mathCount" min="0" value="0" class="input-modern setup-input" onclick="handleInputClick(this)" oninput="validateInput(this)">
           </div>
                   
           <div>
             <label class="block text-gray-300 mb-1">زمین‌شناسی:</label>
-            <input type="number" id="geoCount" min="0" value="0" class="input-modern setup-input">
+            <input type="number" id="geoCount" min="0" value="0" class="input-modern setup-input" onclick="handleInputClick(this)" oninput="validateInput(this)">
           </div>
           <div>
             <label class="block text-gray-300 mb-1">مدت آزمون (دقیقه):</label>
-            <input type="number" id="examTime" min="1" value="30" class="input-modern setup-input">
+            <input type="number" id="examTime" min="1" value="30" class="input-modern setup-input" onclick="handleInputClick(this)" oninput="validateInput(this)">
+          </div>
+        </div>
+        
+        <div id="totalQuestionsInfo" class="p-3 bg-gray-800/50 rounded-lg">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">تعداد کل سوالات:</span>
+            <span id="totalQuestionsCount" class="font-bold text-xl text-white">0</span>
+          </div>
+          <div id="pdfMatchInfo" class="text-sm text-gray-400 mt-1 hidden">
+            <i class="fas fa-check-circle ml-1 text-green-400"></i>
+            <span>تعداد سوالات با صفحات PDF مطابقت دارد</span>
+          </div>
+          <div id="pdfMismatchInfo" class="text-sm text-red-400 mt-1 hidden">
+            <i class="fas fa-exclamation-circle ml-1"></i>
+            <span>تعداد سوالات با صفحات PDF مطابقت ندارد!</span>
           </div>
         </div>
         
@@ -656,9 +844,14 @@
             <span id="time-display" class="text-xl font-bold">00:00</span>
             <span class="text-gray-400">زمان باقیمانده</span>
           </div>
-          <button onclick="pauseTimer()" id="pauseBtn" class="btn-gray text-sm px-3 py-1">
-            <i class="fas fa-pause ml-1"></i> توقف
-          </button>
+          <div class="flex gap-2">
+            <button onclick="pauseTimer()" id="pauseBtn" class="btn-gray text-sm px-3 py-1">
+              <i class="fas fa-pause ml-1"></i> توقف
+            </button>
+            <button onclick="endExamEarly()" class="btn-danger text-sm px-3 py-1">
+              <i class="fas fa-stop ml-1"></i> پایان آزمون
+            </button>
+          </div>
         </div>
       </div>
 
@@ -671,17 +864,22 @@
           <h2 class="text-2xl font-bold text-green-300 flex items-center">
             <i class="fas fa-key ml-2"></i> کلید پاسخ‌ها
           </h2>
-          <button onclick="autoFillKeys()" class="btn-purple text-sm px-3 py-1">
-            <i class="fas fa-magic ml-1"></i> پر کردن تصادفی
-          </button>
+          <div class="flex gap-2">
+            <button onclick="autoFillKeys()" class="btn-purple text-sm px-3 py-1">
+              <i class="fas fa-magic ml-1"></i> پر کردن تصادفی
+            </button>
+            <button onclick="previewExam()" class="btn-accent text-sm px-3 py-1">
+              <i class="fas fa-eye ml-1"></i> پیش‌نمایش
+            </button>
+          </div>
         </div>
         <div id="keyInputs" class="space-y-6"></div>
         <div class="flex gap-3 mt-6">
           <button onclick="gradeExam()" class="btn-secondary flex-1">
             <i class="fas fa-check-circle ml-2"></i> تصحیح آزمون
           </button>
-          <button onclick="previewExam()" class="btn-purple flex-1">
-            <i class="fas fa-eye ml-2"></i> پیش‌نمایش
+          <button onclick="saveExamResults()" class="btn-purple flex-1">
+            <i class="fas fa-save ml-2"></i> ذخیره نتایج
           </button>
         </div>
       </div>
@@ -692,9 +890,6 @@
       <!-- دکمه‌های پایانی -->
       <div id="actionSection" class="hidden mt-8 text-center">
         <div class="flex flex-wrap gap-3 justify-center">
-          <button onclick="saveExamResults()" class="btn-purple">
-            <i class="fas fa-save ml-2"></i> ذخیره آزمون
-          </button>
           <button onclick="printResults()" class="btn-accent">
             <i class="fas fa-print ml-2"></i> پرینت کارنامه
           </button>
@@ -737,6 +932,7 @@
     // کلید ذخیره‌سازی در localStorage
     const STORAGE_KEY = 'vida_exam_history';
     const EXAM_STATE_KEY = 'vida_exam_current_state';
+    const PDF_STORAGE_KEY = 'vida_exam_pdf_data';
     
     const subjects = [
       { name: "زیست‌شناسی", id: "bioCount", icon: "fas fa-dna", color: "from-green-400 to-emerald-500" },
@@ -755,6 +951,13 @@
     let isExamActive = false;
     let isTimerPaused = false;
     let originalTime = 0;
+    
+    // متغیرهای PDF
+    let pdfDoc = null;
+    let currentPDFPage = 1;
+    let totalPDFPages = 0;
+    let pdfPages = {};
+    let uploadedPDF = null;
 
     // مدیریت تب‌ها
     function showTab(tabName) {
@@ -774,6 +977,235 @@
       }
     }
 
+    // ============ عملکردهای جدید برای PDF ============
+    
+    // مدیریت دراگ اند دراپ
+    function handleDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const uploadArea = document.getElementById('pdfUploadArea');
+      uploadArea.classList.add('dragover');
+    }
+    
+    function handleDrop(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const uploadArea = document.getElementById('pdfUploadArea');
+      uploadArea.classList.remove('dragover');
+      
+      const files = event.dataTransfer.files;
+      if (files.length > 0 && files[0].type === 'application/pdf') {
+        loadPDFFile(files[0]);
+      } else {
+        showNotification('لطفاً یک فایل PDF معتبر آپلود کنید');
+      }
+    }
+    
+    // آپلود PDF
+    function handlePDFUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type === 'application/pdf') {
+        loadPDFFile(file);
+      } else {
+        showNotification('لطفاً یک فایل PDF معتبر انتخاب کنید');
+      }
+    }
+    
+    async function loadPDFFile(file) {
+      try {
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+          showNotification('حجم فایل باید کمتر از 10MB باشد');
+          return;
+        }
+        
+        uploadedPDF = file;
+        
+        // نمایش اطلاعات فایل
+        document.getElementById('pdfFileName').textContent = file.name;
+        document.getElementById('pdfFileSize').textContent = (file.size / (1024 * 1024)).toFixed(2);
+        document.getElementById('pdfInfo').classList.remove('hidden');
+        
+        // بارگذاری PDF با PDF.js
+        const arrayBuffer = await file.arrayBuffer();
+        pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        totalPDFPages = pdfDoc.numPages;
+        
+        document.getElementById('pdfPageCount').textContent = totalPDFPages;
+        document.getElementById('totalPages').textContent = totalPDFPages;
+        
+        // بارگذاری اولین صفحه
+        await loadPDFPage(1);
+        
+        // نمایش کنترل‌ها
+        document.getElementById('pdfControls').classList.remove('hidden');
+        
+        // بررسی تطابق با تعداد سوالات
+        checkPDFQuestionsMatch();
+        
+        showNotification('PDF با موفقیت بارگذاری شد');
+      } catch (error) {
+        console.error('خطا در بارگذاری PDF:', error);
+        showNotification('خطا در بارگذاری PDF');
+      }
+    }
+    
+    // بارگذاری صفحه PDF
+    async function loadPDFPage(pageNum) {
+      if (!pdfDoc || pageNum < 1 || pageNum > totalPDFPages) return;
+      
+      currentPDFPage = pageNum;
+      document.getElementById('currentPage').textContent = pageNum;
+      
+      // اگر صفحه قبلاً بارگذاری شده، از کش استفاده کن
+      if (pdfPages[pageNum]) {
+        renderPDFPage(pageNum);
+        return;
+      }
+      
+      try {
+        const page = await pdfDoc.getPage(pageNum);
+        const scale = 1.5;
+        const viewport = page.getViewport({ scale });
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        
+        await page.render(renderContext).promise;
+        
+        // ذخیره در کش
+        pdfPages[pageNum] = canvas.toDataURL('image/png');
+        
+        renderPDFPage(pageNum);
+      } catch (error) {
+        console.error('خطا در بارگذاری صفحه PDF:', error);
+        showNotification('خطا در بارگذاری صفحه PDF');
+      }
+    }
+    
+    // رندر صفحه PDF
+    function renderPDFPage(pageNum) {
+      const viewer = document.getElementById('pdfViewer');
+      viewer.classList.remove('hidden');
+      viewer.innerHTML = '';
+      
+      const pageDiv = document.createElement('div');
+      pageDiv.className = 'pdf-page';
+      
+      const img = document.createElement('img');
+      img.src = pdfPages[pageNum];
+      img.alt = `صفحه ${pageNum}`;
+      img.className = 'w-full h-auto';
+      
+      const pageNumber = document.createElement('div');
+      pageNumber.className = 'pdf-page-number';
+      pageNumber.textContent = `صفحه ${pageNum}`;
+      
+      pageDiv.appendChild(pageNumber);
+      pageDiv.appendChild(img);
+      viewer.appendChild(pageDiv);
+    }
+    
+    // صفحه بعدی PDF
+    function nextPDFPage() {
+      if (currentPDFPage < totalPDFPages) {
+        loadPDFPage(currentPDFPage + 1);
+      }
+    }
+    
+    // صفحه قبلی PDF
+    function prevPDFPage() {
+      if (currentPDFPage > 1) {
+        loadPDFPage(currentPDFPage - 1);
+      }
+    }
+    
+    // حذف PDF
+    function removePDF() {
+      if (confirm('آیا مطمئن هستید که می‌خواهید PDF را حذف کنید؟')) {
+        pdfDoc = null;
+        uploadedPDF = null;
+        pdfPages = {};
+        totalPDFPages = 0;
+        currentPDFPage = 1;
+        
+        document.getElementById('pdfInfo').classList.add('hidden');
+        document.getElementById('pdfViewer').classList.add('hidden');
+        document.getElementById('pdfControls').classList.add('hidden');
+        document.getElementById('pdfInput').value = '';
+        
+        // پاک کردن اطلاعات تطابق
+        document.getElementById('pdfMatchInfo').classList.add('hidden');
+        document.getElementById('pdfMismatchInfo').classList.add('hidden');
+        
+        showNotification('PDF حذف شد');
+      }
+    }
+    
+    // بررسی تطابق تعداد سوالات با صفحات PDF
+    function checkPDFQuestionsMatch() {
+      if (!totalPDFPages) return;
+      
+      const totalQuestions = calculateTotalQuestions();
+      const matchInfo = document.getElementById('pdfMatchInfo');
+      const mismatchInfo = document.getElementById('pdfMismatchInfo');
+      
+      if (totalQuestions === totalPDFPages) {
+        matchInfo.classList.remove('hidden');
+        mismatchInfo.classList.add('hidden');
+      } else {
+        matchInfo.classList.add('hidden');
+        mismatchInfo.classList.remove('hidden');
+      }
+    }
+    
+    // ============ رفع مشکلات UX ============
+    
+    // حل مشکل کلیک روی input
+    function handleInputClick(input) {
+      // این تابع مطمئن می‌شود که input قابل کلیک است
+      input.focus();
+      input.select();
+    }
+    
+    // اعتبارسنجی input
+    function validateInput(input) {
+      const value = parseInt(input.value);
+      if (isNaN(value) || value < 0) {
+        input.value = 0;
+      }
+      
+      // به‌روزرسانی تعداد کل سوالات
+      updateTotalQuestionsCount();
+      
+      // بررسی تطابق با PDF
+      if (totalPDFPages > 0) {
+        checkPDFQuestionsMatch();
+      }
+    }
+    
+    // محاسبه تعداد کل سوالات
+    function calculateTotalQuestions() {
+      let total = 0;
+      subjects.forEach(subject => {
+        const count = parseInt(document.getElementById(subject.id).value) || 0;
+        total += count;
+      });
+      return total;
+    }
+    
+    // به‌روزرسانی نمایش تعداد کل سوالات
+    function updateTotalQuestionsCount() {
+      const total = calculateTotalQuestions();
+      document.getElementById('totalQuestionsCount').textContent = total;
+    }
+    
     // بارگذاری تاریخچه آزمون‌ها
     function loadExamHistory() {
       const historyList = document.getElementById('historyList');
@@ -807,7 +1239,7 @@
                 <button onclick="viewExamDetails(${index})" class="btn-primary text-sm px-3 py-1">
                   <i class="fas fa-eye ml-1"></i> مشاهده
                 </button>
-                <button onclick="deleteExam(${index})" class="btn-accent text-sm px-3 py-1">
+                <button onclick="deleteExam(${index})" class="btn-danger text-sm px-3 py-1">
                   <i class="fas fa-trash ml-1"></i> حذف
                 </button>
               </div>
@@ -1054,52 +1486,27 @@
       return saved ? JSON.parse(saved) : [];
     }
 
-    // ذخیره آزمون جدید
-    function saveExamResults() {
-      if (!currentExamResults) {
-        showNotification('ابتدا آزمون را تصحیح کنید');
-        return;
+    // ============ عملکردهای اصلی آزمون ============
+    
+    // تولید آزمون جدید با PDF
+    function generateExam() {
+      // بررسی PDF
+      const totalQuestions = calculateTotalQuestions();
+      
+      if (totalPDFPages > 0 && totalQuestions !== totalPDFPages) {
+        if (!confirm(`تعداد سوالات (${totalQuestions}) با تعداد صفحات PDF (${totalPDFPages}) مطابقت ندارد. آیا ادامه می‌دهید؟`)) {
+          return;
+        }
       }
       
-      const exams = getSavedExams();
-      const examData = {
-        ...currentExamResults,
-        timestamp: new Date().toISOString(),
-        timeSpent: formatTimeSpent(timeLeft)
-      };
-      
-      exams.push(examData);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
-      
-      showNotification('آزمون با موفقیت ذخیره شد');
-      document.getElementById('actionSection').classList.add('hidden');
-    }
-
-    // فرمت زمان صرف شده
-    function formatTimeSpent(secondsLeft) {
-      const totalTime = parseInt(document.getElementById('examTime').value) * 60;
-      const timeSpent = totalTime - secondsLeft;
-      const minutes = Math.floor(timeSpent / 60);
-      const seconds = timeSpent % 60;
-      return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    }
-
-    // ============ عملکردهای جدید ============
-    
-    // تولید آزمون جدید با امکان تغییر تنظیمات
-    function generateExam() {
-      // ذخیره تنظیمات فعلی
-      saveCurrentSettings();
-      
       // بررسی آیا حداقل یک سوال انتخاب شده
-      const hasQuestions = subjects.some(subject => {
-        return parseInt(document.getElementById(subject.id).value) > 0;
-      });
-      
-      if (!hasQuestions) {
+      if (totalQuestions === 0) {
         showNotification('لطفاً حداقل برای یک درس سوال انتخاب کنید');
         return;
       }
+      
+      // ذخیره تنظیمات فعلی
+      saveCurrentSettings();
       
       clearInterval(timerInterval);
       examStructure = [];
@@ -1125,8 +1532,8 @@
             startQuestion: startQuestion
           });
           
-          // ایجاد کارت سوالات
-          examDiv.innerHTML += `
+          // ایجاد کارت سوالات با PDF
+          let subjectHTML = `
             <div class="modern-card p-6 mb-6">
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-green-300 text-xl font-bold flex items-center">
@@ -1134,30 +1541,53 @@
                 </h3>
                 <span class="text-sm bg-gray-700 px-3 py-1 rounded-full text-gray-300">${count} سوال</span>
               </div>
-              <div class="space-y-4" id="questions-${subject.name.replace(/\s+/g, '-')}">
-                ${[...Array(count)].map((_, i) => {
-                  const questionNum = globalQuestionCounter++;
-                  return `
-                  <div class="question-item">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-700/30 p-4 rounded-lg gap-3">
-                      <span class="text-gray-300">سوال ${questionNum}:</span>
-                      <div class="flex items-center gap-3">
-                        ${[1,2,3,4].map(num => `
-                          <label class="option-modern">
-                            <input type="radio" class="option-input" name="${subject.name}-q${questionNum}" 
-                                   onclick="handleOptionClick('${subject.name}', ${questionNum}, ${num})">
-                            <div class="option-box" data-question="${subject.name}-q${questionNum}" data-option="${num}">
-                              <span class="option-number">${num}</span>
-                            </div>
-                          </label>
-                        `).join('')}
-                      </div>
-                    </div>
-                    <div class="result-card" id="result-${subject.name}-q${questionNum}"></div>
-                  </div>
-                `}).join('')}
+          `;
+          
+          // اضافه کردن PDF اگر وجود دارد
+          if (totalPDFPages > 0) {
+            subjectHTML += `
+              <div class="pdf-viewer-container mb-4" id="pdf-viewer-${subject.name}">
+                <!-- صفحات PDF برای این درس در اینجا نمایش داده می‌شود -->
               </div>
-            </div>`;
+            `;
+          }
+          
+          subjectHTML += `
+            <div class="space-y-4" id="questions-${subject.name.replace(/\s+/g, '-')}">
+          `;
+          
+          // ایجاد سوالات
+          for (let i = 0; i < count; i++) {
+            const questionNum = globalQuestionCounter++;
+            const questionHTML = `
+              <div class="question-item" id="question-${questionNum}">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-700/30 p-4 rounded-lg gap-3">
+                  <span class="text-gray-300">سوال ${questionNum}:</span>
+                  <div class="flex items-center gap-3">
+                    ${[1,2,3,4].map(num => `
+                      <label class="option-modern">
+                        <input type="radio" class="option-input" name="${subject.name}-q${questionNum}" 
+                               onclick="handleOptionClick('${subject.name}', ${questionNum}, ${num})">
+                        <div class="option-box" data-question="${subject.name}-q${questionNum}" data-option="${num}">
+                          <span class="option-number">${num}</span>
+                        </div>
+                      </label>
+                    `).join('')}
+                  </div>
+                </div>
+                <div class="result-card" id="result-${subject.name}-q${questionNum}"></div>
+              </div>
+            `;
+            
+            subjectHTML += questionHTML;
+          }
+          
+          subjectHTML += `
+            </div>
+          </div>
+          `;
+          
+          examDiv.innerHTML += subjectHTML;
 
           // ایجاد قسمت کلید پاسخ‌ها
           keyInputsDiv.innerHTML += `
@@ -1181,7 +1611,8 @@
                   </div>
                 `}).join('')}
               </div>
-            </div>`;
+            </div>
+          `;
         }
       });
 
@@ -1203,10 +1634,74 @@
       document.getElementById('setupStatus').className = 'text-sm px-3 py-1 rounded-full bg-green-700 text-green-300';
       document.getElementById('setup').classList.add('setup-active');
       
+      // بارگذاری صفحات PDF مرتبط
+      if (totalPDFPages > 0) {
+        loadPDFPagesForExam();
+      }
+      
       startTimer();
       
       // اسکرول به بخش آزمون
       document.getElementById('exam').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // بارگذاری صفحات PDF برای آزمون
+    async function loadPDFPagesForExam() {
+      let currentPage = 1;
+      
+      for (const subject of examStructure) {
+        const viewerId = `pdf-viewer-${subject.name}`;
+        const viewer = document.getElementById(viewerId);
+        
+        if (viewer) {
+          viewer.innerHTML = '';
+          
+          for (let i = 0; i < subject.count; i++) {
+            if (currentPage > totalPDFPages) break;
+            
+            if (pdfPages[currentPage]) {
+              // اگر صفحه در کش وجود دارد
+              const pageDiv = document.createElement('div');
+              pageDiv.className = 'pdf-page mb-4';
+              
+              const img = document.createElement('img');
+              img.src = pdfPages[currentPage];
+              img.alt = `صفحه ${currentPage}`;
+              img.className = 'w-full h-auto';
+              
+              const pageNumber = document.createElement('div');
+              pageNumber.className = 'pdf-page-number';
+              pageNumber.textContent = `صفحه ${currentPage}`;
+              
+              pageDiv.appendChild(pageNumber);
+              pageDiv.appendChild(img);
+              viewer.appendChild(pageDiv);
+            } else {
+              // اگر صفحه در کش نیست، بارگذاری کن
+              await loadPDFPage(currentPage);
+              setTimeout(() => {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'pdf-page mb-4';
+                
+                const img = document.createElement('img');
+                img.src = pdfPages[currentPage];
+                img.alt = `صفحه ${currentPage}`;
+                img.className = 'w-full h-auto';
+                
+                const pageNumber = document.createElement('div');
+                pageNumber.className = 'pdf-page-number';
+                pageNumber.textContent = `صفحه ${currentPage}`;
+                
+                pageDiv.appendChild(pageNumber);
+                pageDiv.appendChild(img);
+                viewer.appendChild(pageDiv);
+              }, 100);
+            }
+            
+            currentPage++;
+          }
+        }
+      }
     }
 
     // غیرفعال کردن تنظیمات هنگام شروع آزمون
@@ -1248,6 +1743,7 @@
         if (settings.examTime) {
           document.getElementById('examTime').value = settings.examTime;
         }
+        updateTotalQuestionsCount();
       }
     }
 
@@ -1336,6 +1832,15 @@
         pauseBtn.classList.remove('btn-secondary');
         pauseBtn.classList.add('btn-gray');
         showNotification('تایمر ادامه یافت');
+      }
+    }
+    
+    // پایان دادن زودتر به آزمون
+    function endExamEarly() {
+      if (confirm('آیا مطمئن هستید که می‌خواهید آزمون را زودتر به پایان برسانید؟')) {
+        clearInterval(timerInterval);
+        showNotification("آزمون با موفقیت به پایان رسید!");
+        gradeExam();
       }
     }
 
@@ -1438,10 +1943,13 @@
       document.getElementById('setupStatus').className = 'text-sm px-3 py-1 rounded-full bg-gray-700 text-gray-300';
       document.getElementById('setup').classList.remove('setup-active');
       
+      // به‌روزرسانی تعداد سوالات
+      updateTotalQuestionsCount();
+      
       showNotification('تنظیمات آزمون مشابه بارگذاری شد. حالا می‌توانید آزمون جدیدی شروع کنید');
     }
 
-    // ادامه کدهای قبلی (handleOptionClick, startTimer, gradeExam, etc.)
+    // ادامه کدهای قبلی
     function handleOptionClick(subject, questionNum, optionNum) {
       if (!isExamActive) return;
       
@@ -1769,10 +2277,42 @@
         totalBlank: totalBlank,
         totalPercentage: totalRawPercentage,
         totalCorrectedPercentage: totalCorrectedPercentage,
-        totalCorrectedScore: totalCorrectedScore
+        totalCorrectedScore: totalCorrectedScore,
+        hasPDF: totalPDFPages > 0,
+        pdfPages: totalPDFPages
       };
       
       document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ذخیره آزمون جدید
+    function saveExamResults() {
+      if (!currentExamResults) {
+        showNotification('ابتدا آزمون را تصحیح کنید');
+        return;
+      }
+      
+      const exams = getSavedExams();
+      const examData = {
+        ...currentExamResults,
+        timestamp: new Date().toISOString(),
+        timeSpent: formatTimeSpent(timeLeft)
+      };
+      
+      exams.push(examData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
+      
+      showNotification('آزمون با موفقیت ذخیره شد');
+      document.getElementById('actionSection').classList.add('hidden');
+    }
+
+    // فرمت زمان صرف شده
+    function formatTimeSpent(secondsLeft) {
+      const totalTime = parseInt(document.getElementById('examTime').value) * 60;
+      const timeSpent = totalTime - secondsLeft;
+      const minutes = Math.floor(timeSpent / 60);
+      const seconds = timeSpent % 60;
+      return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
 
     // نمایش اعلان
@@ -1799,6 +2339,15 @@
     document.addEventListener('DOMContentLoaded', function() {
       loadExamHistory();
       loadLastSettings();
+      
+      // اضافه کردن event listener برای input‌ها
+      document.querySelectorAll('.setup-input').forEach(input => {
+        input.addEventListener('click', function(e) {
+          e.stopPropagation();
+          this.focus();
+          this.select();
+        });
+      });
     });
   </script>
 </body>
