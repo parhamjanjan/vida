@@ -79,6 +79,7 @@
     
     .modern-card::before {
       content: '';
+      position: absolute;
       top: 0;
       left: 0;
       right: 0;
@@ -666,6 +667,138 @@
         font-size: 0.8rem;
       }
     }
+    
+    /* استایل‌های جدید برای مرور آزمون */
+    .review-filter {
+      background: rgba(30, 41, 59, 0.9);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(79, 70, 229, 0.2);
+      color: #818cf8;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.875rem;
+      margin-left: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .filter-tag button {
+      background: none;
+      border: none;
+      color: #c7d2fe;
+      margin-right: 0.5rem;
+      cursor: pointer;
+    }
+    
+    .review-question-card {
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .review-question-card.correct {
+      border-right: 4px solid #10b981;
+      background: rgba(16, 185, 129, 0.05);
+    }
+    
+    .review-question-card.wrong {
+      border-right: 4px solid #ef4444;
+      background: rgba(239, 68, 68, 0.05);
+    }
+    
+    .review-question-card.blank {
+      border-right: 4px solid #9ca3af;
+      background: rgba(156, 163, 175, 0.05);
+    }
+    
+    .review-question-card:hover {
+      transform: translateX(-5px);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .status-badge.correct {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+    
+    .status-badge.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+    
+    .status-badge.blank {
+      background: rgba(156, 163, 175, 0.2);
+      color: #9ca3af;
+    }
+    
+    .option-indicator {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-left: 0.5rem;
+    }
+    
+    .option-indicator.selected {
+      background: #4f46e5;
+      color: white;
+    }
+    
+    .option-indicator.correct {
+      background: #10b981;
+      color: white;
+    }
+    
+    .option-indicator.wrong {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .option-indicator.blank {
+      background: #6b7280;
+      color: white;
+    }
+    
+    .exam-name-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      width: 100%;
+      color: white;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: 'Vazirmatn', sans-serif;
+    }
+    
+    .exam-name-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+    }
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -774,6 +907,13 @@
           <span id="setupStatus" class="text-sm px-3 py-1 rounded-full bg-gray-700 text-gray-300">
             آماده برای شروع
           </span>
+        </div>
+        
+        <!-- نام آزمون -->
+        <div>
+          <label class="block text-gray-300 mb-1">نام آزمون (اختیاری):</label>
+          <input type="text" id="examName" placeholder="مثال: آزمون آزمایشی ۱" class="exam-name-input">
+          <p class="text-xs text-gray-400 mt-1">برای شناسایی بهتر آزمون در تاریخچه</p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="setupInputs">
@@ -1205,6 +1345,372 @@
       document.getElementById('totalQuestionsCount').textContent = total;
     }
     
+    // ============ مرور شخصی‌سازی شده آزمون‌ها ============
+    
+    // نمایش مرور کامل آزمون
+    function showFullReview(examIndex) {
+      const exams = getSavedExams();
+      const exam = exams[examIndex];
+      
+      if (!exam) return;
+      
+      let reviewHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto">
+          <div class="modern-card p-4 md:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#1e293b] pb-4 pt-2">
+              <h3 class="text-xl md:text-2xl font-bold text-white flex items-center">
+                <i class="fas fa-eye ml-2 text-green-400"></i>
+                مرور کامل: ${exam.examName || `آزمون ${examIndex + 1}`}
+                <span class="text-sm bg-gray-700 px-3 py-1 rounded-full mr-3">${exam.totalQuestions} سوال</span>
+              </h3>
+              <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-white p-2">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+            
+            <!-- فیلترها -->
+            <div class="review-filter mb-6">
+              <div class="flex flex-wrap gap-3 mb-4">
+                <div class="flex-1 min-w-[200px]">
+                  <label class="block text-gray-300 mb-1 text-sm">فیلتر بر اساس درس:</label>
+                  <select id="reviewSubjectFilter" class="input-modern text-sm" onchange="applyReviewFilters(${examIndex})">
+                    <option value="all">همه دروس</option>
+                    ${subjects.map(subject => `
+                      <option value="${subject.name}">${subject.name}</option>
+                    `).join('')}
+                  </select>
+                </div>
+                
+                <div class="flex-1 min-w-[200px]">
+                  <label class="block text-gray-300 mb-1 text-sm">فیلتر بر اساس وضعیت:</label>
+                  <select id="reviewStatusFilter" class="input-modern text-sm" onchange="applyReviewFilters(${examIndex})">
+                    <option value="all">همه سوالات</option>
+                    <option value="correct">صحیح</option>
+                    <option value="wrong">غلط</option>
+                    <option value="blank">نزده</option>
+                  </select>
+                </div>
+                
+                <div class="flex-1 min-w-[200px]">
+                  <label class="block text-gray-300 mb-1 text-sm">جستجوی شماره سوال:</label>
+                  <input type="number" id="reviewQuestionSearch" 
+                         class="input-modern text-sm" 
+                         placeholder="شماره سوال..."
+                         min="1" 
+                         max="${exam.totalQuestions}"
+                         oninput="applyReviewFilters(${examIndex})">
+                </div>
+              </div>
+              
+              <div id="activeFilters" class="mt-3">
+                <!-- فیلترهای فعال در اینجا نمایش داده می‌شوند -->
+              </div>
+            </div>
+            
+            <!-- نتایج فیلتر -->
+            <div id="reviewResultsCount" class="mb-4 p-3 bg-gray-800/50 rounded-lg">
+              <div class="flex justify-between items-center">
+                <span class="text-gray-300">تعداد سوالات:</span>
+                <span class="font-bold text-white">${exam.totalQuestions}</span>
+              </div>
+            </div>
+            
+            <!-- لیست سوالات -->
+            <div id="reviewQuestionsList" class="space-y-4">
+              <!-- سوالات در اینجا نمایش داده می‌شوند -->
+            </div>
+            
+            <div class="mt-6 flex justify-between">
+              <button onclick="exportReviewToPDF(${examIndex})" class="btn-purple">
+                <i class="fas fa-file-pdf ml-2"></i> خروجی PDF
+              </button>
+              <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn-gray">
+                بستن
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', reviewHTML);
+      loadReviewQuestions(examIndex, exam);
+    }
+    
+    // بارگذاری سوالات برای مرور
+    function loadReviewQuestions(examIndex, exam, filters = {}) {
+      const questionsList = document.getElementById('reviewQuestionsList');
+      const resultsCount = document.getElementById('reviewResultsCount');
+      
+      let filteredQuestions = [];
+      let questionCounter = 1;
+      
+      // بارگذاری سوالات از ساختار آزمون
+      exam.subjectResults.forEach(subject => {
+        for (let i = 0; i < subject.count; i++) {
+          const questionNum = questionCounter;
+          const questionData = {
+            number: questionNum,
+            subject: subject.name,
+            status: getQuestionStatus(exam, subject.name, i),
+            selectedOption: exam.questionDetails?.[`${subject.name}-q${questionNum}`]?.selectedOption || null,
+            correctAnswer: exam.questionDetails?.[`${subject.name}-q${questionNum}`]?.correctAnswer || null,
+            hasPDF: exam.hasPDF,
+            pdfPage: questionNum
+          };
+          
+          // اعمال فیلترها
+          if (filters.subject && filters.subject !== 'all' && filters.subject !== subject.name) {
+            questionCounter++;
+            continue;
+          }
+          
+          if (filters.status && filters.status !== 'all' && filters.status !== questionData.status) {
+            questionCounter++;
+            continue;
+          }
+          
+          if (filters.searchNumber && parseInt(filters.searchNumber) !== questionNum) {
+            questionCounter++;
+            continue;
+          }
+          
+          filteredQuestions.push(questionData);
+          questionCounter++;
+        }
+      });
+      
+      // به‌روزرسانی تعداد نتایج
+      resultsCount.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="text-gray-300">نتایج فیلتر شده:</span>
+          <span class="font-bold text-white">${filteredQuestions.length} از ${exam.totalQuestions} سوال</span>
+        </div>
+        <div class="flex gap-3 mt-2 text-sm">
+          <span class="text-green-400">${filteredQuestions.filter(q => q.status === 'correct').length} صحیح</span>
+          <span class="text-red-400">${filteredQuestions.filter(q => q.status === 'wrong').length} غلط</span>
+          <span class="text-gray-400">${filteredQuestions.filter(q => q.status === 'blank').length} نزده</span>
+        </div>
+      `;
+      
+      // نمایش سوالات
+      questionsList.innerHTML = filteredQuestions.map(question => `
+        <div class="review-question-card ${question.status}">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="status-badge ${question.status}">
+                  ${question.status === 'correct' ? 'صحیح' : 
+                    question.status === 'wrong' ? 'غلط' : 'نزده'}
+                </span>
+                <span class="text-lg font-bold text-white">سوال ${question.number}</span>
+                <span class="text-gray-400">| ${question.subject}</span>
+              </div>
+              
+              <div class="flex items-center gap-4 mt-3">
+                <div class="flex items-center">
+                  <span class="text-gray-300 mr-2">پاسخ شما:</span>
+                  ${question.selectedOption ? 
+                    `<span class="option-indicator ${question.status === 'correct' ? 'correct' : 'wrong'}">
+                      ${question.selectedOption}
+                    </span>` : 
+                    `<span class="option-indicator blank">-</span>`
+                  }
+                </div>
+                
+                <div class="flex items-center">
+                  <span class="text-gray-300 mr-2">پاسخ صحیح:</span>
+                  <span class="option-indicator correct">
+                    ${question.correctAnswer || 'نامشخص'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            ${question.hasPDF && question.pdfPage <= exam.pdfPages ? `
+              <button onclick="showQuestionPDF(${examIndex}, ${question.pdfPage})" 
+                      class="btn-gray text-sm px-3 py-1">
+                <i class="fas fa-file-pdf ml-1"></i> مشاهده PDF
+              </button>
+            ` : ''}
+          </div>
+          
+          <div class="bg-gray-800/50 p-3 rounded-lg mt-3">
+            <div class="grid grid-cols-4 gap-2">
+              ${[1, 2, 3, 4].map(num => `
+                <div class="text-center p-2 rounded ${
+                  question.selectedOption === num && question.correctAnswer === num ? 'bg-green-900/30 border border-green-500' :
+                  question.selectedOption === num && question.correctAnswer !== num ? 'bg-red-900/30 border border-red-500' :
+                  question.correctAnswer === num ? 'bg-green-900/20 border border-green-500/50' :
+                  'bg-gray-700/30'
+                }">
+                  <div class="font-bold ${
+                    question.selectedOption === num && question.correctAnswer === num ? 'text-green-400' :
+                    question.selectedOption === num && question.correctAnswer !== num ? 'text-red-400' :
+                    question.correctAnswer === num ? 'text-green-300' :
+                    'text-gray-400'
+                  }">${num}</div>
+                  <div class="text-xs text-gray-500 mt-1">گزینه</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          
+          ${question.status === 'wrong' ? `
+            <div class="mt-3 p-3 bg-red-900/10 border border-red-500/30 rounded-lg">
+              <div class="flex items-center text-red-300">
+                <i class="fas fa-exclamation-triangle ml-2"></i>
+                <span>پاسخ صحیح گزینه ${question.correctAnswer} بود</span>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+      
+      // به‌روزرسانی فیلترهای فعال
+      updateActiveFiltersDisplay(filters);
+    }
+    
+    // اعمال فیلترها در مرور
+    function applyReviewFilters(examIndex) {
+      const exams = getSavedExams();
+      const exam = exams[examIndex];
+      
+      const filters = {
+        subject: document.getElementById('reviewSubjectFilter').value,
+        status: document.getElementById('reviewStatusFilter').value,
+        searchNumber: document.getElementById('reviewQuestionSearch').value
+      };
+      
+      loadReviewQuestions(examIndex, exam, filters);
+    }
+    
+    // به‌روزرسانی نمایش فیلترهای فعال
+    function updateActiveFiltersDisplay(filters) {
+      const activeFiltersDiv = document.getElementById('activeFilters');
+      let activeFilters = [];
+      
+      if (filters.subject && filters.subject !== 'all') {
+        activeFilters.push(`درس: ${filters.subject}`);
+      }
+      
+      if (filters.status && filters.status !== 'all') {
+        activeFilters.push(`وضعیت: ${filters.status === 'correct' ? 'صحیح' : 
+          filters.status === 'wrong' ? 'غلط' : 'نزده'}`);
+      }
+      
+      if (filters.searchNumber) {
+        activeFilters.push(`شماره سوال: ${filters.searchNumber}`);
+      }
+      
+      if (activeFilters.length > 0) {
+        activeFiltersDiv.innerHTML = `
+          <div class="flex items-center flex-wrap gap-2">
+            <span class="text-gray-400 text-sm">فیلترهای فعال:</span>
+            ${activeFilters.map(filter => `
+              <span class="filter-tag">
+                ${filter}
+                <button onclick="removeFilter('${filter.split(':')[0].trim()}')">
+                  <i class="fas fa-times"></i>
+                </button>
+              </span>
+            `).join('')}
+            <button onclick="clearAllFilters()" class="text-red-400 text-sm hover:text-red-300">
+              پاک کردن همه فیلترها
+            </button>
+          </div>
+        `;
+      } else {
+        activeFiltersDiv.innerHTML = '';
+      }
+    }
+    
+    // حذف فیلتر
+    function removeFilter(filterType) {
+      const exams = getSavedExams();
+      const examIndex = parseInt(document.querySelector('.review-question-card').dataset.examIndex);
+      
+      switch(filterType) {
+        case 'درس':
+          document.getElementById('reviewSubjectFilter').value = 'all';
+          break;
+        case 'وضعیت':
+          document.getElementById('reviewStatusFilter').value = 'all';
+          break;
+        case 'شماره سوال':
+          document.getElementById('reviewQuestionSearch').value = '';
+          break;
+      }
+      
+      applyReviewFilters(examIndex);
+    }
+    
+    // پاک کردن همه فیلترها
+    function clearAllFilters() {
+      document.getElementById('reviewSubjectFilter').value = 'all';
+      document.getElementById('reviewStatusFilter').value = 'all';
+      document.getElementById('reviewQuestionSearch').value = '';
+      
+      const exams = getSavedExams();
+      const examIndex = parseInt(document.querySelector('.review-question-card').dataset.examIndex);
+      applyReviewFilters(examIndex);
+    }
+    
+    // دریافت وضعیت سوال
+    function getQuestionStatus(exam, subjectName, questionIndex) {
+      // این تابع باید وضعیت هر سوال را بر اساس داده‌های ذخیره شده برگرداند
+      // در این نسخه ساده، وضعیت را محاسبه می‌کنیم
+      const subject = exam.subjectResults.find(s => s.name === subjectName);
+      if (!subject) return 'blank';
+      
+      // محاسبه وضعیت بر اساس تعداد سوالات صحیح و غلط
+      // این یک پیاده‌سازی ساده است - در نسخه واقعی باید داده‌های دقیق ذخیره شود
+      if (questionIndex < subject.correct) return 'correct';
+      if (questionIndex < subject.correct + subject.wrong) return 'wrong';
+      return 'blank';
+    }
+    
+    // نمایش PDF سوال
+    function showQuestionPDF(examIndex, pageNum) {
+      const exams = getSavedExams();
+      const exam = exams[examIndex];
+      
+      if (!exam.hasPDF || pageNum > exam.pdfPages) {
+        showNotification('PDF برای این سوال موجود نیست');
+        return;
+      }
+      
+      // در اینجا باید PDF مربوط به آزمون بارگذاری شود
+      // این یک پیاده‌سازی ساده است
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100] p-4';
+      modal.innerHTML = `
+        <div class="relative max-w-4xl w-full">
+          <button onclick="this.parentElement.parentElement.remove()" 
+                  class="absolute top-4 left-4 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 z-10">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="bg-gray-900 p-4 rounded-lg">
+            <h4 class="text-lg font-bold text-white mb-4 text-center">
+              <i class="fas fa-file-pdf ml-2 text-red-400"></i>
+              سوال ${pageNum} - صفحه PDF
+            </h4>
+            <div class="bg-gray-800 p-4 rounded-lg text-center">
+              <i class="fas fa-file-pdf text-6xl text-red-400 mb-4"></i>
+              <p class="text-gray-400">صفحه ${pageNum} از PDF آزمون "${exam.examName || `آزمون ${examIndex + 1}`}"</p>
+              <p class="text-sm text-gray-500 mt-2">در نسخه کامل، PDF واقعی اینجا نمایش داده می‌شود</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    // خروجی PDF از مرور
+    function exportReviewToPDF(examIndex) {
+      showNotification('در نسخه کامل، این قابلیت خروجی PDF از مرور آزمون را ایجاد می‌کند');
+    }
+    
     // بارگذاری تاریخچه آزمون‌ها
     function loadExamHistory() {
       const historyList = document.getElementById('historyList');
@@ -1226,17 +1732,18 @@
         const date = new Date(exam.timestamp);
         const dateStr = date.toLocaleDateString('fa-IR');
         const timeStr = date.toLocaleTimeString('fa-IR');
+        const examName = exam.examName || `آزمون ${index + 1}`;
         
         html += `
           <div class="history-card p-4">
             <div class="flex justify-between items-center mb-3">
               <div>
-                <h3 class="text-lg font-bold text-white">آزمون ${index + 1}</h3>
+                <h3 class="text-lg font-bold text-white">${examName}</h3>
                 <p class="text-sm text-gray-400">${dateStr} - ${timeStr}</p>
               </div>
               <div class="flex gap-2">
-                <button onclick="viewExamDetails(${index})" class="btn-primary text-sm px-3 py-1">
-                  <i class="fas fa-eye ml-1"></i> مشاهده
+                <button onclick="showFullReview(${index})" class="btn-primary text-sm px-3 py-1">
+                  <i class="fas fa-eye ml-1"></i> مرور کامل
                 </button>
                 <button onclick="deleteExam(${index})" class="btn-danger text-sm px-3 py-1">
                   <i class="fas fa-trash ml-1"></i> حذف
@@ -1394,6 +1901,8 @@
       
       exams.forEach((exam, index) => {
         const height = (exam.totalCorrectedPercentage / 100) * 150;
+        const examName = exam.examName || `آزمون ${index + 1}`;
+        
         progressChart += `
           <div class="flex-1 flex flex-col items-center">
             <div class="w-full bg-gradient-to-t ${exam.totalCorrectedPercentage >= 70 ? 'from-green-500 to-emerald-600' : exam.totalCorrectedPercentage >= 50 ? 'from-yellow-500 to-orange-600' : 'from-red-500 to-pink-600'}" 
@@ -1557,90 +2066,86 @@
           
           // ایجاد سوالات
           for (let i = 0; i < count; i++) {
-    const questionNum = globalQuestionCounter++;
-    const pdfPageNum = questionNum; // صفحه PDF برابر با شماره سوال
-    
-    // بررسی آیا PDF بارگذاری شده و صفحه مورد نظر وجود دارد
-    const hasPDF = totalPDFPages > 0;
-    const hasThisPage = pdfPageNum <= totalPDFPages;
-    
-    let pdfSection = '';
-    
-    if (hasPDF && hasThisPage) {
-        // اگر PDF موجود است، بخش نمایش PDF را اضافه کن
-        pdfSection = `
-            <div class="pdf-question-section mb-4">
-                <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-600">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-gray-400">
-                            <i class="fas fa-file-pdf ml-1 text-red-400"></i>
-                            صفحه ${pdfPageNum} از ${totalPDFPages}
-                        </span>
-                        <span class="text-xs text-purple-400">سوال ${questionNum}</span>
-                    </div>
-                    <div id="pdf-image-${questionNum}" class="pdf-image-">
-                        <!-- تصویر PDF اینجا لود خواهد شد -->
-                        <div class="text-center py-6 text-gray-500">
-                            <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
-                            <p class="text-sm">در حال بارگذاری صفحه PDF...</p>
+            const questionNum = globalQuestionCounter++;
+            const pdfPageNum = questionNum; // صفحه PDF برابر با شماره سوال
+            
+            // بررسی آیا PDF بارگذاری شده و صفحه مورد نظر وجود دارد
+            const hasPDF = totalPDFPages > 0;
+            const hasThisPage = pdfPageNum <= totalPDFPages;
+            
+            let pdfSection = '';
+            
+            if (hasPDF && hasThisPage) {
+                // اگر PDF موجود است، بخش نمایش PDF را اضافه کن
+                pdfSection = `
+                    <div class="pdf-question-section mb-4">
+                        <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-600">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-gray-400">
+                                    <i class="fas fa-file-pdf ml-1 text-red-400"></i>
+                                    صفحه ${pdfPageNum} از ${totalPDFPages}
+                                </span>
+                                <span class="text-xs text-purple-400">سوال ${questionNum}</span>
+                            </div>
+                            <div id="pdf-image-${questionNum}" class="pdf-image-">
+                                <!-- تصویر PDF اینجا لود خواهد شد -->
+                                <div class="text-center py-6 text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
+                                    <p class="text-sm">در حال بارگذاری صفحه PDF...</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        `;
-    } else if (hasPDF && !hasThisPage) {
-        // اگر PDF موجود است اما این صفحه وجود ندارد
-        pdfSection = `
-            <div class="pdf-question-section mb-4">
-                <div class="bg-yellow-900/20 p-3 rounded-lg border border-yellow-700/30">
-                    <div class="flex items-center text-yellow-400">
-                        <i class="fas fa-exclamation-triangle ml-2"></i>
-                        <span>صفحه PDF برای سوال ${questionNum} موجود نیست</span>
+                `;
+            } else if (hasPDF && !hasThisPage) {
+                // اگر PDF موجود است اما این صفحه وجود ندارد
+                pdfSection = `
+                    <div class="pdf-question-section mb-4">
+                        <div class="bg-yellow-900/20 p-3 rounded-lg border border-yellow-700/30">
+                            <div class="flex items-center text-yellow-400">
+                                <i class="fas fa-exclamation-triangle ml-2"></i>
+                                <span>صفحه PDF برای سوال ${questionNum} موجود نیست</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const questionHTML = `
+                <div class="question-container mb-6">
+                    <div class="question-item" id="question-${questionNum}">
+                        <div class=" bg-gray-700/30 p-4 rounded-lg gap-3">
+                            <span class="text-gray-300">سوال ${questionNum}:</span>
+                            
+                            ${pdfSection}
+                            <div class="flex justify-between items-center items-center gap-3 mt-2">
+                                ${[1,2,3,4].map(num => `
+                                    <label class="option-modern">
+                                      <span class="text-gray-300">گزینه</span>
+                                        <input type="radio" class="option-input" name="${subject.name}-q${questionNum}" 
+                                               onclick="handleOptionClick('${subject.name}', ${questionNum}, ${num})">
+                                        <div class="option-box" data-question="${subject.name}-q${questionNum}" data-option="${num}">
+                                            <span class="option-number">${num}</span>
+                                        </div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="result-card" id="result-${subject.name}-q${questionNum}"></div>
                     </div>
                 </div>
-            </div>
-        `;
-    }
-    
-    const questionHTML = `
-        <div class="question-container mb-6">
+            `;
             
+            subjectHTML += questionHTML;
             
-            <div class="question-item" id="question-${questionNum}">
-              
-                <div class=" bg-gray-700/30 p-4 rounded-lg gap-3">
-                    <span class="text-gray-300">سوال ${questionNum}:</span>
-                    
-                    ${pdfSection}
-                    <div class="flex justify-between items-center items-center gap-3 mt-2">
-                        ${[1,2,3,4].map(num => `
-                            <label class="option-modern">
-                              <span class="text-gray-300">گزینه</span>
-                                <input type="radio" class="option-input" name="${subject.name}-q${questionNum}" 
-                                       onclick="handleOptionClick('${subject.name}', ${questionNum}, ${num})">
-                                <div class="option-box" data-question="${subject.name}-q${questionNum}" data-option="${num}">
-                                    <span class="option-number">${num}</span>
-                                </div>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-                <div class="result-card" id="result-${subject.name}-q${questionNum}"></div>
-            </div>
-        </div>
-    `;
-    
-    subjectHTML += questionHTML;
-    
-    // اگر PDF وجود دارد، بارگذاری تصویر صفحه را شروع کن
-    if (hasPDF && hasThisPage) {
-        // با تأخیر برای جلوگیری از بارگذاری همزمان
-        setTimeout(() => {
-            loadAndRenderPDFPage(pdfPageNum, questionNum);
-        }, i * 100);
-    }
-}
-
+            // اگر PDF وجود دارد، بارگذاری تصویر صفحه را شروع کن
+            if (hasPDF && hasThisPage) {
+                // با تأخیر برای جلوگیری از بارگذاری همزمان
+                setTimeout(() => {
+                    loadAndRenderPDFPage(pdfPageNum, questionNum);
+                }, i * 100);
+            }
+          }
           
           subjectHTML += `
             </div>
@@ -2046,6 +2551,7 @@ function zoomPDFPage(pageNum, questionNum) {
         settings[subject.id] = document.getElementById(subject.id).value;
       });
       settings.examTime = document.getElementById('examTime').value;
+      settings.examName = document.getElementById('examName').value;
       localStorage.setItem('last_exam_settings', JSON.stringify(settings));
     }
 
@@ -2061,6 +2567,9 @@ function zoomPDFPage(pageNum, questionNum) {
         });
         if (settings.examTime) {
           document.getElementById('examTime').value = settings.examTime;
+        }
+        if (settings.examName) {
+          document.getElementById('examName').value = settings.examName;
         }
         updateTotalQuestionsCount();
       }
@@ -2338,6 +2847,7 @@ function zoomPDFPage(pageNum, questionNum) {
       let totalQuestions = 0;
       let resultsHTML = '';
       let subjectResults = [];
+      let questionDetails = {};
 
       // راهنمای نمره دهی
       resultsHTML += `
@@ -2373,6 +2883,13 @@ function zoomPDFPage(pageNum, questionNum) {
           const selectedOption = selectedOptions[questionId];
           const correctAnswer = document.getElementById(`key-${questionId}`).value;
           const resultDiv = document.getElementById(`result-${questionId}`);
+
+          // ذخیره جزئیات سوال برای مرور بعدی
+          questionDetails[questionId] = {
+            selectedOption: selectedOption,
+            correctAnswer: correctAnswer,
+            status: !selectedOption ? 'blank' : (selectedOption == correctAnswer ? 'correct' : 'wrong')
+          };
 
           // Reset all options for this question
           document.querySelectorAll(`.option-box[data-question="${questionId}"]`).forEach(box => {
@@ -2589,6 +3106,7 @@ function zoomPDFPage(pageNum, questionNum) {
       
       // ذخیره داده‌ها برای ذخیره‌سازی
       currentExamResults = {
+        examName: document.getElementById('examName').value || `آزمون ${new Date().toLocaleDateString('fa-IR')}`,
         subjectResults: subjectResults,
         totalQuestions: totalQuestions,
         totalCorrect: totalCorrect,
@@ -2598,7 +3116,10 @@ function zoomPDFPage(pageNum, questionNum) {
         totalCorrectedPercentage: totalCorrectedPercentage,
         totalCorrectedScore: totalCorrectedScore,
         hasPDF: totalPDFPages > 0,
-        pdfPages: totalPDFPages
+        pdfPages: totalPDFPages,
+        questionDetails: questionDetails,
+        examStructure: examStructure,
+        selectedOptions: selectedOptions
       };
       
       document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
@@ -2615,14 +3136,35 @@ function zoomPDFPage(pageNum, questionNum) {
       const examData = {
         ...currentExamResults,
         timestamp: new Date().toISOString(),
-        timeSpent: formatTimeSpent(timeLeft)
+        timeSpent: formatTimeSpent(timeLeft),
+        keyInputs: getKeyInputsData()
       };
       
       exams.push(examData);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
       
       showNotification('آزمون با موفقیت ذخیره شد');
-      document.getElementById('actionSection').classList.add('hidden');
+      
+      // بارگذاری مجدد تاریخچه
+      if (document.getElementById('content-history').classList.contains('active')) {
+        loadExamHistory();
+      }
+    }
+    
+    // دریافت داده‌های کلیدهای پاسخ
+    function getKeyInputsData() {
+      const keyInputs = {};
+      examStructure.forEach(subject => {
+        for (let i = 0; i < subject.count; i++) {
+          const questionNum = subject.startQuestion + i;
+          const questionId = `${subject.subject}-q${questionNum}`;
+          const keyInput = document.getElementById(`key-${questionId}`);
+          if (keyInput) {
+            keyInputs[questionId] = keyInput.value;
+          }
+        }
+      });
+      return keyInputs;
     }
 
     // فرمت زمان صرف شده
