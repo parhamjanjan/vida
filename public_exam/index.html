@@ -1634,7 +1634,7 @@
     // دریافت PDF از IndexedDB
     if (exam.hasPDF) {
         try {
-            const pdfData = await getPDFFromIndexedDB(examIndex);
+            const pdfData = getPDFFromIndexedDB(examIndex);
             if (pdfData) {
                 savedPDFs[examIndex] = pdfData;
             }
@@ -2147,7 +2147,7 @@
       try {
         // استفاده از PDF ذخیره شده یا بارگذاری جدید
         let imageData = null;
-        
+        console.log(examIndex)
         if (savedPDFs[examIndex] && savedPDFs[examIndex][pageNum]) {
           imageData = savedPDFs[examIndex][pageNum];
         } else if (exam.pdfData && exam.pdfData[pageNum]) {
