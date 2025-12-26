@@ -1629,7 +1629,19 @@
     
     function showFullReview(examIndex) {
       const exams = getSavedExams();
-      const exam = exams[examIndex];
+    const exam = exams[examIndex];
+    
+    // دریافت PDF از IndexedDB
+    if (exam.hasPDF) {
+        try {
+            const pdfData = await getPDFFromIndexedDB(examIndex);
+            if (pdfData) {
+                savedPDFs[examIndex] = pdfData;
+            }
+        } catch (error) {
+            console.error('خطا در دریافت PDF:', error);
+        }
+    }
       
       if (!exam) return;
       
@@ -2546,6 +2558,68 @@
       
       document.getElementById('exam').scrollIntoView({ behavior: 'smooth' });
     }
+
+
+// در بالای اسکریپت بعد از متغیرها
+let db;
+
+function initIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('VidaExamsDB', 1);
+        
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains('pdfs')) {
+                db.createObjectStore('pdfs', { keyPath: 'id' });
+            }
+        };
+        
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            resolve(db);
+        };
+        
+        request.onerror = function(e) {
+            reject(e.target.error);
+        };
+    });
+}
+
+
+
+    async function savePDFToIndexedDB(examId, pdfPages) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['pdfs'], 'readwrite');
+        const store = transaction.objectStore('pdfs');
+        
+        const pdfData = {
+            id: `exam_${examId}`,
+            pages: pdfPages,
+            timestamp: Date.now()
+        };
+        
+        const request = store.put(pdfData);
+        
+        request.onsuccess = () => resolve(examId);
+        request.onerror = (e) => reject(e.target.error);
+    });
+}
+
+
+
+    async function getPDFFromIndexedDB(examId) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['pdfs'], 'readonly');
+        const store = transaction.objectStore('pdfs');
+        
+        const request = store.get(`exam_${examId}`);
+        
+        request.onsuccess = (e) => resolve(e.target.result?.pages || null);
+        request.onerror = (e) => reject(e.target.error);
+    });
+}
+
+
     
     async function loadAndRenderPDFPage(pageNum, questionNum) {
       try {
@@ -3360,22 +3434,35 @@
       document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
     }
     
-    function saveExamResults() {
-      if (!currentExamResults) {
-        showNotification('ابتدا آزمون را تصحیح کنید');
-        return;
-      }
-      
-      const exams = getSavedExams();
-      exams.push(currentExamResults);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
-      
-      showNotification('آزمون با موفقیت ذخیره شد');
-      
-      if (document.getElementById('content-history').classList.contains('active')) {
-        loadExamHistory();
-      }
+    async function saveExamResults() {
+    if (!currentExamResults) return;
+    
+    const exams = getSavedExams();
+    const examId = exams.length;
+    
+    // ذخیره PDF در IndexedDB اگر وجود دارد
+    if (pdfPages && Object.keys(pdfPages).length > 0) {
+        try {
+            await savePDFToIndexedDB(examId, pdfPages);
+            currentExamResults.hasPDF = true;
+            currentExamResults.pdfStoredInIndexedDB = true;
+        } catch (error) {
+            console.error('خطا در ذخیره PDF:', error);
+        }
     }
+    
+    // حذف داده‌های PDF سنگین از LocalStorage
+    delete currentExamResults.pdfData;
+    delete currentExamResults.pdfPages;
+    
+    exams.push(currentExamResults);
+    
+    // محدودیت تعداد آزمون‌ها
+    if (exams.length > 50) exams.splice(0, 20);
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
+    showNotification('آزمون ذخیره شد');
+}
     
     function getKeyInputsData() {
       const keyInputs = {};
@@ -3547,20 +3634,16 @@
     function printResults() {
       window.print();
     }
-    
-    // بارگذاری اولیه
     document.addEventListener('DOMContentLoaded', function() {
-      loadExamHistory();
-      loadLastSettings();
-      
-      document.querySelectorAll('.setup-input').forEach(input => {
-        input.addEventListener('click', function(e) {
-          e.stopPropagation();
-          this.focus();
-          this.select();
-        });
-      });
+    initIndexedDB().then(() => {
+        console.log('IndexedDB آماده است');
     });
+    loadExamHistory();
+    loadLastSettings();
+});
+
+    // بارگذاری اولیه
+   
   </script>
 </body>
 </html>
