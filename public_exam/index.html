@@ -3634,12 +3634,22 @@ function initIndexedDB() {
     function printResults() {
       window.print();
     }
-    document.addEventListener('DOMContentLoaded', function() {
+
+    
+document.addEventListener('DOMContentLoaded', function() {
     initIndexedDB().then(() => {
         console.log('IndexedDB آماده است');
     });
     loadExamHistory();
     loadLastSettings();
+    
+    document.querySelectorAll('.setup-input').forEach(input => {
+        input.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.focus();
+            this.select();
+        });
+    });
 });
 
     // بارگذاری اولیه
