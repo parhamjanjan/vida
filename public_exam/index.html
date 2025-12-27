@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- PDF.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
     
@@ -1094,6 +1095,133 @@
     .glow {
       animation: glow 2s ease-in-out infinite;
     }
+    
+    /* استایل‌های جدید برای تحلیل */
+    .chart-container {
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stat-item {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: #94a3b8;
+      font-size: 0.875rem;
+    }
+    
+    .improvement-tip {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    
+    .tip-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.5rem;
+      color: white;
+    }
+    
+    /* فیلترهای پیشرفته */
+    .advanced-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .filter-group {
+      background: rgba(30, 41, 59, 0.6);
+      border-radius: 1rem;
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .filter-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #94a3b8;
+      font-size: 0.875rem;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      color: white;
+      font-family: 'Vazirmatn', sans-serif;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    }
+    
+    .subject-select {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      color: white;
+      font-family: 'Vazirmatn', sans-serif;
+      cursor: pointer;
+    }
+    
+    .subject-select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    }
+    
+    .clear-filters-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+      border: none;
+      border-radius: 0.75rem;
+      color: white;
+      font-family: 'Vazirmatn', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .clear-filters-btn:hover {
+      background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -1365,8 +1493,7 @@
   <script>
     // کلید ذخیره‌سازی در localStorage
     const STORAGE_KEY = 'vida_exam_history';
-    const EXAM_STATE_KEY = 'vida_exam_current_state';
-    const PDF_STORAGE_KEY = 'vida_exam_pdf_data';
+    const PDF_STORAGE_KEY = 'vida_pdf_data_';
     
     const subjects = [
       { name: "زیست‌شناسی", id: "bioCount", icon: "fas fa-dna", color: "from-green-400 to-emerald-500" },
@@ -1392,21 +1519,19 @@
     let totalPDFPages = 0;
     let pdfPages = {};
     let uploadedPDF = null;
+    let pdfFileName = '';
     
     // PDFهای ذخیره شده برای مرور
     let savedPDFs = {};
 
     // ============ مدیریت تب‌ها ============
     function showTab(tabName) {
-      // غیرفعال کردن همه تب‌ها
       document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       
-      // فعال کردن تب انتخاب شده
       document.getElementById(`tab-${tabName}`).classList.add('active');
       document.getElementById(`content-${tabName}`).classList.add('active');
       
-      // بارگذاری داده‌های مربوطه
       if (tabName === 'history') {
         loadExamHistory();
       } else if (tabName === 'analysis') {
@@ -1454,13 +1579,12 @@
         }
         
         uploadedPDF = file;
+        pdfFileName = file.name;
         
-        // نمایش اطلاعات فایل
         document.getElementById('pdfFileName').textContent = file.name;
         document.getElementById('pdfFileSize').textContent = (file.size / (1024 * 1024)).toFixed(2);
         document.getElementById('pdfInfo').classList.remove('hidden');
         
-        // بارگذاری PDF با PDF.js
         const arrayBuffer = await file.arrayBuffer();
         pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         totalPDFPages = pdfDoc.numPages;
@@ -1468,13 +1592,9 @@
         document.getElementById('pdfPageCount').textContent = totalPDFPages;
         document.getElementById('totalPages').textContent = totalPDFPages;
         
-        // بارگذاری اولین صفحه
         await loadPDFPage(1);
         
-        // نمایش کنترل‌ها
         document.getElementById('pdfControls').classList.remove('hidden');
-        
-        // بررسی تطابق با تعداد سوالات
         checkPDFQuestionsMatch();
         
         showNotification('PDF با موفقیت بارگذاری شد');
@@ -1562,6 +1682,7 @@
         pdfPages = {};
         totalPDFPages = 0;
         currentPDFPage = 1;
+        pdfFileName = '';
         
         document.getElementById('pdfInfo').classList.add('hidden');
         document.getElementById('pdfViewer').classList.add('hidden');
@@ -1572,6 +1693,46 @@
         document.getElementById('pdfMismatchInfo').classList.add('hidden');
         
         showNotification('PDF حذف شد');
+      }
+    }
+    
+    // تابع جدید برای ذخیره PDF در localStorage
+    async function savePDFToStorage(examId) {
+      if (!pdfDoc) return null;
+      
+      try {
+        // ذخیره صفحات PDF به صورت Base64
+        const savedPages = {};
+        for (let i = 1; i <= totalPDFPages; i++) {
+          if (pdfPages[i]) {
+            savedPages[i] = pdfPages[i];
+          }
+        }
+        
+        const pdfData = {
+          fileName: pdfFileName,
+          pages: savedPages,
+          totalPages: totalPDFPages
+        };
+        
+        localStorage.setItem(PDF_STORAGE_KEY + examId, JSON.stringify(pdfData));
+        return pdfData;
+      } catch (error) {
+        console.error('خطا در ذخیره PDF:', error);
+        return null;
+      }
+    }
+    
+    // تابع جدید برای بارگذاری PDF از localStorage
+    function loadPDFFromStorage(examId) {
+      try {
+        const pdfData = localStorage.getItem(PDF_STORAGE_KEY + examId);
+        if (!pdfData) return null;
+        
+        return JSON.parse(pdfData);
+      } catch (error) {
+        console.error('خطا در بارگذاری PDF:', error);
+        return null;
       }
     }
     
@@ -1625,30 +1786,24 @@
       document.getElementById('totalQuestionsCount').textContent = total;
     }
 
-    // ============ مرور شخصی‌سازی شده آزمون‌ها ============
+    // ============ مرور شخصی‌سازی شده آزمون‌ها با فیلترهای پیشرفته ============
     
     function showFullReview(examIndex) {
       const exams = getSavedExams();
-    const exam = exams[examIndex];
-    
-    // دریافت PDF از IndexedDB
-    if (exam.hasPDF) {
-        try {
-            const pdfData = getPDFFromIndexedDB(examIndex);
-            if (pdfData) {
-                savedPDFs[examIndex] = pdfData;
-            }
-        } catch (error) {
-            console.error('خطا در دریافت PDF:', error);
-        }
-    }
+      const exam = exams[examIndex];
       
       if (!exam) return;
       
+      // بارگذاری PDF از localStorage
+      let pdfData = null;
+      if (exam.hasPDF) {
+        pdfData = loadPDFFromStorage(examIndex);
+      }
+      
       let reviewHTML = `
-        <div class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto animate-slide-in custom-scrollbar">
-          <div class="modern-card p-4 md:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#1e293b] pb-4 pt-2 z-10">
+        <div class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 md:p-4 overflow-y-auto animate-slide-in custom-scrollbar">
+          <div class="modern-card   w-full max-w-6xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex rounded-lg px-3 justify-between items-center mb-6 sticky top-0 bg-[#1e293b] pb-4 pt-2 z-10">
               <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                   <i class="fas fa-eye text-white text-xl"></i>
@@ -1665,61 +1820,58 @@
                 <i class="fas fa-times text-xl"></i>
               </button>
             </div>
-            
-            <!-- فیلترها -->
+            <div class="p-4 md:p-6">
+            <!-- فیلترهای پیشرفته -->
             <div class="review-filter animate-slide-in" style="animation-delay: 0.1s">
               <h4 class="text-lg font-bold text-white mb-4 flex items-center">
                 <i class="fas fa-filter ml-2 text-blue-400"></i>
                 فیلترهای پیشرفته
               </h4>
               
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                  <label class="block text-gray-300 mb-2 text-sm">درس مورد نظر:</label>
-                  <select id="reviewSubjectFilter" class="input-modern text-sm bg-gray-800/50" onchange="applyReviewFilters(${examIndex})">
-                    <option value="all">همه دروس</option>
+              <div class="advanced-filters">
+                <div class="filter-group">
+                  <label>فیلتر بر اساس درس:</label>
+                  <select id="reviewSubjectFilter" class="subject-select bg-gray-700" onchange="applyReviewFilters(${examIndex})">
+                    <option class="" value="all">همه دروس</option>
                     ${subjects.map(subject => `
                       <option value="${subject.name}">${subject.name}</option>
                     `).join('')}
                   </select>
                 </div>
                 
-                <div>
-                  <label class="block text-gray-300 mb-2 text-sm">وضعیت سوالات:</label>
+                <div class="filter-group">
+                  <label>فیلتر بر اساس وضعیت:</label>
                   <div class="flex gap-2 flex-wrap">
-                    <button onclick="setStatusFilter('all', ${examIndex})" 
-                            class="filter-btn active" id="status-all">
+                    <button onclick="setReviewStatusFilter('all', ${examIndex})" 
+                            class="filter-btn active" id="review-filter-all">
                       <i class="fas fa-layer-group ml-1"></i>همه
                     </button>
-                    <button onclick="setStatusFilter('correct', ${examIndex})" 
-                            class="filter-btn" id="status-correct">
+                    <button onclick="setReviewStatusFilter('correct', ${examIndex})" 
+                            class="filter-btn" id="review-filter-correct">
                       <i class="fas fa-check-circle ml-1 text-green-400"></i>صحیح
                     </button>
-                    <button onclick="setStatusFilter('wrong', ${examIndex})" 
-                            class="filter-btn" id="status-wrong">
+                    <button onclick="setReviewStatusFilter('wrong', ${examIndex})" 
+                            class="filter-btn" id="review-filter-wrong">
                       <i class="fas fa-times-circle ml-1 text-red-400"></i>غلط
                     </button>
-                    <button onclick="setStatusFilter('blank', ${examIndex})" 
-                            class="filter-btn" id="status-blank">
+                    <button onclick="setReviewStatusFilter('blank', ${examIndex})" 
+                            class="filter-btn" id="review-filter-blank">
                       <i class="fas fa-circle ml-1 text-gray-400"></i>نزده
                     </button>
                   </div>
                 </div>
                 
-                <div>
-                  <label class="block text-gray-300 mb-2 text-sm">شماره سوال:</label>
-                  <div class="flex gap-2">
-                    <input type="number" id="reviewQuestionSearch" 
-                           class="input-modern text-sm bg-gray-800/50 flex-1" 
-                           placeholder="جستجوی شماره سوال..."
-                           min="1" 
-                           max="${exam.totalQuestions}"
-                           oninput="applyReviewFilters(${examIndex})">
-                    <button onclick="clearSearch(${examIndex})" class="btn-gray text-sm px-3">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
+                <div class="filter-group">
+                  <label>جستجوی شماره سوال:</label>
+                  <input type="number" id="reviewQuestionSearch" 
+                         class="search-input" 
+                         placeholder="شماره سوال مورد نظر..."
+                         min="1" 
+                         max="${exam.totalQuestions}"
+                         oninput="applyReviewFilters(${examIndex})">
                 </div>
+                
+                
               </div>
               
               <div id="activeFilters" class="mt-4">
@@ -1763,41 +1915,56 @@
                 برای مشاهده PDF سوال، روی دکمه "مشاهده PDF" کلیک کنید
               </div>
               <div class="flex gap-2">
-                <button onclick="exportReviewToPDF(${examIndex})" class="btn-purple">
-                  <i class="fas fa-file-pdf ml-2"></i> خروجی PDF
-                </button>
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn-gray">
+                <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" class="btn-gray">
                   <i class="fas fa-times ml-2"></i> بستن
                 </button>
               </div>
             </div>
           </div>
         </div>
+        </div>
       `;
       
       document.body.insertAdjacentHTML('beforeend', reviewHTML);
-      loadReviewQuestions(examIndex, exam);
+      loadReviewQuestions(examIndex, exam, pdfData, 'all', 'all', '');
     }
     
-    function setStatusFilter(status, examIndex) {
+    function setReviewStatusFilter(status, examIndex) {
       document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`status-${status}`).classList.add('active');
+      document.getElementById(`review-filter-${status}`).classList.add('active');
       applyReviewFilters(examIndex);
     }
     
-    function clearSearch(examIndex) {
+    function clearReviewFilters(examIndex) {
+      document.getElementById('reviewSubjectFilter').value = 'all';
       document.getElementById('reviewQuestionSearch').value = '';
+      
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('review-filter-all').classList.add('active');
+      
       applyReviewFilters(examIndex);
     }
     
-    function loadReviewQuestions(examIndex, exam, filters = {}) {
+    function applyReviewFilters(examIndex) {
+      const exams = getSavedExams();
+      const exam = exams[examIndex];
+      const pdfData = exam.hasPDF ? loadPDFFromStorage(examIndex) : null;
+      
+      const subjectFilter = document.getElementById('reviewSubjectFilter').value;
+      const statusFilter = document.querySelector('.filter-btn.active').id.replace('review-filter-', '');
+      const searchFilter = document.getElementById('reviewQuestionSearch').value;
+      
+      loadReviewQuestions(examIndex, exam, pdfData, subjectFilter, statusFilter, searchFilter);
+    }
+    
+    function loadReviewQuestions(examIndex, exam, pdfData, subjectFilter = 'all', statusFilter = 'all', searchFilter = '') {
       const questionsList = document.getElementById('reviewQuestionsList');
       const filteredResults = document.getElementById('filteredResults');
+      const activeFiltersDiv = document.getElementById('activeFilters');
       
       let filteredQuestions = [];
       let questionCounter = 1;
       
-      // ایجاد questionDetails اگر وجود ندارد
       if (!exam.questionDetails) {
         exam.questionDetails = {};
         exam.subjectResults.forEach(subject => {
@@ -1837,18 +2004,18 @@
             examIndex: examIndex
           };
           
-          // اعمال فیلترها
-          if (filters.subject && filters.subject !== 'all' && filters.subject !== subject.name) {
+          // اعمال فیلترهای پیشرفته
+          if (subjectFilter !== 'all' && subjectFilter !== subject.name) {
             questionCounter++;
             continue;
           }
           
-          if (filters.status && filters.status !== 'all' && filters.status !== questionInfo.status) {
+          if (statusFilter !== 'all' && statusFilter !== questionInfo.status) {
             questionCounter++;
             continue;
           }
           
-          if (filters.searchNumber && parseInt(filters.searchNumber) !== questionNum) {
+          if (searchFilter && parseInt(searchFilter) !== questionNum) {
             questionCounter++;
             continue;
           }
@@ -1873,6 +2040,30 @@
         </div>
       `;
       
+      // نمایش فیلترهای فعال
+      let activeFilters = [];
+      if (subjectFilter !== 'all') activeFilters.push(`درس: ${subjectFilter}`);
+      if (statusFilter !== 'all') activeFilters.push(`وضعیت: ${statusFilter === 'correct' ? 'صحیح' : statusFilter === 'wrong' ? 'غلط' : 'نزده'}`);
+      if (searchFilter) activeFilters.push(`شماره سوال: ${searchFilter}`);
+      
+      if (activeFilters.length > 0) {
+        activeFiltersDiv.innerHTML = `
+          <div class="flex items-center flex-wrap gap-2">
+            <span class="text-gray-400 text-sm">فیلترهای فعال:</span>
+            ${activeFilters.map(filter => `
+              <span class="filter-tag">
+                ${filter}
+                <button onclick="removeFilter('${filter.split(':')[0].trim()}', ${examIndex})">
+                  <i class="fas fa-times"></i>
+                </button>
+              </span>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        activeFiltersDiv.innerHTML = '<div class="text-gray-500 text-sm">فیلتری اعمال نشده است</div>';
+      }
+      
       // نمایش سوالات
       if (filteredQuestions.length === 0) {
         questionsList.innerHTML = `
@@ -1887,8 +2078,7 @@
       
       questionsList.innerHTML = filteredQuestions.map((question, index) => `
         <div class="review-question-card ${question.status} animate-slide-in" 
-             style="animation-delay: ${index * 0.05}s" 
-             data-exam-index="${question.examIndex}">
+             style="animation-delay: ${index * 0.05}s">
           
           <!-- هدر سوال -->
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
@@ -1906,7 +2096,7 @@
                     ${question.subject}
                   </span>
                 </div>
-                <div class="flex items-center gap-3 text-sm">
+                <div class="flex items-center gap-5 text-sm">
                   <span class="status-badge ${question.status}">
                     ${question.status === 'correct' ? 
                       '<i class="fas fa-check ml-1"></i> پاسخ صحیح' : 
@@ -1914,25 +2104,40 @@
                       '<i class="fas fa-times ml-1"></i> پاسخ غلط' : 
                       '<i class="fas fa-circle ml-1"></i> پاسخ نزده'}
                   </span>
+
+
+
+                  
                   ${question.selectedOption ? `
-                    <span class="text-gray-400">پاسخ شما: 
+                    <span class="text-gray-400 flex items-center gap-5">پاسخ شما: 
                       <span class="option-indicator ${question.status === 'correct' ? 'correct' : 'wrong'}">
                         ${question.selectedOption}
                       </span>
                     </span>
                   ` : ''}
+
+                  
                 </div>
+                
               </div>
+              
+            </div>
+
+            
+          </div>
+           ${question.hasPDF && pdfData && pdfData.pages && pdfData.pages[question.number] ? `
+              <div onclick="showReviewQuestionPDF(${question.number}, '${btoa(JSON.stringify(pdfData.pages[question.number]))}')" class="w-full h-full  rounded-lg overflow-hidden">
+            
+            
+            <div class=" p-4 overflow-auto">
+              <img src="${JSON.parse(atob(btoa(JSON.stringify(pdfData.pages[question.number]))))}" 
+                   alt="سوال ${question.number}"
+                   class="w-full h-auto mx-auto rounded-lg shadow-lg">
             </div>
             
-            ${question.hasPDF && exam.pdfPages >= question.pdfPage ? `
-              <button onclick="showReviewQuestionPDF(${examIndex}, ${question.pdfPage}, ${question.number})" 
-                      class="btn-purple text-sm px-4 py-2">
-                <i class="fas fa-file-pdf ml-2"></i> مشاهده PDF سوال
-              </button>
-            ` : ''}
+            
           </div>
-          
+            ` : ''}
           <!-- جزئیات پاسخ -->
           <div class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1976,44 +2181,7 @@
             </div>
             
             <!-- نمایش گزینه‌ها -->
-            <div class="options-grid">
-              ${[1, 2, 3, 4].map(num => {
-                let cardClass = 'option-card';
-                let icon = '';
-                let statusText = '';
-                
-                if (question.correctAnswer == num) {
-                  cardClass += ' correct-answer';
-                  icon = '<i class="fas fa-check-circle text-green-400 text-lg"></i>';
-                  statusText = '<span class="text-green-400 text-xs">پاسخ صحیح</span>';
-                }
-                
-                if (question.selectedOption == num && question.correctAnswer != num) {
-                  cardClass += ' selected-wrong';
-                  icon = '<i class="fas fa-times-circle text-red-400 text-lg"></i>';
-                  statusText = '<span class="text-red-400 text-xs">پاسخ اشتباه شما</span>';
-                }
-                
-                if (question.selectedOption == num && question.correctAnswer == num) {
-                  cardClass += ' selected-correct';
-                  icon = '<i class="fas fa-check-double text-green-400 text-lg"></i>';
-                  statusText = '<span class="text-green-400 text-xs">پاسخ صحیح شما</span>';
-                }
-                
-                return `
-                  <div class="${cardClass}">
-                    <div class="text-2xl font-bold mb-2 ${question.selectedOption == num ? 
-                      (question.correctAnswer == num ? 'text-green-400' : 'text-red-400') : 
-                      (question.correctAnswer == num ? 'text-green-300' : 'text-gray-400')}">
-                      ${num}
-                    </div>
-                    ${icon}
-                    <div class="text-sm text-gray-400 mt-2">گزینه ${num}</div>
-                    ${statusText ? `<div class="mt-2">${statusText}</div>` : ''}
-                  </div>
-                `;
-              }).join('')}
-            </div>
+            
           </div>
           
           <!-- پیام وضعیت -->
@@ -2045,61 +2213,6 @@
           ` : ''}
         </div>
       `).join('');
-      
-      updateActiveFiltersDisplay(filters);
-    }
-    
-    function applyReviewFilters(examIndex) {
-      const exams = getSavedExams();
-      const exam = exams[examIndex];
-      
-      const filters = {
-        subject: document.getElementById('reviewSubjectFilter').value,
-        status: document.getElementById('reviewStatusFilter') ? document.getElementById('reviewStatusFilter').value : 'all',
-        searchNumber: document.getElementById('reviewQuestionSearch').value
-      };
-      
-      loadReviewQuestions(examIndex, exam, filters);
-    }
-    
-    function updateActiveFiltersDisplay(filters) {
-      const activeFiltersDiv = document.getElementById('activeFilters');
-      let activeFilters = [];
-      
-      if (filters.subject && filters.subject !== 'all') {
-        activeFilters.push(`درس: ${filters.subject}`);
-      }
-      
-      if (filters.status && filters.status !== 'all') {
-        activeFilters.push(`وضعیت: ${filters.status === 'correct' ? 'صحیح' : 
-          filters.status === 'wrong' ? 'غلط' : 'نزده'}`);
-      }
-      
-      if (filters.searchNumber) {
-        activeFilters.push(`شماره سوال: ${filters.searchNumber}`);
-      }
-      
-      if (activeFilters.length > 0) {
-        activeFiltersDiv.innerHTML = `
-          <div class="flex items-center flex-wrap gap-2">
-            <span class="text-gray-400 text-sm">فیلترهای فعال:</span>
-            ${activeFilters.map(filter => `
-              <span class="filter-tag">
-                ${filter}
-                <button onclick="removeFilter('${filter.split(':')[0].trim()}', ${document.querySelector('.review-question-card')?.dataset.examIndex || 0})">
-                  <i class="fas fa-times"></i>
-                </button>
-              </span>
-            `).join('')}
-            <button onclick="clearAllFilters(${document.querySelector('.review-question-card')?.dataset.examIndex || 0})" 
-                    class="text-red-400 hover:text-red-300 text-sm flex items-center gap-1">
-              <i class="fas fa-trash ml-1"></i> پاک کردن همه فیلترها
-            </button>
-          </div>
-        `;
-      } else {
-        activeFiltersDiv.innerHTML = '<div class="text-gray-500 text-sm">فیلتری اعمال نشده است</div>';
-      }
     }
     
     function removeFilter(filterType, examIndex) {
@@ -2108,13 +2221,10 @@
           document.getElementById('reviewSubjectFilter').value = 'all';
           break;
         case 'وضعیت':
-          if (document.getElementById('reviewStatusFilter')) {
-            document.getElementById('reviewStatusFilter').value = 'all';
-          }
           document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-          document.getElementById('status-all').classList.add('active');
+          document.getElementById('review-filter-all').classList.add('active');
           break;
-        case 'شماره':
+        case 'شماره سوال':
           document.getElementById('reviewQuestionSearch').value = '';
           break;
       }
@@ -2122,90 +2232,39 @@
       applyReviewFilters(examIndex);
     }
     
-    function clearAllFilters(examIndex) {
-      document.getElementById('reviewSubjectFilter').value = 'all';
-      if (document.getElementById('reviewStatusFilter')) {
-        document.getElementById('reviewStatusFilter').value = 'all';
-      }
-      document.getElementById('reviewQuestionSearch').value = '';
-      
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('status-all').classList.add('active');
-      
-      applyReviewFilters(examIndex);
-    }
-    
-    async function showReviewQuestionPDF(examIndex, pageNum, questionNum) {
-      const exams = getSavedExams();
-      const exam = exams[examIndex];
-      
-      if (!exam.hasPDF) {
-        showNotification('این آزمون PDF ندارد');
-        return;
-      }
-      
+    function showReviewQuestionPDF(questionNum, encodedImageData) {
       try {
-        // استفاده از PDF ذخیره شده یا بارگذاری جدید
-        let imageData = null;
-        console.log(examIndex)
-        if (savedPDFs[examIndex] && savedPDFs[examIndex][pageNum]) {
-          imageData = savedPDFs[examIndex][pageNum];
-        } else if (exam.pdfData && exam.pdfData[pageNum]) {
-          imageData = exam.pdfData[pageNum];
-        } else {
-          showNotification('PDF برای این سوال در دسترس نیست');
-          return;
-        }
+        const imageData = JSON.parse(atob(encodedImageData));
         
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/95 flex items-center justify-center z-[100] p-2';
+        modal.className = 'fixed inset-0 bg-black/95 flex items-center justify-center z-[100] p-4';
         modal.innerHTML = `
-          <div class="relative w-full h-full flex flex-col bg-gray-900">
-            <!-- هدر -->
-            <div class="flex justify-between items-center bg-gray-800/90 p-4 border-b border-gray-700">
+          <div class="relative w-full h-full max-h-[90%] max-w-6xl bg-gray-900 rounded-lg overflow-hidden">
+            <div class="flex justify-between items-center bg-gray-800/90 p-4">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
                   <i class="fas fa-file-pdf text-white"></i>
                 </div>
                 <div>
-                  <h3 class="text-lg font-bold text-white">سوال ${questionNum} - صفحه ${pageNum}</h3>
-                  <p class="text-sm text-gray-400">${exam.examName || `آزمون ${examIndex + 1}`}</p>
+                  <h3 class="text-lg font-bold text-white">سوال ${questionNum}</h3>
+                  <p class="text-sm text-gray-400">صفحه ${questionNum}</p>
                 </div>
               </div>
-              <div class="flex gap-2">
-                <button onclick="rotateReviewPDF()" 
-                        class="bg-gray-700 text-white p-2 rounded-lg hover:bg-gray-600">
-                  <i class="fas fa-redo"></i>
-                </button>
-                <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" 
-                        class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
+              <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                      class="text-gray-400 hover:text-white text-xl">
+                <i class="fas fa-times"></i>
+              </button>
             </div>
             
-            <!-- محتوای PDF -->
-            <div class="flex-1 overflow-auto flex items-center justify-center p-4">
+            <div class="p-4 h-[calc(100%-80px)] overflow-auto  content-center">
               <img src="${imageData}" 
-                   id="review-pdf-image"
                    alt="سوال ${questionNum}"
-                   class="max-w-full max-h-full rounded-lg shadow-2xl"
-                   style="cursor: move;">
+                   class="max-w-full h-auto mx-auto rounded-lg shadow-lg">
             </div>
             
-            <!-- فوتر -->
-            <div class="bg-gray-800/90 p-3 border-t border-gray-700">
-              <div class="flex justify-center items-center gap-4 text-sm">
-                <span class="text-gray-400">
-                  <i class="fas fa-mouse-pointer ml-1"></i>
-                  برای زوم از چرخ ماوس استفاده کنید
-                </span>
-                <span class="text-gray-400">|</span>
-                <span class="text-gray-400">
-                  <i class="fas fa-arrows-alt ml-1"></i>
-                  برای جابجایی کلیک کرده و بکشید
-                </span>
-              </div>
+            <div class="bg-gray-800/90 p-3 text-center text-sm text-gray-400 mt-[-40px]">
+              <i class="fas fa-mouse-pointer ml-1"></i>
+              برای زوم از چرخ ماوس استفاده کنید
             </div>
           </div>
         `;
@@ -2213,21 +2272,12 @@
         document.body.appendChild(modal);
         
         // قابلیت زوم با چرخ ماوس
-        const image = document.getElementById('review-pdf-image');
+        const img = modal.querySelector('img');
         let scale = 1;
-        let posX = 0;
-        let posY = 0;
-        let isDragging = false;
-        let startX, startY;
         
-        image.addEventListener('wheel', function(e) {
+        modal.addEventListener('wheel', function(e) {
           e.preventDefault();
-          const rect = image.getBoundingClientRect();
-          const offsetX = e.clientX - rect.left;
-          const offsetY = e.clientY - rect.top;
-          
           const zoomFactor = 0.1;
-          const oldScale = scale;
           
           if (e.deltaY < 0) {
             scale *= 1 + zoomFactor;
@@ -2235,38 +2285,10 @@
             scale *= 1 - zoomFactor;
           }
           
-          scale = Math.min(Math.max(0.5, scale), 5);
-          
-          // حفظ موقعیت نسبی
-          posX = offsetX - (offsetX - posX) * (scale / oldScale);
-          posY = offsetY - (offsetY - posY) * (scale / oldScale);
-          
-          updateImageTransform();
+          scale = Math.min(Math.max(0.5, scale), 3);
+          img.style.transform = `scale(${scale})`;
+          img.style.transition = 'transform 0.1s';
         });
-        
-        // قابلیت جابجایی
-        image.addEventListener('mousedown', function(e) {
-          isDragging = true;
-          startX = e.clientX - posX;
-          startY = e.clientY - posY;
-          image.style.cursor = 'grabbing';
-        });
-        
-        document.addEventListener('mousemove', function(e) {
-          if (!isDragging) return;
-          posX = e.clientX - startX;
-          posY = e.clientY - startY;
-          updateImageTransform();
-        });
-        
-        document.addEventListener('mouseup', function() {
-          isDragging = false;
-          image.style.cursor = 'move';
-        });
-        
-        function updateImageTransform() {
-          image.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-        }
         
         // بستن با Escape
         document.addEventListener('keydown', function closeModal(e) {
@@ -2278,24 +2300,8 @@
         
       } catch (error) {
         console.error('خطا در نمایش PDF:', error);
-        showNotification('خطا در نمایش PDF');
+        showNotification('خطا در نمایش PDF سوال');
       }
-    }
-    
-    let reviewPDFRotation = 0;
-    function rotateReviewPDF() {
-      const img = document.getElementById('review-pdf-image');
-      if (img) {
-        reviewPDFRotation = (reviewPDFRotation + 90) % 360;
-        const currentTransform = img.style.transform.match(/scale\(([^)]+)\)/)?.[1] || '1';
-        const currentTranslate = img.style.transform.match(/translate\(([^)]+)\)/)?.[1] || '0px, 0px';
-        img.style.transform = `translate(${currentTranslate}) scale(${currentTransform}) rotate(${reviewPDFRotation}deg)`;
-        img.style.transition = 'transform 0.3s ease';
-      }
-    }
-    
-    function exportReviewToPDF(examIndex) {
-      showNotification('در نسخه کامل، این قابلیت خروجی PDF از مرور آزمون را ایجاد می‌کند');
     }
 
     // ============ بارگذاری تاریخچه آزمون‌ها ============
@@ -2425,13 +2431,7 @@
               </div>
           `;
           
-          if (totalPDFPages > 0) {
-            subjectHTML += `
-              <div class="pdf-viewer-container mb-4" id="pdf-viewer-${subject.name}">
-                <!-- صفحات PDF -->
-              </div>
-            `;
-          }
+          
           
           subjectHTML += `
             <div class="space-y-4" id="questions-${subject.name.replace(/\s+/g, '-')}">
@@ -2558,68 +2558,6 @@
       
       document.getElementById('exam').scrollIntoView({ behavior: 'smooth' });
     }
-
-
-// در بالای اسکریپت بعد از متغیرها
-let db;
-
-function initIndexedDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('VidaExamsDB', 1);
-        
-        request.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains('pdfs')) {
-                db.createObjectStore('pdfs', { keyPath: 'id' });
-            }
-        };
-        
-        request.onsuccess = function(e) {
-            db = e.target.result;
-            resolve(db);
-        };
-        
-        request.onerror = function(e) {
-            reject(e.target.error);
-        };
-    });
-}
-
-
-
-    async function savePDFToIndexedDB(examId, pdfPages) {
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['pdfs'], 'readwrite');
-        const store = transaction.objectStore('pdfs');
-        
-        const pdfData = {
-            id: `exam_${examId}`,
-            pages: pdfPages,
-            timestamp: Date.now()
-        };
-        
-        const request = store.put(pdfData);
-        
-        request.onsuccess = () => resolve(examId);
-        request.onerror = (e) => reject(e.target.error);
-    });
-}
-
-
-
-    async function getPDFFromIndexedDB(examId) {
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(['pdfs'], 'readonly');
-        const store = transaction.objectStore('pdfs');
-        
-        const request = store.get(`exam_${examId}`);
-        
-        request.onsuccess = (e) => resolve(e.target.result?.pages || null);
-        request.onerror = (e) => reject(e.target.error);
-    });
-}
-
-
     
     async function loadAndRenderPDFPage(pageNum, questionNum) {
       try {
@@ -2806,7 +2744,7 @@ function initIndexedDB() {
       let currentPage = 1;
       
       for (const subject of examStructure) {
-        const viewerId = `pdf-viewer-${subject.name}`;
+        const viewerId = `pdf-viewer-${subject.subject}`;
         const viewer = document.getElementById(viewerId);
         
         if (viewer) {
@@ -3419,7 +3357,6 @@ function initIndexedDB() {
         totalCorrectedScore: totalCorrectedScore,
         hasPDF: totalPDFPages > 0,
         pdfPages: totalPDFPages,
-        pdfData: pdfPages, // ذخیره داده‌های PDF
         questionDetails: questionDetails,
         examStructure: examStructure,
         selectedOptions: selectedOptions,
@@ -3428,41 +3365,31 @@ function initIndexedDB() {
         timeSpent: formatTimeSpent(timeLeft)
       };
       
-      // ذخیره PDF برای مرور
-      savedPDFs[Object.keys(savedPDFs).length] = {...pdfPages};
-      
       document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
     }
     
     async function saveExamResults() {
-    if (!currentExamResults) return;
-    
-    const exams = getSavedExams();
-    const examId = exams.length;
-    
-    // ذخیره PDF در IndexedDB اگر وجود دارد
-    if (pdfPages && Object.keys(pdfPages).length > 0) {
-        try {
-            await savePDFToIndexedDB(examId, pdfPages);
-            currentExamResults.hasPDF = true;
-            currentExamResults.pdfStoredInIndexedDB = true;
-        } catch (error) {
-            console.error('خطا در ذخیره PDF:', error);
+      if (!currentExamResults) return;
+      
+      const exams = getSavedExams();
+      const examId = exams.length;
+      
+      // ذخیره PDF اگر وجود دارد
+      if (totalPDFPages > 0) {
+        const pdfData = await savePDFToStorage(examId);
+        if (pdfData) {
+          currentExamResults.hasPDF = true;
         }
+      }
+      
+      exams.push(currentExamResults);
+      
+      // محدودیت تعداد آزمون‌ها
+      if (exams.length > 50) exams.splice(0, 20);
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
+      showNotification('آزمون ذخیره شد');
     }
-    
-    // حذف داده‌های PDF سنگین از LocalStorage
-    delete currentExamResults.pdfData;
-    delete currentExamResults.pdfPages;
-    
-    exams.push(currentExamResults);
-    
-    // محدودیت تعداد آزمون‌ها
-    if (exams.length > 50) exams.splice(0, 20);
-    
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
-    showNotification('آزمون ذخیره شد');
-}
     
     function getKeyInputsData() {
       const keyInputs = {};
@@ -3498,10 +3425,15 @@ function initIndexedDB() {
       const exams = getSavedExams();
       exams.splice(index, 1);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
+      
+      // حذف PDF مرتبط
+      localStorage.removeItem(PDF_STORAGE_KEY + index);
+      
       loadExamHistory();
       showNotification('آزمون با موفقیت حذف شد');
     }
     
+    // ============ تحلیل پیشرفت ============
     function showAnalysis() {
       const exams = getSavedExams();
       const analysisContent = document.getElementById('analysisContent');
@@ -3523,98 +3455,286 @@ function initIndexedDB() {
       const bestScore = Math.max(...exams.map(exam => exam.totalCorrectedPercentage));
       const worstScore = Math.min(...exams.map(exam => exam.totalCorrectedPercentage));
       const totalQuestions = exams.reduce((sum, exam) => sum + exam.totalQuestions, 0);
+      const totalTime = exams.reduce((sum, exam) => {
+        const timeParts = exam.timeSpent ? exam.timeSpent.split(':') : ['0', '0'];
+        return sum + (parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]));
+      }, 0);
       
-      let progressChart = '<div class="mb-6 p-4 bg-gray-800 rounded-lg">';
-      progressChart += '<h4 class="text-lg font-bold text-white mb-3">روند پیشرفت</h4>';
-      progressChart += '<div class="flex items-end h-40 gap-1">';
+      // محاسبه روند پیشرفت
+      const scoresOverTime = exams.map(exam => exam.totalCorrectedPercentage);
+      const dates = exams.map((exam, index) => `آزمون ${index + 1}`);
       
-      exams.forEach((exam, index) => {
-        const height = (exam.totalCorrectedPercentage / 100) * 150;
-        const examName = exam.examName || `آزمون ${index + 1}`;
-        
-        progressChart += `
-          <div class="flex-1 flex flex-col items-center">
-            <div class="w-full bg-gradient-to-t ${exam.totalCorrectedPercentage >= 70 ? 'from-green-500 to-emerald-600' : exam.totalCorrectedPercentage >= 50 ? 'from-yellow-500 to-orange-600' : 'from-red-500 to-pink-600'}" 
-                 style="height: ${height}px; border-radius: 4px 4px 0 0;"></div>
-            <div class="text-xs text-gray-400 mt-1">${index + 1}</div>
-          </div>
-        `;
+      // محاسبه عملکرد دروس
+      const subjectPerformance = {};
+      exams.forEach(exam => {
+        exam.subjectResults.forEach(subject => {
+          if (!subjectPerformance[subject.name]) {
+            subjectPerformance[subject.name] = [];
+          }
+          subjectPerformance[subject.name].push(subject.correctedPercentage);
+        });
       });
       
-      progressChart += '</div></div>';
+      // محاسبه میانگین هر درس
+      const subjectAverages = {};
+      Object.keys(subjectPerformance).forEach(subject => {
+        const avg = subjectPerformance[subject].reduce((sum, score) => sum + score, 0) / subjectPerformance[subject].length;
+        subjectAverages[subject] = avg;
+      });
       
+      // شناسایی بهترین و بدترین درس
+      let bestSubject = '';
+      let bestSubjectScore = 0;
+      let worstSubject = '';
+      let worstSubjectScore = 100;
+      
+      Object.keys(subjectAverages).forEach(subject => {
+        if (subjectAverages[subject] > bestSubjectScore) {
+          bestSubjectScore = subjectAverages[subject];
+          bestSubject = subject;
+        }
+        if (subjectAverages[subject] < worstSubjectScore) {
+          worstSubjectScore = subjectAverages[subject];
+          worstSubject = subject;
+        }
+      });
+      
+      // ایجاد HTML برای تحلیل
       analysisContent.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div class="text-center p-4 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
-            <div class="text-2xl font-bold text-white">${totalExams}</div>
-            <div class="text-sm text-blue-100">تعداد آزمون‌ها</div>
+        <!-- آمار کلی -->
+        <div class="stats-grid mb-6">
+          <div class="stat-item">
+            <div class="stat-value text-blue-400">${totalExams}</div>
+            <div class="stat-label">تعداد آزمون‌ها</div>
+            <div class="text-sm text-green-400 mt-2">
+              ${exams.length >= 5 ? '<i class="fas fa-trend-up ml-1"></i> روند مثبت' : '<i class="fas fa-info-circle ml-1"></i> نیاز به آزمون‌های بیشتر'}
+            </div>
           </div>
-          <div class="text-center p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-            <div class="text-2xl font-bold text-white">${avgScore.toFixed(1)}%</div>
-            <div class="text-sm text-green-100">میانگین نمره</div>
+          
+          <div class="stat-item">
+            <div class="stat-value text-green-400">${avgScore.toFixed(1)}%</div>
+            <div class="stat-label">میانگین نمره</div>
+            <div class="text-sm ${avgScore >= 70 ? 'text-green-400' : avgScore >= 50 ? 'text-yellow-400' : 'text-red-400'} mt-2">
+              ${avgScore >= 70 ? '<i class="fas fa-trophy ml-1"></i> عالی' : 
+                avgScore >= 50 ? '<i class="fas fa-chart-line ml-1"></i> متوسط' : 
+                '<i class="fas fa-exclamation-triangle ml-1"></i> نیاز به بهبود'}
+            </div>
           </div>
-          <div class="text-center p-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
-            <div class="text-2xl font-bold text-white">${bestScore.toFixed(1)}%</div>
-            <div class="text-sm text-purple-100">بهترین نمره</div>
+          
+          <div class="stat-item">
+            <div class="stat-value text-purple-400">${bestScore.toFixed(1)}%</div>
+            <div class="stat-label">بهترین نمره</div>
+            <div class="text-sm text-green-400 mt-2">
+              <i class="fas fa-star ml-1"></i> رکورد شخصی
+            </div>
           </div>
-          <div class="text-center p-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
-            <div class="text-2xl font-bold text-white">${worstScore.toFixed(1)}%</div>
-            <div class="text-sm text-orange-100">ضعیف‌ترین نمره</div>
+          
+          <div class="stat-item">
+            <div class="stat-value text-orange-400">${worstScore.toFixed(1)}%</div>
+            <div class="stat-label">ضعیف‌ترین نمره</div>
+            <div class="text-sm ${worstScore >= 60 ? 'text-green-400' : worstScore >= 40 ? 'text-yellow-400' : 'text-red-400'} mt-2">
+              ${worstScore >= 60 ? '<i class="fas fa-check ml-1"></i> قابل قبول' : 
+                worstScore >= 40 ? '<i class="fas fa-info-circle ml-1"></i> نیاز تمرکز' : 
+                '<i class="fas fa-exclamation ml-1"></i> نیاز تلاش مضاعف'}
+            </div>
           </div>
         </div>
         
-        ${progressChart}
+        <!-- روند پیشرفت -->
+        <div class="chart-container mb-6">
+          <h3 class="text-lg font-bold text-white mb-4">روند پیشرفت در آزمون‌ها</h3>
+          <div style="height: 300px; position: relative;">
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-gray-800 rounded-lg">
-            <h4 class="text-lg font-bold text-white mb-3">آمار کلی</h4>
-            <div class="space-y-2">
-              <div class="flex justify-between">
-                <span class="text-gray-400">کل سوالات پاسخ داده:</span>
-                <span class="text-white font-bold">${totalQuestions}</span>
+        <!-- عملکرد دروس -->
+        <div class="chart-container mb-6">
+          <h3 class="text-lg font-bold text-white mb-4">عملکرد در دروس مختلف</h3>
+          <div class="space-y-4">
+            ${Object.keys(subjectAverages).map(subject => {
+              const avg = subjectAverages[subject];
+              const subjectInfo = subjects.find(s => s.name === subject);
+              const color = subjectInfo ? subjectInfo.color.split('-')[1] : 'gray';
+              
+              return `
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <span class="text-gray-300">${subject}</span>
+                    <span class="font-bold ${avg >= 70 ? 'text-green-400' : avg >= 50 ? 'text-yellow-400' : 'text-red-400'}">
+                      ${avg.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div class="progress-modern">
+                    <div class="progress-fill bg-gradient-to-r from-${color}-500 to-${color}-600" style="width: ${avg}%"></div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+        
+        <!-- توصیه‌های هوشمند -->
+        <div class="improvement-tip">
+          <div class="tip-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-3 text-center">توصیه‌های هوشمند برای بهبود</h3>
+          
+          ${bestSubject && bestSubjectScore > 0 ? `
+            <div class="mb-3 p-3 bg-green-500/10 rounded-lg">
+              <div class="flex items-center text-green-400">
+                <i class="fas fa-trophy ml-2"></i>
+                <strong>قوی‌ترین نقطه:</strong> ${bestSubject} (${bestSubjectScore.toFixed(1)}%)
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-400">میانگین زمان هر آزمون:</span>
-                <span class="text-white font-bold">${(exams.reduce((sum, exam) => {
-                  const timeParts = exam.timeSpent.split(':');
-                  return sum + (parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]));
-                }, 0) / totalExams / 60).toFixed(1)} دقیقه</span>
+              <p class="text-sm text-gray-300 mt-1">در این درس عملکرد عالی دارید. می‌توانید زمان بیشتری را به دروس ضعیف‌تر اختصاص دهید.</p>
+            </div>
+          ` : ''}
+          
+          ${worstSubject && worstSubjectScore < 100 ? `
+            <div class="mb-3 p-3 bg-red-500/10 rounded-lg">
+              <div class="flex items-center text-red-400">
+                <i class="fas fa-bullseye ml-2"></i>
+                <strong>نیاز به تمرکز:</strong> ${worstSubject} (${worstSubjectScore.toFixed(1)}%)
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-400">تاریخ اولین آزمون:</span>
-                <span class="text-white font-bold">${new Date(exams[0].timestamp).toLocaleDateString('fa-IR')}</span>
+              <p class="text-sm text-gray-300 mt-1">برای بهبود در این درس، سوالات بیشتری حل کنید و نقاط ضعف خود را شناسایی نمایید.</p>
+            </div>
+          ` : ''}
+          
+          <div class="p-3 bg-blue-500/10 rounded-lg">
+            <div class="flex items-center text-blue-400">
+              <i class="fas fa-chart-line ml-2"></i>
+              <strong>آمار کلی فعالیت:</strong>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-2">
+              <div class="text-center">
+                <div class="text-xl font-bold text-white">${totalQuestions}</div>
+                <div class="text-sm text-gray-400">سوال حل شده</div>
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-400">تاریخ آخرین آزمون:</span>
-                <span class="text-white font-bold">${new Date(exams[exams.length - 1].timestamp).toLocaleDateString('fa-IR')}</span>
+              <div class="text-center">
+                <div class="text-xl font-bold text-white">${Math.round(totalTime / 60)}</div>
+                <div class="text-sm text-gray-400">دقیقه مطالعه</div>
               </div>
             </div>
           </div>
           
-          <div class="p-4 bg-gray-800 rounded-lg">
-            <h4 class="text-lg font-bold text-white mb-3">توصیه‌ها</h4>
-            <div class="space-y-3">
-              ${avgScore >= 70 ? 
-                '<div class="text-green-400 flex items-center"><i class="fas fa-check-circle ml-2"></i> عملکرد عالی! به همین روال ادامه دهید.</div>' :
-                avgScore >= 50 ?
-                '<div class="text-yellow-400 flex items-center"><i class="fas fa-exclamation-circle ml-2"></i> عملکرد متوسط. روی نقاط ضعف تمرکز کنید.</div>' :
-                '<div class="text-red-400 flex items-center"><i class="fas fa-times-circle ml-2"></i> نیاز به تلاش بیشتر. مطالعه‌ی عمیق‌تری داشته باشید.</div>'
-              }
-              ${exams.length >= 5 ?
-                '<div class="text-blue-400 flex items-center"><i class="fas fa-chart-line ml-2"></i> تمرین مستمر دارید! این عالیه.</div>' :
-                '<div class="text-orange-400 flex items-center"><i class="fas fa-calendar-alt ml-2"></i> آزمون‌های بیشتری برگزار کنید.</div>'
-              }
-              <div class="text-purple-400 flex items-center">
-                <i class="fas fa-lightbulb ml-2"></i> 
-                ${totalQuestions >= 100 ? 
-                  'سوالات زیادی حل کرده‌اید! عالی.' :
-                  'سعی کنید سوالات بیشتری حل کنید.'
-                }
-              </div>
-            </div>
+          <div class="mt-4 text-center">
+            <p class="text-gray-300">
+              ${avgScore >= 70 ? 'آفرین! عملکرد شما عالی است. به همین روال ادامه دهید.' :
+                avgScore >= 50 ? 'خوب پیش می‌روید. با تمرکز بیشتر روی نقاط ضعف، می‌توانید نتایج بهتری بگیرید.' :
+                'نیاز به تلاش بیشتر دارید. پیشنهاد می‌کنیم زمان مطالعه خود را افزایش دهید و روی مباحث پایه‌ای تمرکز کنید.'}
+            </p>
           </div>
         </div>
       `;
+      
+      // ایجاد نمودار روند پیشرفت
+      setTimeout(() => {
+        const ctx = document.getElementById('progressChart');
+        if (!ctx) return;
+        
+        // اگر نمودار قبلی وجود دارد، آن را پاک کنید
+        if (window.progressChartInstance) {
+          window.progressChartInstance.destroy();
+        }
+        
+        // ایجاد داده‌های نمودار
+        const data = {
+          labels: dates,
+          datasets: [{
+            label: 'نمره آزمون (%)',
+            data: scoresOverTime,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#4f46e5',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
+        };
+        
+        const config = {
+          type: 'line',
+          data: data,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                rtl: true,
+                titleFont: {
+                  family: 'Vazirmatn'
+                },
+                bodyFont: {
+                  family: 'Vazirmatn'
+                },
+                callbacks: {
+                  label: function(context) {
+                    return `نمره: ${context.parsed.y}%`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: '#94a3b8',
+                  font: {
+                    family: 'Vazirmatn',
+                    size: 12
+                  }
+                },
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.1)'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 100,
+                min: 0,
+                ticks: {
+                  color: '#94a3b8',
+                  font: {
+                    family: 'Vazirmatn',
+                    size: 12
+                  },
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                },
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.1)'
+                }
+              }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            },
+            animation: {
+              duration: 1000,
+              easing: 'easeOutQuart'
+            }
+          }
+        };
+        
+        window.progressChartInstance = new Chart(ctx, config);
+        
+        // رندر مجدد نمودار
+        setTimeout(() => {
+          if (window.progressChartInstance) {
+            window.progressChartInstance.update();
+          }
+        }, 100);
+        
+      }, 100);
     }
     
     function showNotification(message) {
@@ -3635,25 +3755,24 @@ function initIndexedDB() {
       window.print();
     }
 
-    
-document.addEventListener('DOMContentLoaded', function() {
-    initIndexedDB().then(() => {
-        console.log('IndexedDB آماده است');
-    });
-    loadExamHistory();
-    loadLastSettings();
-    
-    document.querySelectorAll('.setup-input').forEach(input => {
-        input.addEventListener('click', function(e) {
-            e.stopPropagation();
-            this.focus();
-            this.select();
-        });
-    });
-});
-
     // بارگذاری اولیه
-   
+    document.addEventListener('DOMContentLoaded', function() {
+      loadExamHistory();
+      loadLastSettings();
+      updateTotalQuestionsCount();
+      
+      document.querySelectorAll('.setup-input').forEach(input => {
+        input.addEventListener('click', function(e) {
+          e.stopPropagation();
+          this.focus();
+          this.select();
+        });
+        
+        input.addEventListener('input', function() {
+          updateTotalQuestionsCount();
+        });
+      });
+    });
   </script>
 </body>
 </html>
