@@ -2,21 +2,21 @@
   "exams": [
     {
       "id": 1,
-      "name": "آزمون جامع زیست‌شناسی",
-      "description": "آزمون جامع از فصل‌های 1 تا 4 زیست‌شناسی",
+      "name": "آزمون نیم سال اول فیزیک",
+      "description": "آزمون کامل فیزیک از فصل 1 و 2",
       "date": "1403/01/15",
       "subjectCounts": {
-        "bioCount": 10,
-        "physCount": 0,
+        "bioCount": 0,
+        "physCount": 10,
         "chemCount": 0,
         "mathCount": 0,
         "geoCount": 0
       },
-      "time": 40,
-      "pdfFile": "CHPhyVida5.pdf",
-      "answerKey": "biology-key.json",
+      "time": 30,
+      "pdfFile": "https://parhamjanjan.github.io/vida/PDFs/CHPhyVida5.pdf",
+      "answerKey": "Gh12T.json",
       "difficulty": "متوسط",
-      "tags": ["زیست", "آزمون جامع"]
+      "tags": ["فیزیک", "آزمون جامع"]
     }
   ]
 }
