@@ -13,8 +13,8 @@
         "geoCount": 0
       },
       "time": 40,
-      "pdfFile": "/CHPhyVida5.pdf",
-      "answerKey": "/biology-key.json",
+      "pdfFile": "CHPhyVida5.pdf",
+      "answerKey": "biology-key.json",
       "difficulty": "متوسط",
       "tags": ["زیست", "آزمون جامع"]
     }
