@@ -581,7 +581,7 @@
     // بارگذاری آزمون‌ها
     async function loadExams() {
       try {
-        const response = await fetch('exams.json');
+        const response = await fetch('https://parhamjanjan.github.io/vida/premade_exam/exams.json');
         if (!response.ok) {
           throw new Error('فایل exams.json یافت نشد');
         }
