@@ -289,9 +289,7 @@
       margin: 0;
     }
     
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
+    
     
     /* طراحی مربع‌های نرم برای گزینه‌ها */
     .option-modern {
@@ -1256,6 +1254,7 @@
       <button onclick="showTab('exam')" class="tab active" id="tab-exam">
         <i class="fas fa-play-circle ml-2"></i> آزمون جدید
       </button>
+      <a href="/vida/premade_exam" class="tab">آزمون های فعال</a>
       <button onclick="showTab('history')" class="tab" id="tab-history">
         <i class="fas fa-history ml-2"></i> تاریخچه آزمون‌ها
       </button>
@@ -1538,6 +1537,12 @@
         showAnalysis();
       }
     }
+
+
+
+
+    
+
 
     // ============ عملکردهای PDF ============
     
@@ -2537,6 +2542,13 @@
       });
 
       document.getElementById('answerKeys').classList.remove('hidden');
+      setTimeout(() => {
+  // اگر کلیدهای از پیش ساخته شده وجود دارند، آنها را پر کن
+  if (window.premadeAnswerKeys) {
+    fillAnswerKeysAutomatically(window.premadeAnswerKeys);
+    // بعد از پر کردن، متغیر را پاک کن تا دفعات بعدی استفاده نشود
+  }
+}, 300);
       document.getElementById('results').innerHTML = '';
       document.getElementById('actionSection').classList.add('hidden');
       
@@ -3116,7 +3128,29 @@
           const questionNum = subject.startQuestion + i;
           const questionId = `${subject.subject}-q${questionNum}`;
           const selectedOption = selectedOptions[questionId];
-          const correctAnswer = document.getElementById(`key-${questionId}`).value;
+let correctAnswer = '';
+
+// اول بررسی کن اگر کلید از پیش ساخته شده وجود دارد
+if (window.premadeAnswerKeys) {
+  // جستجوی کلید در داده‌های از پیش ساخته شده
+  examStructure.forEach(subject => {
+    const subjectKey = Object.keys(window.premadeAnswerKeys).find(key => 
+      key.toLowerCase().includes(subject.subject.toLowerCase().substring(0, 3))
+    );
+    
+    if (subjectKey && window.premadeAnswerKeys[subjectKey] && 
+        window.premadeAnswerKeys[subjectKey][questionNum]) {
+      correctAnswer = window.premadeAnswerKeys[subjectKey][questionNum];
+    }
+  });
+}
+
+
+if (!correctAnswer) {
+  const keyInput = document.getElementById(`key-${questionId}`);
+  correctAnswer = keyInput ? keyInput.value : '';
+}
+
           const resultDiv = document.getElementById(`result-${questionId}`);
 
           // ذخیره جزئیات سوال
@@ -3758,8 +3792,19 @@
     // بارگذاری اولیه
     document.addEventListener('DOMContentLoaded', function() {
       loadExamHistory();
-      loadLastSettings();
-      updateTotalQuestionsCount();
+  loadLastSettings();
+  updateTotalQuestionsCount();
+  
+  // بررسی آزمون آماده
+  setTimeout(() => {
+    const hasPremadeExam = checkAndLoadPremadeExam();
+    if (hasPremadeExam) {
+      // نمایش پیام موفقیت
+      setTimeout(() => {
+        showNotification('آزمون آماده با موفقیت بارگذاری شد!');
+      }, 2000);
+    }
+  }, 500);
       
       document.querySelectorAll('.setup-input').forEach(input => {
         input.addEventListener('click', function(e) {
@@ -3773,6 +3818,176 @@
         });
       });
     });
+
+
+    // ============ پشتیبانی از آزمون‌های آماده ============
+
+// تابع برای بارگذاری PDF از URL
+async function loadPDFFromURL(pdfUrl) {
+  try {
+    showNotification('در حال بارگذاری PDF آزمون...');
+    
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+      throw new Error('PDF یافت نشد');
+    }
+    
+    const blob = await response.blob();
+    const file = new File([blob], pdfUrl.split('/').pop(), { 
+      type: 'application/pdf',
+      lastModified: Date.now()
+    });
+    
+    // استفاده از تابع موجود handlePDFUpload
+    await handlePDFUpload({ target: { files: [file] } });
+    
+    showNotification('PDF آزمون با موفقیت بارگذاری شد');
+    return true;
+  } catch (error) {
+    console.error('خطا در بارگذاری PDF:', error);
+    showNotification('خطا در بارگذاری PDF آزمون. لطفاً به صورت دستی آپلود کنید');
+    return false;
+  }
+}
+
+// تابع برای پر کردن خودکار کلید پاسخ‌ها
+function fillAnswerKeysAutomatically(answerKeys) {
+  if (!answerKeys || !examStructure.length) return;
+  
+  let filledCount = 0;
+  
+  examStructure.forEach(subject => {
+    // نگاشت نام فارسی به کلید انگلیسی
+    const keyMap = {
+      'زیست‌شناسی': 'bioCount',
+      'فیزیک': 'physCount',
+      'شیمی': 'chemCount', 
+      'ریاضی': 'mathCount',
+      'زمین‌شناسی': 'geoCount'
+    };
+    
+    const subjectKey = keyMap[subject.subject];
+    
+    if (subjectKey && answerKeys[subjectKey]) {
+      const subjectAnswers = answerKeys[subjectKey];
+      
+      for (let i = 0; i < subject.count; i++) {
+        const questionNum = subject.startQuestion + i;
+        const questionId = `${subject.subject}-q${questionNum}`;
+        const keyInput = document.getElementById(`key-${questionId}`);
+        
+        // اگر کلید پاسخ برای این شماره سوال وجود دارد
+        if (keyInput && subjectAnswers[questionNum]) {
+          keyInput.value = subjectAnswers[questionNum];
+          filledCount++;
+        }
+      }
+    }
+  });
+  
+  if (filledCount > 0) {
+    showNotification(`${filledCount} کلید پاسخ پر شدند`);
+  } else {
+    console.log('هیچ کلید پاسخی یافت نشد. ساختار answerKeys:', answerKeys);
+  }
+}
+
+// تابع برای بررسی و بارگذاری آزمون از پیش ساخته شده
+function checkAndLoadPremadeExam() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isPremade = urlParams.get('premade') === 'true';
+  
+  
+  const savedExam = localStorage.getItem('selected_premade_exam');
+  if (!savedExam) {
+    showNotification('آزمون آماده‌ای یافت نشد');
+    return false;
+  }
+  
+  try {
+    const examData = JSON.parse(savedExam);
+    
+    if (!examData.isPremade) return false;
+    
+    console.log('آزمون آماده بارگذاری شد:', examData);
+    
+    // 1. پر کردن نام آزمون
+    document.getElementById('examName').value = examData.name || `آزمون آماده ${examData.id}`;
+    
+    // 2. پر کردن تعداد سوالات هر درس
+    Object.entries(examData.subjectCounts).forEach(([subject, count]) => {
+      const input = document.getElementById(subject);
+      if (input) {
+        input.value = count;
+      }
+    });
+    
+    // 3. پر کردن زمان آزمون
+    document.getElementById('examTime').value = examData.time;
+    
+    // 4. به‌روزرسانی تعداد کل سوالات
+    updateTotalQuestionsCount();
+    
+    // 5. نمایش تب آزمون
+    showTab('exam');
+    
+    // 6. ذخیره کلید پاسخ‌ها برای استفاده بعدی
+    if (examData.answerKey && examData.answerKey.answers) {
+      
+      window.premadeAnswerKeys = examData.answerKey.answers;
+    }
+    
+    // 7. بارگذاری PDF اگر وجود دارد
+    if (examData.pdfFile) {
+      // تأخیر برای اطمینان از بارگذاری کامل صفحه
+      setTimeout(() => {
+        loadPDFFromURL(examData.pdfFile).then(pdfLoaded => {
+          if (pdfLoaded) {
+            // پس از بارگذاری PDF، آزمون را به صورت خودکار شروع کن
+            setTimeout(() => {
+              generateExam();
+              
+              // پس از ایجاد آزمون، کلیدها را پر کن
+              setTimeout(() => {
+                if (window.premadeAnswerKeys) {
+                  fillAnswerKeysAutomatically(window.premadeAnswerKeys);
+                }
+              }, 1000);
+              
+            }, 1500);
+          }
+        });
+      }, 500);
+    } else {
+      // اگر PDF نیست، فقط آزمون را شروع کن
+      setTimeout(() => {
+        generateExam();
+        
+        // پس از ایجاد آزمون، کلیدها را پر کن
+        setTimeout(() => {
+          if (window.premadeAnswerKeys) {
+            fillAnswerKeysAutomatically(window.premadeAnswerKeys);
+          }
+        }, 1000);
+        
+      }, 500);
+    }
+    
+    // 8. پاک کردن داده‌های موقت
+    localStorage.removeItem('selected_premade_exam');
+    
+    // 9. حذف پارامتر از URL بدون ریلود صفحه
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+    
+    return true;
+    
+  } catch (error) {
+    console.error('خطا در بارگذاری آزمون آماده:', error);
+    showNotification('خطا در بارگذاری آزمون آماده');
+    return false;
+  }
+}
   </script>
 </body>
 </html>
