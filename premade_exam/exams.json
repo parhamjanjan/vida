@@ -1,1 +1,22 @@
-
+{
+  "exams": [
+    {
+      "id": 1,
+      "name": "آزمون جامع زیست‌شناسی",
+      "description": "آزمون جامع از فصل‌های 1 تا 4 زیست‌شناسی",
+      "date": "1403/01/15",
+      "subjectCounts": {
+        "bioCount": 10,
+        "physCount": 0,
+        "chemCount": 0,
+        "mathCount": 0,
+        "geoCount": 0
+      },
+      "time": 40,
+      "pdfFile": "/CHPhyVida5.pdf",
+      "answerKey": "/biology-key.json",
+      "difficulty": "متوسط",
+      "tags": ["زیست", "آزمون جامع"]
+    },
+  ]
+}
