@@ -1,7 +1,29 @@
 {
   "exams": [
     {
-      "id": 1,
+  "id": 1,
+  "name": "آزمون",
+  "description": "آزمون کامل",
+  "date": "1404/10/11",
+  "subjectCounts": {
+    "bioCount": 40,
+    "physCount": 30,
+    "chemCount": 30,
+    "mathCount": 30,
+    "geoCount": 0
+  },
+  "time": 171,
+  "pdfFile": "https://parhamjanjan.github.io/vida/PDFs/GH12T.pdf",
+  "answerKey": "Gh12T.json",
+  "difficulty": "متوسط",
+  "tags": [
+    "14",
+    "آذز",
+    "قلمچی"
+  ]
+},
+    {
+      "id": 4,
       "name": "آزمون نیم سال اول فیزیک",
       "description": "آزمون کامل فیزیک از فصل 1 و 2",
       "date": "1403/01/15",
@@ -14,7 +36,7 @@
       },
       "time": 30,
       "pdfFile": "https://parhamjanjan.github.io/vida/PDFs/CHPhyVida5.pdf",
-      "answerKey": "Gh12T.json",
+      "answerKey": "CHPhy.json",
       "difficulty": "متوسط",
       "tags": ["فیزیک", "آزمون جامع"]
     }
