@@ -1490,9 +1490,10 @@
   </div>
 
   <script>
-    // کلید ذخیره‌سازی در localStorage
+    // کلید ذخیره‌سازی
     const STORAGE_KEY = 'vida_exam_history';
-    const PDF_STORAGE_KEY = 'vida_pdf_data_';
+    const PDF_DB_NAME = 'vida_pdf_database';
+    const PDF_STORE_NAME = 'pdfs';
     
     const subjects = [
       { name: "زیست‌شناسی", id: "bioCount", icon: "fas fa-dna", color: "from-green-400 to-emerald-500" },
@@ -1519,9 +1520,210 @@
     let pdfPages = {};
     let uploadedPDF = null;
     let pdfFileName = '';
+    let pdfDb = null;
+
+    // ============ مدیریت IndexedDB برای PDF ============
+    async function initPDFDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(PDF_DB_NAME, 1);
+        
+        request.onerror = function(event) {
+          console.error("خطا در باز کردن IndexedDB:", event.target.error);
+          reject(event.target.error);
+        };
+        
+        request.onsuccess = function(event) {
+          pdfDb = event.target.result;
+          console.log("IndexedDB با موفقیت باز شد");
+          resolve(pdfDb);
+        };
+        
+        request.onupgradeneeded = function(event) {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(PDF_STORE_NAME)) {
+            const store = db.createObjectStore(PDF_STORE_NAME, { keyPath: 'id' });
+            store.createIndex('timestamp', 'timestamp', { unique: false });
+            console.log("ObjectStore با موفقیت ایجاد شد");
+          }
+        };
+      });
+    }
     
-    // PDFهای ذخیره شده برای مرور
-    let savedPDFs = {};
+    // تابع جدید برای ذخیره PDF در IndexedDB
+    async function savePDFToIndexedDB(examId) {
+      if (!pdfDoc || totalPDFPages === 0) return null;
+      
+      try {
+        // اطمینان از اینکه دیتابیس آماده است
+        if (!pdfDb) {
+          await initPDFDatabase();
+        }
+        
+        // آماده‌سازی داده‌های PDF
+        const pdfData = {
+          id: `exam_${examId}`,
+          fileName: pdfFileName,
+          totalPages: totalPDFPages,
+          pages: {},
+          timestamp: Date.now()
+        };
+        
+        // ذخیره صفحات PDF به صورت Base64
+        for (let i = 1; i <= totalPDFPages; i++) {
+          if (pdfPages[i]) {
+            pdfData.pages[i] = pdfPages[i];
+          } else {
+            // اگر صفحه‌ای هنوز رندر نشده، آن را رندر کن
+            try {
+              const page = await pdfDoc.getPage(i);
+              const viewport = page.getViewport({ scale: 1.0 });
+              const canvas = document.createElement('canvas');
+              const context = canvas.getContext('2d');
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
+              
+              const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+              };
+              
+              await page.render(renderContext).promise;
+              pdfData.pages[i] = canvas.toDataURL('image/png');
+            } catch (error) {
+              console.error(`خطا در رندر کردن صفحه ${i}:`, error);
+            }
+          }
+        }
+        
+        // ذخیره در IndexedDB
+        const transaction = pdfDb.transaction([PDF_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(PDF_STORE_NAME);
+        
+        return new Promise((resolve, reject) => {
+          const request = store.put(pdfData);
+          
+          request.onsuccess = function() {
+            console.log('PDF با موفقیت در IndexedDB ذخیره شد');
+            resolve(pdfData);
+          };
+          
+          request.onerror = function(event) {
+            console.error('خطا در ذخیره PDF در IndexedDB:', event.target.error);
+            reject(event.target.error);
+          };
+        });
+      } catch (error) {
+        console.error('خطا در ذخیره PDF:', error);
+        return null;
+      }
+    }
+    
+    // تابع جدید برای بارگذاری PDF از IndexedDB
+    async function loadPDFFromIndexedDB(examId) {
+      try {
+        if (!pdfDb) {
+          await initPDFDatabase();
+        }
+        
+        const transaction = pdfDb.transaction([PDF_STORE_NAME], 'readonly');
+        const store = transaction.objectStore(PDF_STORE_NAME);
+        
+        return new Promise((resolve, reject) => {
+          const request = store.get(`exam_${examId}`);
+          
+          request.onsuccess = function(event) {
+            const pdfData = event.target.result;
+            if (pdfData) {
+              console.log('PDF با موفقیت از IndexedDB بارگذاری شد');
+              resolve(pdfData);
+            } else {
+              resolve(null);
+            }
+          };
+          
+          request.onerror = function(event) {
+            console.error('خطا در بارگذاری PDF از IndexedDB:', event.target.error);
+            reject(event.target.error);
+          };
+        });
+      } catch (error) {
+        console.error('خطا در بارگذاری PDF:', error);
+        return null;
+      }
+    }
+    
+    // تابع جدید برای حذف PDF از IndexedDB
+    async function deletePDFFromIndexedDB(examId) {
+      try {
+        if (!pdfDb) {
+          await initPDFDatabase();
+        }
+        
+        const transaction = pdfDb.transaction([PDF_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(PDF_STORE_NAME);
+        
+        return new Promise((resolve, reject) => {
+          const request = store.delete(`exam_${examId}`);
+          
+          request.onsuccess = function() {
+            console.log('PDF با موفقیت از IndexedDB حذف شد');
+            resolve(true);
+          };
+          
+          request.onerror = function(event) {
+            console.error('خطا در حذف PDF از IndexedDB:', event.target.error);
+            reject(event.target.error);
+          };
+        });
+      } catch (error) {
+        console.error('خطا در حذف PDF:', error);
+        return false;
+      }
+    }
+    
+    // تابع جدید برای مدیریت حجم IndexedDB
+    async function cleanOldPDFs(maxItems = 20) {
+      try {
+        if (!pdfDb) {
+          await initPDFDatabase();
+        }
+        
+        const transaction = pdfDb.transaction([PDF_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(PDF_STORE_NAME);
+        const index = store.index('timestamp');
+        
+        return new Promise((resolve, reject) => {
+          const request = index.getAll();
+          
+          request.onsuccess = function(event) {
+            const allPDFs = event.target.result;
+            
+            if (allPDFs.length > maxItems) {
+              // مرتب‌سازی بر اساس زمان
+              allPDFs.sort((a, b) => a.timestamp - b.timestamp);
+              
+              // حذف قدیمی‌ترین موارد
+              const toDelete = allPDFs.slice(0, allPDFs.length - maxItems);
+              
+              toDelete.forEach(pdf => {
+                store.delete(pdf.id);
+              });
+              
+              console.log(`${toDelete.length} PDF قدیمی حذف شدند`);
+            }
+            resolve(true);
+          };
+          
+          request.onerror = function(event) {
+            console.error('خطا در پاکسازی PDF‌های قدیمی:', event.target.error);
+            reject(event.target.error);
+          };
+        });
+      } catch (error) {
+        console.error('خطا در پاکسازی PDF‌ها:', error);
+        return false;
+      }
+    }
 
     // ============ مدیریت تب‌ها ============
     function showTab(tabName) {
@@ -1537,12 +1739,6 @@
         showAnalysis();
       }
     }
-
-
-
-
-    
-
 
     // ============ عملکردهای PDF ============
     
@@ -1701,46 +1897,6 @@
       }
     }
     
-    // تابع جدید برای ذخیره PDF در localStorage
-    async function savePDFToStorage(examId) {
-      if (!pdfDoc) return null;
-      
-      try {
-        // ذخیره صفحات PDF به صورت Base64
-        const savedPages = {};
-        for (let i = 1; i <= totalPDFPages; i++) {
-          if (pdfPages[i]) {
-            savedPages[i] = pdfPages[i];
-          }
-        }
-        
-        const pdfData = {
-          fileName: pdfFileName,
-          pages: savedPages,
-          totalPages: totalPDFPages
-        };
-        
-        localStorage.setItem(PDF_STORAGE_KEY + examId, JSON.stringify(pdfData));
-        return pdfData;
-      } catch (error) {
-        console.error('خطا در ذخیره PDF:', error);
-        return null;
-      }
-    }
-    
-    // تابع جدید برای بارگذاری PDF از localStorage
-    function loadPDFFromStorage(examId) {
-      try {
-        const pdfData = localStorage.getItem(PDF_STORAGE_KEY + examId);
-        if (!pdfData) return null;
-        
-        return JSON.parse(pdfData);
-      } catch (error) {
-        console.error('خطا در بارگذاری PDF:', error);
-        return null;
-      }
-    }
-    
     function checkPDFQuestionsMatch() {
       if (!totalPDFPages) return;
       
@@ -1757,57 +1913,23 @@
       }
     }
 
-    // ============ عملکردهای عمومی ============
-    
-    function handleInputClick(input) {
-      input.focus();
-      input.select();
-    }
-    
-    function validateInput(input) {
-      const value = parseInt(input.value);
-      if (isNaN(value) || value < 0) {
-        input.value = 0;
-      }
-      
-      updateTotalQuestionsCount();
-      
-      if (totalPDFPages > 0) {
-        checkPDFQuestionsMatch();
-      }
-    }
-    
-    function calculateTotalQuestions() {
-      let total = 0;
-      subjects.forEach(subject => {
-        const count = parseInt(document.getElementById(subject.id).value) || 0;
-        total += count;
-      });
-      return total;
-    }
-    
-    function updateTotalQuestionsCount() {
-      const total = calculateTotalQuestions();
-      document.getElementById('totalQuestionsCount').textContent = total;
-    }
-
     // ============ مرور شخصی‌سازی شده آزمون‌ها با فیلترهای پیشرفته ============
     
-    function showFullReview(examIndex) {
+    async function showFullReview(examIndex) {
       const exams = getSavedExams();
       const exam = exams[examIndex];
       
       if (!exam) return;
       
-      // بارگذاری PDF از localStorage
+      // بارگذاری PDF از IndexedDB
       let pdfData = null;
       if (exam.hasPDF) {
-        pdfData = loadPDFFromStorage(examIndex);
+        pdfData = await loadPDFFromIndexedDB(examIndex);
       }
       
       let reviewHTML = `
         <div class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 md:p-4 overflow-y-auto animate-slide-in custom-scrollbar">
-          <div class="modern-card   w-full max-w-6xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div class="modern-card w-full max-w-6xl max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div class="flex rounded-lg px-3 justify-between items-center mb-6 sticky top-0 bg-[#1e293b] pb-4 pt-2 z-10">
               <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
@@ -1950,10 +2072,10 @@
       applyReviewFilters(examIndex);
     }
     
-    function applyReviewFilters(examIndex) {
+    async function applyReviewFilters(examIndex) {
       const exams = getSavedExams();
       const exam = exams[examIndex];
-      const pdfData = exam.hasPDF ? loadPDFFromStorage(examIndex) : null;
+      const pdfData = exam.hasPDF ? await loadPDFFromIndexedDB(examIndex) : null;
       
       const subjectFilter = document.getElementById('reviewSubjectFilter').value;
       const statusFilter = document.querySelector('.filter-btn.active').id.replace('review-filter-', '');
@@ -2109,9 +2231,6 @@
                       '<i class="fas fa-times ml-1"></i> پاسخ غلط' : 
                       '<i class="fas fa-circle ml-1"></i> پاسخ نزده'}
                   </span>
-
-
-
                   
                   ${question.selectedOption ? `
                     <span class="text-gray-400 flex items-center gap-5">پاسخ شما: 
@@ -2120,29 +2239,27 @@
                       </span>
                     </span>
                   ` : ''}
-
-                  
                 </div>
                 
               </div>
               
             </div>
-
-            
           </div>
-           ${question.hasPDF && pdfData && pdfData.pages && pdfData.pages[question.number] ? `
-              <div onclick="showReviewQuestionPDF(${question.number}, '${btoa(JSON.stringify(pdfData.pages[question.number]))}')" class="w-full h-full  rounded-lg overflow-hidden">
-            
-            
-            <div class=" p-4 overflow-auto">
-              <img src="${JSON.parse(atob(btoa(JSON.stringify(pdfData.pages[question.number]))))}" 
-                   alt="سوال ${question.number}"
-                   class="w-full h-auto mx-auto rounded-lg shadow-lg">
+          
+          <!-- نمایش PDF اگر وجود دارد -->
+          ${question.hasPDF && pdfData && pdfData.pages && pdfData.pages[question.number] ? `
+            <div onclick="showReviewQuestionPDF(${question.number}, '${btoa(JSON.stringify(pdfData.pages[question.number]))}')" class="w-full h-full rounded-lg overflow-hidden cursor-pointer">
+              <div class="p-4 overflow-auto">
+                <img src="${JSON.parse(atob(btoa(JSON.stringify(pdfData.pages[question.number]))))}" 
+                     alt="سوال ${question.number}"
+                     class="w-full h-auto mx-auto rounded-lg shadow-lg hover:scale-105 transition-transform duration-300">
+              </div>
+              <div class="text-center text-sm text-gray-400 mt-2">
+                <i class="fas fa-search-plus ml-1"></i> برای بزرگنمایی کلیک کنید
+              </div>
             </div>
-            
-            
-          </div>
-            ` : ''}
+          ` : ''}
+          
           <!-- جزئیات پاسخ -->
           <div class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -2184,9 +2301,6 @@
                 </div>
               </div>
             </div>
-            
-            <!-- نمایش گزینه‌ها -->
-            
           </div>
           
           <!-- پیام وضعیت -->
@@ -2261,7 +2375,7 @@
               </button>
             </div>
             
-            <div class="p-4 h-[calc(100%-80px)] overflow-auto  content-center">
+            <div class="p-4 h-[calc(100%-80px)] overflow-auto content-center">
               <img src="${imageData}" 
                    alt="سوال ${questionNum}"
                    class="max-w-full h-auto mx-auto rounded-lg shadow-lg">
@@ -2436,8 +2550,6 @@
               </div>
           `;
           
-          
-          
           subjectHTML += `
             <div class="space-y-4" id="questions-${subject.name.replace(/\s+/g, '-')}">
           `;
@@ -2543,12 +2655,11 @@
 
       document.getElementById('answerKeys').classList.remove('hidden');
       setTimeout(() => {
-  // اگر کلیدهای از پیش ساخته شده وجود دارند، آنها را پر کن
-  if (window.premadeAnswerKeys) {
-    fillAnswerKeysAutomatically(window.premadeAnswerKeys);
-    // بعد از پر کردن، متغیر را پاک کن تا دفعات بعدی استفاده نشود
-  }
-}, 300);
+        if (window.premadeAnswerKeys) {
+          fillAnswerKeysAutomatically(window.premadeAnswerKeys);
+        }
+      }, 300);
+      
       document.getElementById('results').innerHTML = '';
       document.getElementById('actionSection').classList.add('hidden');
       
@@ -3128,28 +3239,27 @@
           const questionNum = subject.startQuestion + i;
           const questionId = `${subject.subject}-q${questionNum}`;
           const selectedOption = selectedOptions[questionId];
-let correctAnswer = '';
+          let correctAnswer = '';
 
-// اول بررسی کن اگر کلید از پیش ساخته شده وجود دارد
-if (window.premadeAnswerKeys) {
-  // جستجوی کلید در داده‌های از پیش ساخته شده
-  examStructure.forEach(subject => {
-    const subjectKey = Object.keys(window.premadeAnswerKeys).find(key => 
-      key.toLowerCase().includes(subject.subject.toLowerCase().substring(0, 3))
-    );
-    
-    if (subjectKey && window.premadeAnswerKeys[subjectKey] && 
-        window.premadeAnswerKeys[subjectKey][questionNum]) {
-      correctAnswer = window.premadeAnswerKeys[subjectKey][questionNum];
-    }
-  });
-}
+          // اول بررسی کن اگر کلید از پیش ساخته شده وجود دارد
+          if (window.premadeAnswerKeys) {
+            // جستجوی کلید در داده‌های از پیش ساخته شده
+            examStructure.forEach(subject => {
+              const subjectKey = Object.keys(window.premadeAnswerKeys).find(key => 
+                key.toLowerCase().includes(subject.subject.toLowerCase().substring(0, 3))
+              );
+              
+              if (subjectKey && window.premadeAnswerKeys[subjectKey] && 
+                  window.premadeAnswerKeys[subjectKey][questionNum]) {
+                correctAnswer = window.premadeAnswerKeys[subjectKey][questionNum];
+              }
+            });
+          }
 
-
-if (!correctAnswer) {
-  const keyInput = document.getElementById(`key-${questionId}`);
-  correctAnswer = keyInput ? keyInput.value : '';
-}
+          if (!correctAnswer) {
+            const keyInput = document.getElementById(`key-${questionId}`);
+            correctAnswer = keyInput ? keyInput.value : '';
+          }
 
           const resultDiv = document.getElementById(`result-${questionId}`);
 
@@ -3408,12 +3518,15 @@ if (!correctAnswer) {
       const exams = getSavedExams();
       const examId = exams.length;
       
-      // ذخیره PDF اگر وجود دارد
+      // ذخیره PDF در IndexedDB اگر وجود دارد
       if (totalPDFPages > 0) {
-        const pdfData = await savePDFToStorage(examId);
+        const pdfData = await savePDFToIndexedDB(examId);
         if (pdfData) {
           currentExamResults.hasPDF = true;
         }
+        
+        // پاکسازی PDF‌های قدیمی
+        await cleanOldPDFs(20);
       }
       
       exams.push(currentExamResults);
@@ -3453,15 +3566,15 @@ if (!correctAnswer) {
       return saved ? JSON.parse(saved) : [];
     }
     
-    function deleteExam(index) {
+    async function deleteExam(index) {
       if (!confirm('آیا از حذف این آزمون اطمینان دارید؟')) return;
       
       const exams = getSavedExams();
       exams.splice(index, 1);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exams));
       
-      // حذف PDF مرتبط
-      localStorage.removeItem(PDF_STORAGE_KEY + index);
+      // حذف PDF مرتبط از IndexedDB
+      await deletePDFFromIndexedDB(index);
       
       loadExamHistory();
       showNotification('آزمون با موفقیت حذف شد');
@@ -3789,22 +3902,226 @@ if (!correctAnswer) {
       window.print();
     }
 
-    // بارگذاری اولیه
-    document.addEventListener('DOMContentLoaded', function() {
-      loadExamHistory();
-  loadLastSettings();
-  updateTotalQuestionsCount();
-  
-  // بررسی آزمون آماده
-  setTimeout(() => {
-    const hasPremadeExam = checkAndLoadPremadeExam();
-    if (hasPremadeExam) {
-      // نمایش پیام موفقیت
-      setTimeout(() => {
-        showNotification('آزمون آماده با موفقیت بارگذاری شد!');
-      }, 2000);
+    // ============ عملکردهای عمومی ============
+    
+    function handleInputClick(input) {
+      input.focus();
+      input.select();
     }
-  }, 500);
+    
+    function validateInput(input) {
+      const value = parseInt(input.value);
+      if (isNaN(value) || value < 0) {
+        input.value = 0;
+      }
+      
+      updateTotalQuestionsCount();
+      
+      if (totalPDFPages > 0) {
+        checkPDFQuestionsMatch();
+      }
+    }
+    
+    function calculateTotalQuestions() {
+      let total = 0;
+      subjects.forEach(subject => {
+        const count = parseInt(document.getElementById(subject.id).value) || 0;
+        total += count;
+      });
+      return total;
+    }
+    
+    function updateTotalQuestionsCount() {
+      const total = calculateTotalQuestions();
+      document.getElementById('totalQuestionsCount').textContent = total;
+    }
+
+    // ============ پشتیبانی از آزمون‌های آماده ============
+
+    // تابع برای بارگذاری PDF از URL
+    async function loadPDFFromURL(pdfUrl) {
+      try {
+        showNotification('در حال بارگذاری PDF آزمون...');
+        
+        const response = await fetch(pdfUrl);
+        if (!response.ok) {
+          throw new Error('PDF یافت نشد');
+        }
+        
+        const blob = await response.blob();
+        const file = new File([blob], pdfUrl.split('/').pop(), { 
+          type: 'application/pdf',
+          lastModified: Date.now()
+        });
+        
+        // استفاده از تابع موجود handlePDFUpload
+        await handlePDFUpload({ target: { files: [file] } });
+        
+        showNotification('PDF آزمون با موفقیت بارگذاری شد');
+        return true;
+      } catch (error) {
+        console.error('خطا در بارگذاری PDF:', error);
+        showNotification('خطا در بارگذاری PDF آزمون. لطفاً به صورت دستی آپلود کنید');
+        return false;
+      }
+    }
+    
+    // تابع برای پر کردن خودکار کلید پاسخ‌ها
+    function fillAnswerKeysAutomatically(answerKeys) {
+      if (!answerKeys || !examStructure.length) return;
+      
+      let filledCount = 0;
+      
+      examStructure.forEach(subject => {
+        // نگاشت نام فارسی به کلید انگلیسی
+        const keyMap = {
+          'زیست‌شناسی': 'bioCount',
+          'فیزیک': 'physCount',
+          'شیمی': 'chemCount', 
+          'ریاضی': 'mathCount',
+          'زمین‌شناسی': 'geoCount'
+        };
+        
+        const subjectKey = keyMap[subject.subject];
+        
+        if (subjectKey && answerKeys[subjectKey]) {
+          const subjectAnswers = answerKeys[subjectKey];
+          
+          for (let i = 0; i < subject.count; i++) {
+            const questionNum = subject.startQuestion + i;
+            const questionId = `${subject.subject}-q${questionNum}`;
+            const keyInput = document.getElementById(`key-${questionId}`);
+            
+            // اگر کلید پاسخ برای این شماره سوال وجود دارد
+            if (keyInput && subjectAnswers[questionNum]) {
+              keyInput.value = subjectAnswers[questionNum];
+              filledCount++;
+            }
+          }
+        }
+      });
+      
+      if (filledCount > 0) {
+        showNotification(`${filledCount} کلید پاسخ پر شدند`);
+      } else {
+        console.log('هیچ کلید پاسخی یافت نشد. ساختار answerKeys:', answerKeys);
+      }
+    }
+    
+    // تابع برای بررسی و بارگذاری آزمون از پیش ساخته شده
+    function checkAndLoadPremadeExam() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isPremade = urlParams.get('premade') === 'true';
+      
+      const savedExam = localStorage.getItem('selected_premade_exam');
+      if (!savedExam) {
+        showNotification('آزمون آماده‌ای یافت نشد');
+        return false;
+      }
+      
+      try {
+        const examData = JSON.parse(savedExam);
+        
+        if (!examData.isPremade) return false;
+        
+        console.log('آزمون آماده بارگذاری شد:', examData);
+        
+        // 1. پر کردن نام آزمون
+        document.getElementById('examName').value = examData.name || `آزمون آماده ${examData.id}`;
+        
+        // 2. پر کردن تعداد سوالات هر درس
+        Object.entries(examData.subjectCounts).forEach(([subject, count]) => {
+          const input = document.getElementById(subject);
+          if (input) {
+            input.value = count;
+          }
+        });
+        
+        // 3. پر کردن زمان آزمون
+        document.getElementById('examTime').value = examData.time;
+        
+        // 4. به‌روزرسانی تعداد کل سوالات
+        updateTotalQuestionsCount();
+        
+        // 5. نمایش تب آزمون
+        showTab('exam');
+        
+        // 6. ذخیره کلید پاسخ‌ها برای استفاده بعدی
+        if (examData.answerKey && examData.answerKey.answers) {
+          window.premadeAnswerKeys = examData.answerKey.answers;
+        }
+        
+        // 7. بارگذاری PDF اگر وجود دارد
+        if (examData.pdfFile) {
+          // تأخیر برای اطمینان از بارگذاری کامل صفحه
+          setTimeout(() => {
+            loadPDFFromURL(examData.pdfFile).then(pdfLoaded => {
+              if (pdfLoaded) {
+                // پس از بارگذاری PDF، آزمون را به صورت خودکار شروع کن
+                setTimeout(() => {
+                  generateExam();
+                  
+                  // پس از ایجاد آزمون، کلیدها را پر کن
+                  setTimeout(() => {
+                    if (window.premadeAnswerKeys) {
+                      fillAnswerKeysAutomatically(window.premadeAnswerKeys);
+                    }
+                  }, 1000);
+                  
+                }, 1500);
+              }
+            });
+          }, 500);
+        } else {
+          // اگر PDF نیست، فقط آزمون را شروع کن
+          setTimeout(() => {
+            generateExam();
+            
+            // پس از ایجاد آزمون، کلیدها را پر کن
+            setTimeout(() => {
+              if (window.premadeAnswerKeys) {
+                fillAnswerKeysAutomatically(window.premadeAnswerKeys);
+              }
+            }, 1000);
+            
+          }, 500);
+        }
+        
+        // 8. پاک کردن داده‌های موقت
+        localStorage.removeItem('selected_premade_exam');
+        
+        // 9. حذف پارامتر از URL بدون ریلود صفحه
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        
+        return true;
+        
+      } catch (error) {
+        console.error('خطا در بارگذاری آزمون آماده:', error);
+        showNotification('خطا در بارگذاری آزمون آماده');
+        return false;
+      }
+    }
+
+    // بارگذاری اولیه
+    document.addEventListener('DOMContentLoaded', async function() {
+      // مقداردهی اولیه IndexedDB
+      await initPDFDatabase();
+      
+      loadExamHistory();
+      loadLastSettings();
+      updateTotalQuestionsCount();
+      
+      // بررسی آزمون آماده
+      setTimeout(() => {
+        const hasPremadeExam = checkAndLoadPremadeExam();
+        if (hasPremadeExam) {
+          // نمایش پیام موفقیت
+          setTimeout(() => {
+            showNotification('آزمون آماده با موفقیت بارگذاری شد!');
+          }, 2000);
+        }
+      }, 500);
       
       document.querySelectorAll('.setup-input').forEach(input => {
         input.addEventListener('click', function(e) {
@@ -3818,176 +4135,6 @@ if (!correctAnswer) {
         });
       });
     });
-
-
-    // ============ پشتیبانی از آزمون‌های آماده ============
-
-// تابع برای بارگذاری PDF از URL
-async function loadPDFFromURL(pdfUrl) {
-  try {
-    showNotification('در حال بارگذاری PDF آزمون...');
-    
-    const response = await fetch(pdfUrl);
-    if (!response.ok) {
-      throw new Error('PDF یافت نشد');
-    }
-    
-    const blob = await response.blob();
-    const file = new File([blob], pdfUrl.split('/').pop(), { 
-      type: 'application/pdf',
-      lastModified: Date.now()
-    });
-    
-    // استفاده از تابع موجود handlePDFUpload
-    await handlePDFUpload({ target: { files: [file] } });
-    
-    showNotification('PDF آزمون با موفقیت بارگذاری شد');
-    return true;
-  } catch (error) {
-    console.error('خطا در بارگذاری PDF:', error);
-    showNotification('خطا در بارگذاری PDF آزمون. لطفاً به صورت دستی آپلود کنید');
-    return false;
-  }
-}
-
-// تابع برای پر کردن خودکار کلید پاسخ‌ها
-function fillAnswerKeysAutomatically(answerKeys) {
-  if (!answerKeys || !examStructure.length) return;
-  
-  let filledCount = 0;
-  
-  examStructure.forEach(subject => {
-    // نگاشت نام فارسی به کلید انگلیسی
-    const keyMap = {
-      'زیست‌شناسی': 'bioCount',
-      'فیزیک': 'physCount',
-      'شیمی': 'chemCount', 
-      'ریاضی': 'mathCount',
-      'زمین‌شناسی': 'geoCount'
-    };
-    
-    const subjectKey = keyMap[subject.subject];
-    
-    if (subjectKey && answerKeys[subjectKey]) {
-      const subjectAnswers = answerKeys[subjectKey];
-      
-      for (let i = 0; i < subject.count; i++) {
-        const questionNum = subject.startQuestion + i;
-        const questionId = `${subject.subject}-q${questionNum}`;
-        const keyInput = document.getElementById(`key-${questionId}`);
-        
-        // اگر کلید پاسخ برای این شماره سوال وجود دارد
-        if (keyInput && subjectAnswers[questionNum]) {
-          keyInput.value = subjectAnswers[questionNum];
-          filledCount++;
-        }
-      }
-    }
-  });
-  
-  if (filledCount > 0) {
-    showNotification(`${filledCount} کلید پاسخ پر شدند`);
-  } else {
-    console.log('هیچ کلید پاسخی یافت نشد. ساختار answerKeys:', answerKeys);
-  }
-}
-
-// تابع برای بررسی و بارگذاری آزمون از پیش ساخته شده
-function checkAndLoadPremadeExam() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const isPremade = urlParams.get('premade') === 'true';
-  
-  
-  const savedExam = localStorage.getItem('selected_premade_exam');
-  if (!savedExam) {
-    showNotification('آزمون آماده‌ای یافت نشد');
-    return false;
-  }
-  
-  try {
-    const examData = JSON.parse(savedExam);
-    
-    if (!examData.isPremade) return false;
-    
-    console.log('آزمون آماده بارگذاری شد:', examData);
-    
-    // 1. پر کردن نام آزمون
-    document.getElementById('examName').value = examData.name || `آزمون آماده ${examData.id}`;
-    
-    // 2. پر کردن تعداد سوالات هر درس
-    Object.entries(examData.subjectCounts).forEach(([subject, count]) => {
-      const input = document.getElementById(subject);
-      if (input) {
-        input.value = count;
-      }
-    });
-    
-    // 3. پر کردن زمان آزمون
-    document.getElementById('examTime').value = examData.time;
-    
-    // 4. به‌روزرسانی تعداد کل سوالات
-    updateTotalQuestionsCount();
-    
-    // 5. نمایش تب آزمون
-    showTab('exam');
-    
-    // 6. ذخیره کلید پاسخ‌ها برای استفاده بعدی
-    if (examData.answerKey && examData.answerKey.answers) {
-      
-      window.premadeAnswerKeys = examData.answerKey.answers;
-    }
-    
-    // 7. بارگذاری PDF اگر وجود دارد
-    if (examData.pdfFile) {
-      // تأخیر برای اطمینان از بارگذاری کامل صفحه
-      setTimeout(() => {
-        loadPDFFromURL(examData.pdfFile).then(pdfLoaded => {
-          if (pdfLoaded) {
-            // پس از بارگذاری PDF، آزمون را به صورت خودکار شروع کن
-            setTimeout(() => {
-              generateExam();
-              
-              // پس از ایجاد آزمون، کلیدها را پر کن
-              setTimeout(() => {
-                if (window.premadeAnswerKeys) {
-                  fillAnswerKeysAutomatically(window.premadeAnswerKeys);
-                }
-              }, 1000);
-              
-            }, 1500);
-          }
-        });
-      }, 500);
-    } else {
-      // اگر PDF نیست، فقط آزمون را شروع کن
-      setTimeout(() => {
-        generateExam();
-        
-        // پس از ایجاد آزمون، کلیدها را پر کن
-        setTimeout(() => {
-          if (window.premadeAnswerKeys) {
-            fillAnswerKeysAutomatically(window.premadeAnswerKeys);
-          }
-        }, 1000);
-        
-      }, 500);
-    }
-    
-    // 8. پاک کردن داده‌های موقت
-    localStorage.removeItem('selected_premade_exam');
-    
-    // 9. حذف پارامتر از URL بدون ریلود صفحه
-    const newUrl = window.location.pathname;
-    window.history.replaceState({}, document.title, newUrl);
-    
-    return true;
-    
-  } catch (error) {
-    console.error('خطا در بارگذاری آزمون آماده:', error);
-    showNotification('خطا در بارگذاری آزمون آماده');
-    return false;
-  }
-}
   </script>
 </body>
 </html>
