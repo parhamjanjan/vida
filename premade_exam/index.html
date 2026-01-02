@@ -835,7 +835,7 @@
       currentFilters.subject = subject;
       
       // به‌روزرسانی دکمه‌های فعال
-      document.querySelectorAll('#filter-all, #filter-biology, #filter-physics, #filter-chemistry, #filter-math').forEach(btn => {
+      document.querySelectorAll('#filter-all, #filter-bio, #filter-phys, #filter-chem, #filter-math, filter-geo').forEach(btn => {
         btn.classList.remove('active');
       });
       document.getElementById(`filter-${subject}`).classList.add('active');
