@@ -2,23 +2,23 @@
   "exams": [
     {
   "id": 1,
-  "name": "آزمون 14 آذر قلمچی",
-  "description": "آزمون کامل",
-  "date": "1404/10/11",
+  "name": "آزمون 10 بهمن قلمچی",
+  "description": "آزمون جامع",
+  "date": "1404/11/10",
   "subjectCounts": {
     "bioCount": 40,
     "physCount": 30,
-    "chemCount": 30,
-    "mathCount": 30,
-    "geoCount": 0
+    "chemCount": 20,
+    "mathCount": 20,
+    "geoCount": 10
   },
-  "time": 171,
+  "time": 146,
   "pdfFile": "https://parhamjanjan.github.io/vida/PDFs/GH12T.pdf",
   "answerKey": "Gh12T.json",
   "difficulty": "متوسط",
   "tags": [
-    "14",
-    "آذر",
+    "10",
+    "بهمن",
     "قلمچی"
   ]
 },
@@ -37,7 +37,7 @@
       "time": 30,
       "pdfFile": "https://parhamjanjan.github.io/vida/PDFs/CHPhyVida5.pdf",
       "answerKey": "CHPhy.json",
-      "difficulty": "متوسط",
+      "difficulty": "سخت",
       "tags": ["فیزیک", "آزمون جامع"]
     }
   ]
