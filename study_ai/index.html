@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سامانه آموزشی ویدا - نظارت هوشمند بر مطالعه</title>
+
+    <!-- TensorFlow & PoseNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.1"></script>
+
+    <!-- Tailwind CSS -->
+   <link rel="stylesheet" href="../assets/fontawesome/css/all.css">
+    <link href="../src/output.css" rel="stylesheet">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@cometchat/chat-embed@1.x.x/dist/main.js"></script>
+
+    <style>
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-Thin.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        #cometChatMount {
+            width: 100%;
+            height: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-top: 20px;
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .floating-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .floating-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary,
+        .btn-secondary,
+        .btn-accent {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-primary:hover,
+        .btn-secondary:hover,
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* استایل‌های مخصوص صفحه نظارت هوشمند */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 360px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.85));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            /* mirrored for UX */
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            justify-content: space-around;
+            margin-top: 1rem;
+        }
+
+        .stat {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .stat .label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat .value {
+            font-size: 1.35rem;
+            color: var(--secondary-color);
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .tree-view {
+            height: 520px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .progress-shell {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 99px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--secondary-color), #b5fff0);
+            transition: width 600ms ease;
+        }
+
+        /* alert top */
+        .alert {
+            position: fixed;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            z-index: 999;
+            padding: 12px 18px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 800;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        /* استایل‌های آیکون‌های لیگ آف لجندز */
+        .summoner-icons-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            margin: 0 auto;
+        }
+
+        .summoner-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 3px solid #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .summoner-icon::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ffd700, #ff6b00, #00ff88, #0099ff);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .summoner-icon.active::before {
+            opacity: 1;
+        }
+
+        .summoner-icon i {
+            font-size: 2rem;
+            color: #94a3b8;
+            transition: all 0.3s ease;
+        }
+
+        .summoner-icon.active i {
+            color: white;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .summoner-icon:hover {
+            transform: scale(1.1);
+            border-color: #f59e0b;
+        }
+
+        .summoner-icon.active {
+            transform: scale(1.15);
+            border-color: #f59e0b;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+        }
+
+        .icon-level {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 2px solid #1e293b;
+        }
+
+        .achievement-badge {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            background: #10b981;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            border: 2px solid #1e293b;
+        }
+
+        .rank-progress {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .rank-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #f59e0b;
+        }
+
+        .rank-bar {
+            height: 20px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .rank-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .rank-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            margin: 2rem 0;
+        }
+
+        /* گل رز */
+        .rose-wrapper {
+            position: relative;
+            width: 200px;
+            height: 344px;
+            margin: 0 auto;
+        }
+
+        /* رنگ‌ها */
+        :root {
+            --bg: #0e192e;
+            --case: #122139;
+            --casebase: #a52a2a;
+            --pink1: #d52d58;
+            --pink2: #9e183a;
+            --pink3: #b81b43;
+            --pink4: #c9204b;
+            --green1: #338f37;
+            --green2: #054f05;
+        }
+
+        .rose-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        /* Glass */
+        .glass {
+            height: 350px;
+            width: 200px;
+            background: var(--case);
+            border-radius: 300px 300px 0 0;
+            position: relative;
+        }
+
+        .glass:before {
+            content: "";
+            height: 10px;
+            width: 10px;
+            border: 10px solid var(--case);
+            border-radius: 100%;
+            position: absolute;
+            left: 87px;
+            top: -25px;
+        }
+
+        .glass:after {
+            content: "";
+            position: absolute;
+            height: 15px;
+            width: 250px;
+            background: var(--casebase);
+            top: 100%;
+            left: -13%;
+        }
+
+        .shine {
+            width: 12px;
+            height: 140px;
+            background: white;
+            opacity: 0.2;
+            position: absolute;
+            left: 85%;
+            top: 80px;
+            border-radius: 100px;
+            z-index: 10;
+        }
+
+        .shine:before {
+            content: "";
+            width: 12px;
+            height: 20px;
+            position: absolute;
+            background: white;
+            top: 160px;
+            border-radius: 100px;
+        }
+
+        /* Petals */
+        .petals>div {
+            position: absolute;
+            background: var(--pink1);
+            width: 45px;
+            height: 80px;
+            top: 55px;
+            transition: all 0.5s ease-out;
+        }
+
+        .petals>div:nth-child(1) {
+            border-radius: 15px;
+            box-shadow: 0px 0px 30px rgba(245, 148, 184, 1);
+            left: 80px;
+            top: 60px;
+        }
+
+        /* پتال‌های کناری */
+        .petals>div:nth-child(2),
+        .petals>div:nth-child(4),
+        .petals>div:nth-child(6) {
+            background: var(--pink3);
+            left: 60px;
+            border-radius: 0px 30px 0px 30px;
+            transform-origin: bottom right;
+        }
+
+        .petals>div:nth-child(3),
+        .petals>div:nth-child(5),
+        .petals>div:nth-child(7) {
+            background: var(--pink3);
+            left: 100px;
+            border-radius: 30px 0px 30px 0px;
+            transform-origin: bottom left;
+        }
+
+        /* تنظیم پتال‌ها */
+        .petals>div:nth-child(2) {
+            background: var(--pink2);
+            top: 75px;
+            height: 70px;
+            animation: bloom2 3s ease-in-out forwards;
+        }
+
+        .petals>div:nth-child(3) {
+            background: var(--pink2);
+            top: 75px;
+            height: 70px;
+            animation: bloom3 3s ease-in-out, glowing 2.5s ease-in-out infinite;
+            animation-fill-mode: forwards;
+        }
+
+        .petals>div:nth-child(4) {
+            background: var(--pink3);
+            top: 70px;
+            height: 75px;
+            animation: bloom4 3s ease-in-out, glowing 2.5s ease-in-out infinite;
+            animation-fill-mode: forwards;
+        }
+
+        .petals>div:nth-child(5) {
+            background: var(--pink3);
+            top: 70px;
+            height: 75px;
+            animation: bloom5 3s ease-in-out, glowing 2.5s ease-in-out infinite;
+            animation-fill-mode: forwards;
+        }
+
+        .petals>div:nth-child(6) {
+            background: var(--pink4);
+            top: 65px;
+            height: 70px;
+            animation: bloom6 3s ease-in-out, glowing 2.5s ease-in-out infinite;
+            animation-fill-mode: forwards;
+        }
+
+        .petals>div:nth-child(7) {
+            background: var(--pink4);
+            top: 65px;
+            height: 70px;
+            animation: bloom7 3s ease-in-out, glowing 2.5s ease-in-out infinite;
+            animation-fill-mode: forwards;
+        }
+
+        /* Fallen petals */
+        .deadPetals>div {
+            position: absolute;
+            background: var(--pink1);
+            width: 20px;
+            height: 15px;
+            top: 120px;
+            border-radius: 0px 30px 0px 30px;
+            box-shadow: 0px 0px 30px rgba(245, 148, 184, .5);
+            animation: falling 20s linear infinite;
+        }
+
+        /* Leaf */
+        .leaves>div:nth-child(1) {
+            position: absolute;
+            width: 6px;
+            height: 210px;
+            background: var(--green2);
+            top: 95px;
+            left: 100px;
+            border-radius: 0 0 100px 100px;
+        }
+
+        .leaves>div:nth-child(2) {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            border-radius: 5px 40px 20px 40px;
+            background: var(--green2);
+            transform: rotate(-30deg);
+            top: 180px;
+            left: 65px;
+        }
+
+        .leaves>div:nth-child(3) {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            border-radius: 40px 5px 40px 20px;
+            background: var(--green2);
+            transform: rotate(30deg);
+            top: 150px;
+            left: 110px;
+        }
+
+        .leaves>div:nth-child(4) {
+            width: 55px;
+            height: 30px;
+            background: var(--green1);
+            top: 120px;
+            left: 75px;
+            position: absolute;
+            border-radius: 100px;
+        }
+
+        /* Thorns */
+        .thorns>div {
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+
+        .thorns>div:nth-child(odd) {
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 5px solid var(--green2);
+            left: 105px;
+        }
+
+        .thorns>div:nth-child(even) {
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-right: 5px solid var(--green2);
+            left: 95px;
+        }
+
+        .thorns>div:nth-child(1) {
+            top: 200px;
+        }
+
+        .thorns>div:nth-child(2) {
+            top: 170px;
+        }
+
+        .thorns>div:nth-child(3) {
+            top: 210px;
+        }
+
+        .thorns>div:nth-child(4) {
+            top: 230px;
+        }
+
+        /* Animations */
+
+        @keyframes bloom2 {
+            50% {
+                transform: rotate(-90deg);
+                top: 200px;
+                left: 100px;
+            }
+
+            100% {
+                transform: rotate(-60deg);
+                top: 252px;
+                left: 50px;
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes bloom3 {
+            100% {
+                transform: rotate(45deg);
+            }
+        }
+
+        @keyframes bloom4 {
+            100% {
+                transform: rotate(-20deg);
+            }
+        }
+
+        @keyframes bloom5 {
+            100% {
+                transform: rotate(20deg);
+            }
+        }
+
+        @keyframes bloom6 {
+            100% {
+                transform: rotate(-5deg);
+            }
+        }
+
+        @keyframes bloom7 {
+            100% {
+                transform: rotate(5deg);
+            }
+        }
+
+        @keyframes glowing {
+            50% {
+                background: #e23b67;
+                box-shadow: 0px 0px 60px rgba(245, 148, 184, 1);
+            }
+        }
+
+        @keyframes falling {
+            20% {
+                top: 335px;
+                opacity: 1;
+            }
+
+            100% {
+                top: 335px;
+                opacity: 0;
+            }
+        }
+
+
+
+        /* حالت شناور */
+        .floating-window {
+            position: fixed !important;
+            bottom: 15px;
+            right: 15px;
+            width: 350px !important;
+            height: 250px !important;
+            z-index: 9999 !important;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            resize: both;
+            overflow: auto;
+            cursor: move;
+        }
+
+        /* هندل حرکت */
+        .floating-header {
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: move;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="custom-scrollbar">
+    <!-- نوار ناوبری -->
+    <nav
+        class="py-4 px-6 md:px-12 bg-opacity-80 bg-slate-900 backdrop-blur-md sticky top-0 z-50 border-b border-slate-700">
+        <div class=" flex justify-between items-center">
+            <div class="flex items-center">
+                <div
+                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 flex items-center justify-center ml-3">
+                    <i class="fas fa-graduation-cap text-white"></i>
+                </div>
+                <span class="text-xl font-bold gradient-text">سامانه آموزشی ویدا</span>
+            </div>
+
+            <!-- منوی دسکتاپ -->
+            <div class="hidden md:flex space-x-4 space-x-reverse">
+                <a href="../index.html" class="nav-link text-slate-400 hover:text-slate-200 font-medium">صفحه اصلی</a>
+                <a href="#" class="nav-link text-slate-400 hover:text-slate-200 font-medium">درباره ما</a>
+                <a href="#" class="nav-link text-slate-400 hover:text-slate-200 font-medium">تماس با ما</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="floating-card mb-8">
+            <div class="card-content p-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 flex items-center">
+                            <i class="fas fa-robot ml-2 text-indigo-400"></i>
+                            نظارت هوشمند بر مطالعه
+                        </h1>
+                        <p class="text-slate-300">تمرکز کن، رنکت ارتقا بده! (تشخیص خواب‌آلودگی + هشدار صوتی)</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 text-center md:text-left">
+                        <div class="text-slate-300">نسخه: Full edition V2 </div>
+                        <div class="text-slate-300 mt-1">Thresholds: 5s هشدار صوتی</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- سمت چپ: دوربین و آمار -->
+            <div class="floating-card">
+                <div class="card-content p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-white">دوربین نظارتی</h2>
+                        <small class="text-slate-400">PoseNet (MobileNetV1)</small>
+                    </div>
+                    <div id="pipWindowContent">
+                        <div class="camera-container" id="camShell">
+                            <video id="video" playsinline autoplay muted></video>
+
+
+                            <canvas id="overlay"></canvas>
+
+                        </div>
+                    </div>
+                    <button id="pipbtn" style="position: fixed; z-index: 99999;" class="mt-[-30px] mr-2" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="icon icon-tabler icons-tabler-outline icon-tabler-picture-in-picture">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M11 19h-6a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v4" />
+                            <path d="M14 14m0 1a1 1 0 0 1 1 -1h5a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1z" />
+                        </svg>
+                    </button>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="label">زمان مطالعه</div>
+                            <div class="value" id="studyTime">0 دقیقه</div>
+                        </div>
+                        <div class="stat">
+                            <div class="label">تمرکز</div>
+                            <div class="value" id="focusPercent">0%</div>
+                        </div>
+                        <div class="stat">
+                            <div class="label">وضعیت شما</div>
+                            <div class="value" id="currentRank">تازه کار</div>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <button class="btn-primary" id="startBtn">
+                            <i class="fas fa-play-circle ml-2"></i>
+                            شروع نظارت
+                        </button>
+                        <button class="btn-secondary" id="stopBtn">
+                            <i class="fas fa-stop ml-2"></i>
+                            توقف
+                        </button>
+                        <button class="btn-accent" id="resetBtn">
+                            <i class="fas fa-redo ml-2"></i>
+                            ریست
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4 text-slate-400">
+                        <small>نکته: برای حفظ حریم خصوصی، ویدیو محلی است و ضبط یا ارسال نمی‌شود.</small>
+                    </div>
+
+                    <div class="summoner-icons-container mt-8 flex items-center">
+                        <div class="summoner-icon active" id="iconIron">
+                            <i class="fas fa-shield-alt"></i>
+                            <div class="icon-level">1</div>
+                        </div>
+                        <div class="summoner-icon" id="iconBronze">
+                            <i class="fas fa-shield-alt"></i>
+                            <div class="icon-level">2</div>
+                        </div>
+                        <div class="summoner-icon" id="iconSilver">
+                            <i class="fas fa-shield-alt"></i>
+                            <div class="icon-level">3</div>
+                        </div>
+                        <div class="summoner-icon" id="iconGold">
+                            <i class="fas fa-crown"></i>
+                            <div class="icon-level">4</div>
+                        </div>
+                        <div class="summoner-icon" id="iconPlatinum">
+                            <i class="fas fa-crown"></i>
+                            <div class="icon-level">5</div>
+                        </div>
+                        <div class="summoner-icon" id="iconDiamond">
+                            <i class="fas fa-gem"></i>
+                            <div class="icon-level">6</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- سمت راست: آیکون‌های Summoner -->
+            <div class="floating-card">
+                <div class="card-content p-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-white">رز قرمز شما</h2>
+                        <div class="text-slate-400">با تمرکز بالا مراقبش باش!</div>
+                    </div>
+
+                    <div class="rose-wrapper mt-[25%]">
+                        <div class="rose-container">
+                            <div class="glass">
+                                <div class="shine"></div>
+                            </div>
+
+                            <div class="thorns">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+
+                            <div class="leaves">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+
+                            <div class="petals">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+
+                            <div class="deadPetals">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- سیستم رنک‌بندی -->
+
+                    <div class="rank-progress mt-10">
+                        <div class="rank-title" id="rankTitle">تازه کار</div>
+                        <div class="rank-bar">
+                            <div class="rank-fill" id="rankFill"></div>
+                        </div>
+                        <div class="text-slate-300 mt-2" id="rankProgress">0/100 LP</div>
+                    </div>
+                </div>
+
+                <div id="cometChatMount"></div>
+            </div>
+        </div>
+
+        <div class="floating-card mt-8">
+            <div class="card-content p-6 w-full">
+                <h3 class="text-xl font-bold text-white mb-4">راهنمای استفاده</h3>
+                <ul class="list-disc pr-6 text-slate-300 space-y-2">
+                    <li>وب‌کم را روشن کنید و مقابل میز قرار بگیرید.</li>
+                    <li>PoseNet موقعیت کلیدی را تشخیص می‌دهد؛ سر پایین یا دور بودن باعث هشدار می‌شود.</li>
+                    <li>اگر خواب‌آلود یا از میز دور باشید، سیستم صدا پخش می‌کند تا شما را هوشیار کند.</li>
+                    <li>با تمرکز بیشتر، وضعیت شما ارتقا پیدا می‌کند!</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="text-center text-slate-500 py-4">
+            <p>© ویدا | برنامه نویسی شده با ❤ توسط Parham Janjan — سیستم رنک مطالعه</p>
+        </div>
+    </div>
+
+    <!-- alert box -->
+    <div class="alert" id="alert">هشدار!</div>
+
+    <script>
+
+        const video = document.getElementById('video');
+        const pipButton = document.getElementById('pipbtn');
+
+        if ('pictureInPictureEnabled' in document) {
+
+            pipButton.disabled = false;
+
+            pipButton.addEventListener('click', () => {
+                if (document.pictureInPictureElement) {
+                    document
+                        .exitPictureInPicture()
+                        .catch(error => {
+                            // Error handling
+                        })
+                } else {
+                    video
+                        .requestPictureInPicture()
+                        .catch(error => {
+                            // Error handling
+                        });
+                }
+            });
+        }
+
+        // --- DOM ---
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const alertBox = document.getElementById('alert');
+        const studyTimeEl = document.getElementById('studyTime');
+        const focusPercentEl = document.getElementById('focusPercent');
+        const currentRankEl = document.getElementById('currentRank');
+        const rankTitleEl = document.getElementById('rankTitle');
+        const rankFillEl = document.getElementById('rankFill');
+        const rankProgressEl = document.getElementById('rankProgress');
+
+        // آیکون‌های Summoner
+        const summonerIcons = {
+            iron: document.getElementById('iconIron'),
+            bronze: document.getElementById('iconBronze'),
+            silver: document.getElementById('iconSilver'),
+            gold: document.getElementById('iconGold'),
+            platinum: document.getElementById('iconPlatinum'),
+            diamond: document.getElementById('iconDiamond')
+        };
+
+        // state
+        let net = null;
+        let isMonitoring = false;
+        let studyStartTime = null;
+        let lastUpdateTime = null;
+        let studySeconds = 0;
+        let focusSeconds = 0;
+
+        // thresholds
+        const AWAY_THRESHOLD_SEC = 5;
+        const DROWSY_THRESHOLD_SEC = 5;
+
+        // counters
+        let awayCounter = 0;
+        let drowsyCounter = 0;
+
+        // states
+        const STUDY_STATES = { FOCUSED: 'focused', DISTRACTED: 'distracted', AWAY: 'away', DROWSY: 'drowsy' };
+        let currentState = STUDY_STATES.AWAY;
+
+        // audio (Web Audio) - for alarm
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let alarmOsc = null;
+        let alarmGain = null;
+        let alarmPlaying = false;
+
+        // سیستم رنک‌بندی
+        const RANKS = [
+            { name: 'تازه کار', lpPerMinute: 10, maxLP: 100 },
+            { name: 'تلاشگر', lpPerMinute: 8, maxLP: 100 },
+            { name: 'متمرکز', lpPerMinute: 6, maxLP: 100 },
+            { name: 'حرفه ای', lpPerMinute: 5, maxLP: 100 },
+            { name: 'افسانه ای', lpPerMinute: 4, maxLP: 100 },
+            { name: 'مشکوک به تریاک', lpPerMinute: 3, maxLP: 100 }
+        ];
+
+        let currentRankIndex = 0;
+        let currentLP = 0;
+        let lastRankUpdateTime = null;
+
+
+
+        const USER_STORAGE_KEY = 'vida_user_data';
+        // تنظیمات CometChat
+        let CONFIG = {};
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('https://vida-settings.s3.ir-thr-at1.arvanstorage.ir/Settings%2Fchat.json?versionId=');
+                if (!response.ok) {
+                    throw new Error(`خطا در بارگذاری: ${response.status}`);
+                }
+
+                const configData = await response.json();
+
+                CONFIG = configData;
+
+                console.log("✅ تنظیمات CometChat بارگذاری شد:", CONFIG);
+                displayUserInfo();
+                loginWithUser1();
+                return true;
+
+            } catch (error) {
+                console.error("❌ خطا در بارگذاری تنظیمات:", error);
+
+                // استفاده از تنظیمات پیش‌فرض در صورت خطا
+                CONFIG = {
+                    appID: "1675119ee5a3d89a1",
+                    region: "us",
+                    authKey: "96826d1245e19c02c9e6f65e3b707eb47722d8e3"
+                };
+
+                console.log("⚠️ از تنظیمات پیش‌فرض استفاده شد:", CONFIG);
+                displayUserInfo();
+                loginWithUser1();
+                return false;
+            }
+        }
+
+        // نمایش اطلاعات کاربر از localStorage
+        function displayUserInfo() {
+            const userDataDiv = document.getElementById('userDataInfo');
+            const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+
+            } else {
+                console.log("error")
+            }
+        }
+
+        // تابع تنظیم وضعیت
+
+
+        // تابع ورود به چت
+        async function startChat(uid, name) {
+            try {
+
+                const widgetConfig = {
+                    appID: CONFIG.appID,
+                    region: CONFIG.region,
+                    authKey: CONFIG.authKey,
+                    mode: "uid",
+                    uid: uid,
+                    user: {
+                        name: name,
+                        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4f46e5&color=fff`
+                    },
+                    mount: "#cometChatMount",
+                    width: "100%",
+                    height: "500px",
+                    isDocked: false,
+                    dockedAlignment: "right",
+                    chatType: "user"
+                };
+
+                console.log("🚀 ارسال تنظیمات به CometChat:", widgetConfig);
+
+                // توقف ویجت قبلی اگر وجود دارد
+                try {
+                    if (window.CometChatApp) {
+                        CometChatApp.CometChatAuth.stop();
+                    }
+                } catch (e) {
+                    console.log("ویجت قبلی متوقف شد:", e.message);
+                }
+
+                // راه‌اندازی ویجت جدید
+                await CometChatApp.CometChatAuth.start(widgetConfig);
+
+
+                console.log("✅ ویجت CometChat راه‌اندازی شد");
+
+            } catch (error) {
+                console.error("❌ خطا در راه‌اندازی ویجت:", error);
+
+                // نمایش جزئیات بیشتر خطا
+                if (error.code) {
+                    console.log("کد خطا:", error.code);
+                    console.log("جزئیات خطا:", error.details);
+                }
+            }
+        }
+
+        // ورود با کاربر اول (استفاده از اطلاعات localStorage)
+        window.loginWithUser1 = function () {
+            const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+
+            if (!savedUser) {
+                alert('لطفاً ابتدا از صفحه ورود اطلاعات خود را وارد کنید.');
+                return;
+            }
+
+            const userData = JSON.parse(savedUser);
+
+            // ایجاد شناسه یکتا از کد ملی
+            const uid1 = `user_${userData.nationalCode}`;
+            const name1 = userData.fullName;
+
+            startChat(uid1, name1);
+        };
+
+
+
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+        }
+
+        function startAlarm() {
+            if (alarmPlaying) return;
+            initAudio();
+            alarmOsc = audioCtx.createOscillator();
+            alarmGain = audioCtx.createGain();
+            alarmOsc.type = 'sine';
+            alarmOsc.frequency.value = 900;
+            alarmGain.gain.value = 0.0001;
+            alarmOsc.connect(alarmGain);
+            alarmGain.connect(audioCtx.destination);
+
+            alarmOsc.start();
+            alarmGain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.05);
+
+            const lfo = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            lfo.frequency.value = 2.2;
+            lfoGain.gain.value = 120;
+            lfo.connect(lfoGain);
+            lfoGain.connect(alarmOsc.frequency);
+            lfo.start();
+
+            alarmPlaying = true;
+        }
+
+        function stopAlarm() {
+            if (!alarmPlaying) return;
+            alarmGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+            setTimeout(() => {
+                try {
+                    alarmOsc.stop();
+                    alarmOsc.disconnect();
+                } catch (e) { }
+                alarmOsc = null; alarmGain = null; alarmPlaying = false;
+            }, 150);
+        }
+
+        // camera setup
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
+                video.srcObject = stream;
+                return new Promise(resolve => {
+                    video.onloadedmetadata = () => { video.play(); resolve(video); }
+                });
+            } catch (err) {
+                alert('دسترسی به دوربین امکان‌پذیر نیست: ' + (err.message || err));
+                throw err;
+            }
+        }
+
+        // load posenet
+        async function loadPoseNet() {
+            net = await posenet.load({ architecture: 'MobileNetV1', outputStride: 16, inputResolution: 257, multiplier: 0.75 });
+        }
+
+        // overlay sizing
+        function resizeOverlay() {
+            overlay.width = video.videoWidth;
+            overlay.height = video.videoHeight;
+        }
+
+        // drawing
+        function drawPose(pose) {
+            const ctx = overlay.getContext('2d');
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.translate(-overlay.width, 0);
+
+            ctx.fillStyle = 'rgba(0,0,0,0.12)';
+            ctx.fillRect(0, 0, overlay.width, overlay.height);
+
+            pose.keypoints.forEach(k => {
+                if (k.score > 0.4) {
+                    ctx.beginPath();
+                    ctx.fillStyle = 'rgba(130,255,200,0.9)';
+                    ctx.arc(k.position.x, k.position.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            const adjacent = posenet.getAdjacentKeyPoints(pose.keypoints, 0.4);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(130,255,200,0.65)';
+            adjacent.forEach(([p1, p2]) => {
+                ctx.beginPath();
+                ctx.moveTo(p1.position.x, p1.position.y);
+                ctx.lineTo(p2.position.x, p2.position.y);
+                ctx.stroke();
+            });
+
+            ctx.restore();
+        }
+
+        // analysis helpers
+        let baselineShoulderY = null;
+        let lastNoseY = null;
+        let noseVelBuffer = [];
+
+        function analyzeStudyState(pose) {
+            const now = Date.now();
+            const timeDiff = lastUpdateTime ? (now - lastUpdateTime) / 1000 : 0;
+            lastUpdateTime = now;
+            if (timeDiff > 1.5) return;
+
+            const nose = pose.keypoints.find(k => k.part === 'nose');
+            const leftShoulder = pose.keypoints.find(k => k.part === 'leftShoulder');
+            const rightShoulder = pose.keypoints.find(k => k.part === 'rightShoulder');
+
+            if (!nose || nose.score < 0.45) {
+                awayCounter += timeDiff;
+                drowsyCounter = 0;
+                changeState(STUDY_STATES.AWAY);
+            } else {
+                awayCounter = 0;
+
+                if ((!baselineShoulderY) && leftShoulder && rightShoulder && leftShoulder.score > 0.4 && rightShoulder.score > 0.4) {
+                    baselineShoulderY = (leftShoulder.position.y + rightShoulder.position.y) / 2;
+                }
+
+                let midShoulderY = null;
+                if (leftShoulder && rightShoulder && leftShoulder.score > 0.35 && rightShoulder.score > 0.35) {
+                    midShoulderY = (leftShoulder.position.y + rightShoulder.position.y) / 2;
+                }
+
+                let headTilt = 0;
+                if (midShoulderY !== null) {
+                    headTilt = nose.position.y - midShoulderY;
+                } else if (baselineShoulderY) {
+                    headTilt = nose.position.y - baselineShoulderY;
+                }
+
+                if (lastNoseY !== null) {
+                    const vel = (nose.position.y - lastNoseY) / Math.max(timeDiff, 0.001);
+                    noseVelBuffer.push(vel);
+                    if (noseVelBuffer.length > 6) noseVelBuffer.shift();
+                }
+                lastNoseY = nose.position.y;
+
+                const avgVel = noseVelBuffer.length ? noseVelBuffer.reduce((a, b) => a + b, 0) / noseVelBuffer.length : 0;
+                const isDrowsy = (headTilt > 28) || (avgVel > 8);
+
+                const leftWrist = pose.keypoints.find(k => k.part === 'leftWrist');
+                const rightWrist = pose.keypoints.find(k => k.part === 'rightWrist');
+                let isHandsHigh = false;
+                if (leftWrist && leftWrist.score > 0.4 && leftWrist.position.y < nose.position.y - 50) isHandsHigh = true;
+                if (rightWrist && rightWrist.score > 0.4 && rightWrist.position.y < nose.position.y - 50) isHandsHigh = true;
+
+                if (isDrowsy) {
+                    drowsyCounter += timeDiff;
+                    changeState(STUDY_STATES.DROWSY);
+                } else {
+                    drowsyCounter = 0;
+                }
+
+                if (!isDrowsy && !isHandsHigh) {
+                    changeState(STUDY_STATES.FOCUSED);
+                } else if (!isDrowsy && isHandsHigh) {
+                    changeState(STUDY_STATES.DISTRACTED);
+                }
+            }
+
+            if (currentState === STUDY_STATES.AWAY) {
+                if (awayCounter >= AWAY_THRESHOLD_SEC) {
+                    showAlert("شما از میز دوری — لطفاً بازگردید!", "error");
+                    startAlarm();
+                }
+            } else if (currentState === STUDY_STATES.DROWSY) {
+                if (drowsyCounter >= DROWSY_THRESHOLD_SEC) {
+                    showAlert("خواب‌آلود به نظر می‌آیید — استراحت کوتاه یا تکان دادن سر!", "error");
+                    startAlarm();
+                }
+            } else {
+                stopAlarm();
+            }
+        }
+
+        // state transitions
+        function changeState(newState) {
+            if (newState === currentState) return;
+            currentState = newState;
+            if (newState === STUDY_STATES.FOCUSED) {
+                showAlert("آفرین! در حال مطالعهٔ متمرکز هستی 😊", "success");
+            } else if (newState === STUDY_STATES.DISTRACTED) {
+                showAlert("حواس‌پرتی تشخیص داده شد — تمرکز کن", "warning");
+            }
+        }
+
+        // سیستم رنک‌بندی
+        function updateRankProgress() {
+            if (!studyStartTime || currentState !== STUDY_STATES.FOCUSED) return;
+
+            const now = Date.now();
+            if (!lastRankUpdateTime) {
+                lastRankUpdateTime = now;
+                return;
+            }
+
+            // محاسبه زمان بر اساس آخرین بروزرسانی
+            const timeDiff = (now - lastRankUpdateTime) / 1000 / 60; // به دقیقه
+            lastRankUpdateTime = now;
+
+            const currentRankData = RANKS[currentRankIndex];
+            currentLP += timeDiff * currentRankData.lpPerMinute;
+
+            // بررسی ارتقای رنک
+            if (currentLP >= currentRankData.maxLP && currentRankIndex < RANKS.length - 1) {
+                currentLP = 0;
+                currentRankIndex++;
+                showAlert(`تبریک! شما به رنک ${RANKS[currentRankIndex].name} ارتقا پیدا کردید!`, "success");
+            }
+
+            updateRankUI();
+        }
+
+        function updateRankUI() {
+            const currentRankData = RANKS[currentRankIndex];
+            const lpPercentage = (currentLP / currentRankData.maxLP) * 100;
+
+            // به روزرسانی نمایش رنک
+            rankTitleEl.textContent = currentRankData.name;
+            currentRankEl.textContent = currentRankData.name;
+            rankFillEl.style.width = `${lpPercentage}%`;
+            rankProgressEl.textContent = `${Math.round(currentLP)}/${currentRankData.maxLP} LP`;
+
+            // به روزرسانی آیکون‌های Summoner
+            updateSummonerIcons();
+        }
+
+        function updateSummonerIcons() {
+            // غیرفعال کردن همه آیکون‌ها
+            Object.values(summonerIcons).forEach(icon => {
+                if (icon) icon.classList.remove('active');
+            });
+
+            // فعال کردن آیکون مربوط به رنک فعلی
+            const rankNames = ['iron', 'bronze', 'silver', 'gold', 'platinum', 'diamond'];
+            if (currentRankIndex < rankNames.length && summonerIcons[rankNames[currentRankIndex]]) {
+                summonerIcons[rankNames[currentRankIndex]].classList.add('active');
+            }
+        }
+
+        // alerts (visual)
+        let alertTimeout = null;
+        function showAlert(text, type) {
+            alertBox.style.display = 'flex';
+            alertBox.textContent = text;
+            if (type === 'success') alertBox.style.background = 'linear-gradient(90deg, var(--secondary-color), #059669)';
+            else if (type === 'warning') alertBox.style.background = 'linear-gradient(90deg, var(--accent-color), #d97706)';
+            else alertBox.style.background = 'linear-gradient(90deg, #ff6b6b, #ff3b3b)';
+            clearTimeout(alertTimeout);
+            alertTimeout = setTimeout(() => { alertBox.style.display = 'none'; }, 3500);
+        }
+
+        // stats & tree
+        function updateStats() {
+            const now = Date.now();
+            if (studyStartTime) {
+                studySeconds = Math.floor((now - studyStartTime) / 1000);
+                const minutes = Math.floor(studySeconds / 60);
+                studyTimeEl.textContent = `${minutes} دقیقه`;
+
+                if (currentState === STUDY_STATES.FOCUSED) focusSeconds++;
+                const focusPercent = studySeconds > 0 ? Math.round((focusSeconds / studySeconds) * 100) : 0;
+                focusPercentEl.textContent = `${focusPercent}%`;
+
+                updateRankProgress();
+            }
+        }
+
+        // pose loop
+        async function detectPoseLoop() {
+            if (!isMonitoring || !net) return;
+            try {
+                const pose = await net.estimateSinglePose(video, { flipHorizontal: true });
+                drawPose(pose);
+                analyzeStudyState(pose);
+            } catch (e) {
+                console.warn('pose err', e);
+            }
+            requestAnimationFrame(detectPoseLoop);
+        }
+
+        // start/stop monitoring
+        let statsInterval = null;
+        async function startMonitoring() {
+            if (isMonitoring) return;
+            try {
+                await setupCamera();
+                await loadPoseNet();
+                resizeOverlay();
+                window.addEventListener('resize', resizeOverlay);
+                isMonitoring = true;
+                focusPercent = 0;
+                studyStartTime = Date.now();
+                lastUpdateTime = Date.now();
+                lastRankUpdateTime = Date.now();
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                resetBtn.disabled = false;
+                detectPoseLoop();
+                statsInterval = setInterval(updateStats, 1000);
+                showAlert("نظارت شروع شد — موفق باشید!", "success");
+                updateRankUI();
+            } catch (err) {
+                console.error(err);
+                showAlert('خطا در دسترسی یا بارگیری مدل', 'error');
+            }
+        }
+
+        function stopMonitoring() {
+            if (!isMonitoring) return;
+            isMonitoring = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            const stream = video.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                video.srcObject = null;
+            }
+            clearInterval(statsInterval);
+            studyStartTime = null;
+            lastUpdateTime = null;
+            studySeconds = 0;
+            focusSeconds = 0;
+            awayCounter = 0;
+            drowsyCounter = 0;
+            currentState = STUDY_STATES.AWAY;
+            studyTimeEl.textContent = '0 دقیقه';
+            focusPercentEl.textContent = '0%';
+            currentRankEl.textContent = 'تازه کار';
+            showAlert('صفرشد! آمار بازنشانی شد', 'warning');
+            stopAlarm();
+            showAlert('نظارت متوقف شد', 'warning');
+        }
+
+
+        function resetAll() {
+            studyStartTime = null;
+            lastUpdateTime = null;
+            lastRankUpdateTime = null;
+            studySeconds = 0;
+            focusSeconds = 0;
+            currentRankIndex = 0;
+            currentLP = 0;
+            awayCounter = 0;
+            drowsyCounter = 0;
+            currentState = STUDY_STATES.AWAY;
+            studyTimeEl.textContent = '0 دقیقه';
+            focusPercentEl.textContent = '0%';
+            currentRankEl.textContent = 'تازه کار';
+            updateRankUI();
+            showAlert('صفرشد! آمار بازنشانی شد', 'warning');
+        }
+
+        // init UI actions
+        startBtn.addEventListener('click', startMonitoring);
+        stopBtn.addEventListener('click', stopMonitoring);
+        resetBtn.addEventListener('click', resetAll);
+        stopBtn.disabled = true;
+
+        // ابتدا فقط آیکون Iron فعال است
+        updateRankUI();
+
+        // auto-stop audio on visibility change to avoid stuck audio
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopAlarm();
+        });
+
+         document.addEventListener('DOMContentLoaded', function () {
+            loadConfig();
+            
+        });
+
+        // on page unload stop tracks and audio
+        window.addEventListener('beforeunload', () => {
+            try { stopAlarm(); } catch (e) { }
+            const st = video.srcObject;
+            if (st) st.getTracks().forEach(t => t.stop());
+        });
+    </script>
+</body>
+
+</html>

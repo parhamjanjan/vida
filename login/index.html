@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به سامانه آموزشی ویدا</title>
+    <link rel="stylesheet" href="../assets/fontawesome/css/all.css">
+    <link href="../src/output.css" rel="stylesheet">
+    <style>
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-Thin.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../fonts/Vazir-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .login-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            z-index: 0;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .login-header h1 {
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-header p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .form-label {
+            display: block;
+            color: #cbd5e1;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            color: white;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        
+        .form-input::placeholder {
+            color: #64748b;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .login-btn:hover::before {
+            left: 100%;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .login-footer a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .status-message {
+            padding: 0.8rem 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .status-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+        
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        
+        .user-info {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .user-info h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .user-info p {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.6rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-family: 'Vazirmatn', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        .continue-btn {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #059669 100%);
+            color: white;
+        }
+        
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* دکمه برگشت */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .back-btn:hover {
+            color: white;
+        }
+        
+        /* موبایل */
+        @media (max-width: 576px) {
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .logo-text {
+                font-size: 1.5rem;
+            }
+            
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        
+        
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <span class="logo-text">ویدا</span>
+                </div>
+                <h1>ورود به سامانه آموزشی</h1>
+                <p>لطفا اطلاعات خود را وارد کنید</p>
+            </div>
+            
+            <div id="statusMessage" class="status-message"></div>
+            
+            <form id="loginForm" >
+                <div class="form-group">
+                    <label for="nationalCode" class="form-label">
+                        <i class="fas fa-id-card ml-2"></i>
+                        کد ملی
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nationalCode" 
+                        class="form-input" 
+                        placeholder="مثال: ۰۰۱۲۳۴۵۶۷۸"
+                        maxlength="10"
+                        pattern="\d{10}"
+                        required
+                    >
+                    <small style="color: #94a3b8; font-size: 0.8rem; display: block; margin-top: 5px;">
+                        کد ملی باید ۱۰ رقم باشد
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="firstName" class="form-label">
+                        <i class="fas fa-user ml-2"></i>
+                        نام
+                    </label>
+                    <input 
+                        type="text" 
+                        id="firstName" 
+                        class="form-input" 
+                        placeholder="نام خود را وارد کنید"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName" class="form-label">
+                        <i class="fas fa-users ml-2"></i>
+                        نام خانوادگی
+                    </label>
+                    <input 
+                        type="text" 
+                        id="lastName" 
+                        class="form-input" 
+                        placeholder="نام خانوادگی خود را وارد کنید"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    ورود به سامانه
+                </button>
+            </form>
+            
+            <div id="userInfo" class="user-info">
+                <!-- اطلاعات کاربر وارد شده اینجا نمایش داده می‌شود -->
+            </div>
+            
+            <div class="login-footer">
+                <p>اطلاعات شما تنها در مرورگر شما ذخیره می‌شود</p>
+                <p>ورود شما به معنی پذیرش <a href="#">قوانین و مقررات</a> می‌باشد</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // کلید ذخیره‌سازی در localStorage
+        const USER_STORAGE_KEY = 'vida_user_data';
+        
+        // بررسی اگر کاربر قبلاً وارد شده
+        window.onload = function() {
+            const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+            if (savedUser) {
+                showUserInfo(JSON.parse(savedUser));
+            }
+        };
+        
+        // مدیریت فرم ورود
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nationalCode = document.getElementById('nationalCode').value.trim();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            
+            // اعتبارسنجی کد ملی
+            if (nationalCode.length !== 10 || !/^\d{10}$/.test(nationalCode)) {
+                showMessage('کد ملی باید ۱۰ رقم عددی باشد', 'error');
+                return;
+            }
+            
+            if (!firstName || !lastName) {
+                showMessage('لطفا نام و نام خانوادگی خود را وارد کنید', 'error');
+                return;
+            }
+            
+            // ایجاد شیء کاربر
+            const userData = {
+                nationalCode: nationalCode,
+                firstName: firstName,
+                lastName: lastName,
+                fullName: `${firstName} ${lastName}`,
+                loginTime: new Date().toISOString(),
+                loginDate: new Date().toLocaleDateString('fa-IR'),
+                loginTimePersian: new Date().toLocaleTimeString('fa-IR')
+            };
+            
+            // ذخیره در localStorage
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+            
+            // نمایش پیام موفقیت
+            showMessage('ورود موفقیت‌آمیز بود! اطلاعات شما ذخیره شد.', 'success');
+            
+            // پاک کردن فرم
+            document.getElementById('loginForm').reset();
+            
+            // نمایش اطلاعات کاربر
+            showUserInfo(userData);
+        });
+        
+        // تابع نمایش پیام
+        function showMessage(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message';
+            statusDiv.classList.add(`status-${type}`);
+            statusDiv.style.display = 'block';
+            
+            // مخفی کردن پیام بعد از 5 ثانیه
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // تابع نمایش اطلاعات کاربر
+        function showUserInfo(userData) {
+            const userInfoDiv = document.getElementById('userInfo');
+            userInfoDiv.innerHTML = `
+                <h3>👤 کاربر وارد شده</h3>
+                <p><strong>نام کامل:</strong> ${userData.fullName}</p>
+                <p><strong>کد ملی:</strong> ${userData.nationalCode}</p>
+                <p><strong>تاریخ ورود:</strong> ${userData.loginDate}</p>
+                <p><strong>ساعت ورود:</strong> ${userData.loginTimePersian}</p>
+                
+                <div class="user-actions">
+                    <button type="button" class="action-btn logout-btn justify-center flex items-center" onclick="logoutUser()">
+                        <i class="fas fa-sign-out-alt ml-2"></i>
+                        خروج
+                    </button>
+                    <button type="button" class="action-btn continue-btn justify-center flex items-center" onclick="continueToMain()">
+                        ادامه به صفحه اصلی
+                        <i class="fas fa-arrow-left mr-2"></i>
+                    </button>
+                </div>
+            `;
+            const form = document.getElementById('loginForm');
+            form.style.display = 'none';
+        
+            userInfoDiv.style.display = 'block';
+        }
+        
+        // تابع خروج کاربر
+        function logoutUser() {
+            localStorage.removeItem(USER_STORAGE_KEY);
+            document.getElementById('userInfo').style.display = 'none';
+            const form = document.getElementById('loginForm');
+            form.style.display = 'block';
+            showMessage('شما با موفقیت خارج شدید.', 'success');
+        }
+        
+        // تابع ادامه به صفحه اصلی
+        function continueToMain() {
+            window.location.href = '../index.html';
+        }
+        
+        // اعتبارسنجی خودکار کد ملی
+        document.getElementById('nationalCode').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+            
+            if (value.length === 10) {
+                e.target.style.borderColor = '#10b981';
+            } else {
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            }
+        });
+        
+        // میانبر صفحه‌کلید: Ctrl+Enter برای ورود
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // نمایش اطلاعات localStorage در کنسول برای دیباگ
+        console.log('سیستم ذخیره‌سازی کاربر فعال شد.');
+        console.log('برای مشاهده اطلاعات ذخیره شده: localStorage.getItem("vida_user_data")');
+    </script>
+</body>
+</html>
